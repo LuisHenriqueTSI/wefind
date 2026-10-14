@@ -9,14 +9,14 @@ No projeto WeFIND, a análise dos requisitos funcionais priorizou os fluxos cent
 
 A especificação de requisitos define formalmente as funções do aplicativo e suas restrições operacionais (Sommerville, 2019). No WeFIND, os requisitos funcionais centrais foram formulados a partir das necessidades identificadas na pesquisa de campo e da análise de sistemas similares (Capítulo 3). Para tornar o escopo mais claro e os modelos mais legíveis, operações correlatas foram agrupadas em requisitos que descrevem resultados observáveis para os usuários. A matriz de rastreabilidade entre necessidades, requisitos centrais e funcionalidades é apresentada no Apêndice D, que também registra as verificações funcionais manuais relatadas pelo autor.
 
-O escopo funcional central abrange criação e acesso à conta; atualização do perfil; consulta, publicação e ciclo de vida das ocorrências de animais perdidos ou encontrados; visualização e busca geográfica em lista e mapa; correspondência entre publicações; registro de avistamentos; comunicação entre participantes; notificações relacionadas à busca; geração e compartilhamento de cartazes de divulgação; e denúncia e moderação básica de conteúdo.
+O escopo funcional central abrange criação e acesso à conta; atualização do perfil; consulta e gestão do ciclo de vida das publicações de animais perdidos ou encontrados; busca geográfica em lista e mapa; correspondência entre publicações; registro de avistamentos; comunicação entre participantes; notificações relacionadas à busca; geração e compartilhamento de cartazes de divulgação; e denúncia e moderação básica de conteúdo.
 
 O aplicativo também contém recursos complementares implementados, como publicações de adoção, cadastro preventivo de animais e identificação por QR code, histórias de reencontro, ranking comunitário, oferta de lares temporários e recompensas. Esses recursos permanecem descritos como extensões do produto, mas não compõem o conjunto de requisitos do escopo central deste trabalho.
 
 
 \subsubsection{Requisitos Funcionais}
 
-O \hyperref[quadro:funcionais]{Quadro 2} consolida os 17 requisitos funcionais centrais do WeFIND. Cada requisito apresenta um identificador, uma denominação baseada em ação observável e o comportamento esperado. Operações correlatas, como criar, editar e encerrar uma ocorrência, são reunidas para evitar fragmentação excessiva; a especificação, por si só, não representa evidência de validação de cada comportamento.
+O \hyperref[quadro:funcionais]{Quadro 2} consolida os 17 requisitos funcionais centrais do WeFIND. Cada requisito apresenta um identificador, uma denominação baseada em ação observável e o comportamento esperado. Operações correlatas, como criar, editar e encerrar uma publicação, são reunidas para evitar fragmentação excessiva; a especificação, por si só, não representa evidência de validação de cada comportamento.
 
 \vspace{0.3cm}
 {
@@ -44,25 +44,25 @@ O \hyperref[quadro:funcionais]{Quadro 2} consolida os 17 requisitos funcionais c
 
 \textbf{RF01} & Criar e acessar conta & Permitir cadastro, autenticação, recuperação de senha e encerramento de sessão de usuários. \\ \hline
 \textbf{RF02} & Atualizar perfil & Permitir ao usuário consultar e atualizar seus dados básicos de perfil e contato. \\ \hline
-\textbf{RF03} & Consultar ocorrências & Exibir ocorrências ativas de animais perdidos ou encontrados em lista e apresentar seus detalhes, incluindo imagens, características e local informado. \\ \hline
-\textbf{RF04} & Publicar ocorrência & Permitir a usuários autenticados cadastrar uma ocorrência de animal perdido ou encontrado, informando características, descrição, imagens e localização selecionada ou confirmada no mapa. \\ \hline
-\textbf{RF05} & Atualizar ocorrência própria & Permitir ao autor editar ou excluir sua ocorrência e atualizar sua situação quando o animal for reencontrado. \\ \hline
-\textbf{RF06} & Visualizar ocorrências no mapa & Apresentar em mapa as ocorrências ativas de animais perdidos ou encontrados, posicionadas conforme o local registrado. \\ \hline
-\textbf{RF07} & Pesquisar e filtrar ocorrências & Permitir localizar ocorrências por espécie, situação, características e distância, considerando a localização informada pelo usuário. \\ \hline
-\textbf{RF08} & Traçar rota até o local informado & Apresentar uma rota até o local associado à ocorrência, quando houver dados de localização suficientes. \\ \hline
-\textbf{RF09} & Registrar avistamento & Permitir a usuário autenticado registrar em uma ocorrência um avistamento, com local, data ou horário, descrição e imagem opcional. \\ \hline
-\textbf{RF10} & Consultar e atualizar avistamentos próprios & Exibir os avistamentos associados à ocorrência e permitir que seu autor edite ou remova o próprio relato. \\ \hline
-\textbf{RF11} & Trocar mensagens sobre ocorrência & Permitir que usuários autenticados iniciem e mantenham conversa privada relacionada a uma ocorrência, com envio e recebimento de mensagens. \\ \hline
-\textbf{RF12} & Receber e consultar notificações & Informar o usuário sobre eventos relevantes da busca, como novos avistamentos, mensagens, possíveis correspondências, ocorrências próximas e lembretes de renovação, por meio da central de notificações e, quando houver permissão e suporte do dispositivo, de notificações locais ou push. \\ \hline
+\textbf{RF03} & Consultar publicações & Exibir publicações ativas de animais perdidos ou encontrados em lista e apresentar seus detalhes, incluindo imagens, características e local informado. \\ \hline
+\textbf{RF04} & Publicar anúncio de animal & Permitir a usuários autenticados criar uma publicação sobre um animal perdido ou encontrado, informando características, descrição, imagens e localização selecionada ou confirmada no mapa. \\ \hline
+\textbf{RF05} & Atualizar publicação própria & Permitir ao autor editar ou excluir sua publicação e atualizar sua situação quando o animal for reencontrado. \\ \hline
+\textbf{RF06} & Visualizar publicações no mapa & Apresentar em mapa as publicações ativas de animais perdidos ou encontrados, posicionadas conforme o local registrado. \\ \hline
+\textbf{RF07} & Pesquisar e filtrar publicações & Permitir localizar publicações por espécie, situação, características e distância, considerando a localização informada pelo usuário. \\ \hline
+\textbf{RF08} & Traçar rota até o local informado & Apresentar uma rota até o local associado à publicação, quando houver dados de localização suficientes. \\ \hline
+\textbf{RF09} & Registrar avistamento & Permitir a usuário autenticado registrar um avistamento vinculado a uma publicação, com local, data ou horário, descrição e imagem opcional. \\ \hline
+\textbf{RF10} & Consultar e atualizar avistamentos próprios & Exibir os avistamentos associados à publicação e permitir que seu autor edite ou remova o próprio relato. \\ \hline
+\textbf{RF11} & Trocar mensagens sobre publicação & Permitir que usuários autenticados iniciem e mantenham conversa privada relacionada a uma publicação, com envio e recebimento de mensagens. \\ \hline
+\textbf{RF12} & Receber e consultar notificações & Informar o usuário sobre eventos relevantes da busca, como novos avistamentos, mensagens, possíveis correspondências, publicações próximas e lembretes de renovação, por meio da central de notificações e, quando houver permissão e suporte do dispositivo, de notificações locais ou push. \\ \hline
 \textbf{RF13} & Denunciar conteúdo & Permitir ao usuário autenticado enviar denúncia sobre uma publicação ou conteúdo suspeito para análise administrativa. \\ \hline
 \textbf{RF14} & Analisar denúncias e moderar conteúdo & Permitir ao administrador consultar denúncias, analisar o conteúdo reportado e aplicar medidas de moderação disponíveis. \\ \hline
-\textbf{RF15} & Gerar e compartilhar cartaz de divulgação & Permitir gerar e compartilhar uma imagem da ocorrência nos formatos A4, vertical 9:16 ou quadrado 1:1. No formato A4, incluir código QR que direcione à página pública da ocorrência. \\ \hline
+\textbf{RF15} & Gerar e compartilhar cartaz de divulgação & Permitir gerar e compartilhar uma imagem da publicação nos formatos A4, vertical 9:16 ou quadrado 1:1. No formato A4, incluir código QR que direcione à página pública da publicação. \\ \hline
 \textbf{RF16} & Expirar e remover publicação não renovada & Manter a publicação ativa por 30 dias a partir do cadastro ou da renovação e avisar o responsável três dias antes do vencimento. Sem renovação, ocultá-la do mural e do mapa, permitindo renová-la durante 30 dias de carência. Ao fim desse período, removê-la permanentemente por meio da rotina de limpeza acionada pelo aplicativo. \\ \hline
-\textbf{RF17} & Sugerir correspondências entre ocorrências & Permitir que o sistema compare publicações ativas de animais perdidos e encontrados com base na espécie, nas características físicas e na distância geográfica, apresentando sugestões de possíveis correspondências sem confirmar automaticamente que se trata do mesmo animal. \\ \hline
+\textbf{RF17} & Sugerir correspondências entre publicações & Permitir que o sistema compare publicações ativas de animais perdidos e encontrados com base na espécie, nas características físicas e na distância geográfica, apresentando sugestões de possíveis correspondências sem confirmar automaticamente que se trata do mesmo animal. \\ \hline
 \end{longtable}
 }
 
-A especificação funcional do Quadro 2 prioriza as necessidades de busca e reencontro identificadas na pesquisa de campo e na análise das plataformas similares. Os 17 requisitos organizam os fluxos de consulta e publicação de ocorrências, busca espacial, correspondência entre anúncios, avistamentos, comunicação, divulgação por cartaz, ciclo de vida das publicações e moderação. Os demais recursos complementares descritos anteriormente foram implementados, mas não integram o escopo funcional central nem a contagem apresentada neste quadro.
+A especificação funcional do Quadro 2 prioriza as necessidades de busca e reencontro identificadas na pesquisa de campo e na análise das plataformas similares. Os 17 requisitos organizam os fluxos de consulta e publicação de anúncios, busca espacial, correspondência entre publicações, avistamentos, comunicação, divulgação por cartaz, ciclo de vida das publicações e moderação. Os demais recursos complementares descritos anteriormente foram implementados, mas não integram o escopo funcional central nem a contagem apresentada neste quadro.
 
 
 \subsubsection{Requisitos Não Funcionais}
@@ -116,7 +116,7 @@ No desenvolvimento da aplicação proposta, utilizou-se a \textit{Unified Modeli
 
 O diagrama de casos de uso da \textit{Unified Modeling Language} (UML) sintetiza as principais funcionalidades do sistema a partir do ponto de vista dos usuários. Ele apresenta as ações que cada perfil de usuário pode realizar dentro do aplicativo (Bezerra, 2021; Valente, 2023). Segundo Pressman e Maxim (2021), os casos de uso não precisam detalhar cada regra interna do sistema ou do banco de dados, mas sim apresentar as ações práticas que têm utilidade direta para as pessoas que utilizam a aplicação.
 
-Para representar o sistema de forma clara, optou-se por criar um diagrama de casos de uso geral e unificado na ferramenta Astah UML. A versão apresentada no corpo do capítulo reúne apenas as funções principais dos visitantes, dos usuários cadastrados e do administrador. A Figura~\ref{fig:diagrama_casos_de_uso} apresenta essa visão reduzida, enquanto a versão detalhada é disponibilizada no Apêndice~A.
+Para representar o sistema de forma clara, elaborou-se um diagrama geral de casos de uso com foco nas funções centrais do WeFIND. A Figura~\ref{fig:diagrama_casos_de_uso} apresenta essa visão geral, enquanto a versão detalhada é disponibilizada no Apêndice~A.
 
 \begin{figure}[H]
     \centering
@@ -124,17 +124,17 @@ Para representar o sistema de forma clara, optou-se por criar um diagrama de cas
     \label{fig:diagrama_casos_de_uso}
     \vspace{0cm}
     \includegraphics[
-        trim=0 25mm 0 17mm,
+        trim=12mm 75mm 12mm 17mm,
         clip,
         width=\textwidth
     ]{imagens/02_modelagem/figura06_diagrama_casos_de_uso_reduzido.pdf}
-    \vspace{-2.4cm}
+    \vspace{-4.4cm}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-O diagrama sintetiza o escopo funcional central por meio de três atores: o usuário visitante, o usuário autenticado e o administrador. O visitante pode visualizar publicações, consultar seus detalhes, visualizar os animais no mapa, efetuar login e realizar cadastro. O usuário autenticado herda as possibilidades de consulta do visitante e passa a manter mensagens privadas, cadastro e perfil de usuário, comentários, publicações, avistamentos e notificações. O administrador é responsável por manter a moderação e as denúncias.
+O diagrama apresenta três atores em uma hierarquia: o usuário autenticado especializa o usuário visitante e, por isso, herda suas funções; o administrador, por sua vez, especializa o usuário autenticado e também pode executar as ações disponíveis a esse perfil. O visitante pode consultar e pesquisar publicações, visualizar o mapa e os detalhes dos anúncios, criar uma conta e entrar no sistema. Ao se autenticar, passa a poder cadastrar publicações e manter as próprias publicações e os próprios avistamentos, além de utilizar mensagens privadas, consultar notificações e sugestões de correspondência, gerar cartazes, denunciar publicações e manter seu perfil. O administrador também pode moderar conteúdo e analisar denúncias.
 
-As relações de extensão e inclusão indicam como algumas ações complementam os fluxos principais. A visualização de publicações pode ser complementada pela atualização da localização; os detalhes da publicação podem incluir o envio de mensagem, o compartilhamento da publicação, a informação sobre o tutor de terceiro e o traçado de rota até o animal. A manutenção de publicação inclui a seleção da localização no mapa e pode ser estendida pela informação de tutor de terceiro. O registro de avistamento também inclui a seleção da localização no mapa, enquanto o cadastro e o login aparecem como ações relacionadas ao acesso autenticado. A elipse ``Manter Comentário'' representa, no diagrama, a manutenção de relatos associados às publicações; no escopo textual dos requisitos, esse fluxo é detalhado como registro e manutenção de avistamentos (RF09 e RF10). Os demais requisitos, como notificações, compartilhamento, moderação e manutenção do ciclo de vida das publicações, são detalhados no Quadro 2 e podem estar agrupados em elipses de maior abrangência.
+As relações de inclusão indicam etapas obrigatórias: tanto o cadastro de uma publicação quanto o registro de um avistamento incluem a seleção da localização no mapa. Já a informação de dados de um responsável de terceiro estende o cadastro de publicação quando essa situação se aplica. A visualização dos detalhes pode ser complementada por ações opcionais, como traçar uma rota, enviar uma mensagem, compartilhar a publicação ou registrar um avistamento. A opção de atualizar a localização também complementa a consulta das publicações. O diagrama resume as funções centrais; regras de negócio e fluxos alternativos são especificados no Quadro 2 e no Apêndice A.
 
 
 \subsubsection{Diagrama de Classes de Domínio}

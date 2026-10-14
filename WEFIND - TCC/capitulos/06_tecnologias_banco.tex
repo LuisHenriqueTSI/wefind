@@ -14,7 +14,7 @@ Este capítulo detalha as decisões técnicas e as ferramentas que compõem a ar
     \centering
     \caption{Arquitetura da plataforma WeFIND}
     \label{fig:arquitetura_wefind}
-    \includegraphics[width=\textwidth]{imagens/03_arquitetura_design/figura13_arquitetura_wefind.jpg}
+    \includegraphics[width=\textwidth]{imagens/03_arquitetura_design/figura13_arquitetura_wefind.png}
     \fonte{Autoria própria (2026), com auxílio de ferramenta de inteligência artificial}
 \end{figure}
 
@@ -43,7 +43,7 @@ Em conjunto com o React Native, utilizou-se a plataforma Expo. O Expo foi escolh
 
 A camada cartográfica baseia-se em \textit{react-native-maps} 1.20.1, responsável pela renderização dos mapas do Google Maps e Apple Maps e pela exibição de marcadores. Para gerar os cartazes com código QR, empregou-se \textit{react-native-view-shot} 4.0.3, que captura a interface como imagem, junto ao módulo \textit{expo-sharing} 14.0.8 para abrir o compartilhamento nativo. A navegação entre telas utiliza \textit{@react-navigation/native} 7.1.25. A estilização visual adotou NativeWind 4.2.1, baseado em Tailwind CSS 3.4.19 (React Native Maps, 2026; React Native View Shot, 2026; Expo, 2026; React Navigation, 2026; NativeWind, 2026; Tailwind CSS, 2026).
 
-No Android, a visualização cartográfica utiliza o provedor Google Maps por meio da configuração da chave da Google Maps Platform, enquanto a biblioteca \textit{react-native-maps} fornece a integração da interface nativa com o React Native. A aplicação também pode abrir o Google Maps por meio de uma URL externa para apresentar a localização de uma ocorrência ou orientar o usuário até o ponto indicado. O funcionamento desses recursos depende da disponibilidade de conexão, da concessão da permissão de localização e da configuração válida da chave para o aplicativo (GOOGLE MAPS PLATFORM, 2026; REACT NATIVE MAPS, 2026).
+No Android, a visualização cartográfica utiliza o provedor Google Maps por meio da configuração da chave da Google Maps Platform, enquanto a biblioteca \textit{react-native-maps} fornece a integração da interface nativa com o React Native. A aplicação também pode abrir o Google Maps por meio de uma URL externa para apresentar a localização de uma publicação ou orientar o usuário até o ponto indicado. O funcionamento desses recursos depende da disponibilidade de conexão, da concessão da permissão de localização e da configuração válida da chave para o aplicativo (GOOGLE MAPS PLATFORM, 2026; REACT NATIVE MAPS, 2026).
 
 Para proteger o tráfego de rede e a integridade das consultas, foram inseridas regras de validação no próprio aplicativo cliente. Os formulários executam verificações em tempo real sobre campos de preenchimento obrigatório, validam a consistência sintática de endereços de e-mail e realizam a formatação padronizada de números telefônicos antes do envio à nuvem.
 
@@ -87,7 +87,7 @@ A tabela \textit{usuarios} centraliza os dados cadastrais dos participantes do s
 
 A tabela \textit{animais} gerencia os animais domésticos cadastrados preventivamente pelos tutores, registrando nome, espécie, raça, porte físico, coloração da pelagem, sexo, idade aproximada, código de microchip eletrônico, código QR exclusivo para a coleira de identificação e URL da foto de perfil para emissão da carteirinha digital.
 
-A tabela \textit{publicacoes} estrutura as ocorrências georreferenciadas na comunidade (Perdido, Encontrado ou Adoção). Estabelece vínculo com o usuário autor e chave estrangeira opcional com a tabela \textit{animais} (\textit{pet\_id}), viabilizando alertas automáticos sem redigitação de dados. Armazena título, descrição, coordenadas de latitude e longitude em ponto flutuante, endereço, data do fato, indicador de resolução do caso, carimbo de criação (\textit{created\_at}), data da última renovação (\textit{updated\_at}) e data limite para expiração ativa (\textit{data\_expiracao}).
+A tabela \textit{publicacoes} armazena os anúncios georreferenciados cadastrados pela comunidade, classificados como Perdido, Encontrado ou Adoção. Cada registro está vinculado ao usuário autor e pode possuir uma chave estrangeira para a tabela \textit{animais} (\textit{pet\_id}), viabilizando alertas automáticos sem redigitação de dados. A tabela armazena título, descrição, coordenadas de latitude e longitude em ponto flutuante, endereço, data do fato, indicador de resolução, carimbo de criação (\textit{created\_at}), data da última renovação (\textit{updated\_at}) e data limite para expiração ativa (\textit{data\_expiracao}).
 
 A tabela \textit{fotos\_publicacoes} gerencia a galeria de imagens vinculada a cada anúncio, mantendo cardinalidade um-para-muitos com a tabela \textit{publicacoes} e armazenando a URL pública da mídia persistida no armazenamento em nuvem do Supabase Storage.
 
@@ -182,7 +182,7 @@ Sempre que uma nova publicação atinge compatibilidade de no mínimo 60\% com a
 
 A correspondência automática e o registro de avistamento utilizam informações semelhantes, mas possuem finalidades e efeitos distintos. A correspondência automática compara duas publicações ativas de status oposto, Perdido e Encontrado, para identificar uma possível relação entre o animal perdido por um usuário e o animal encontrado por outro. Seu produto é um escore heurístico e uma notificação, sem alteração automática das publicações.
 
-O registro de avistamento parte de uma publicação já existente e acrescenta uma nova ocorrência observada em outro momento ou local. Depois que o informante confirma que o animal visualizado corresponde ao caso sugerido, o serviço de avistamentos grava o relato na tabela correspondente, atualiza a localização mais recente da publicação principal e preserva os registros anteriores para compor a linha do tempo. Portanto, a correspondência automática auxilia a descoberta de possíveis correspondências, enquanto o avistamento confirmado atualiza o acompanhamento espacial do caso.
+O registro de avistamento parte de uma publicação já existente e acrescenta um novo relato sobre o animal observado em outro momento ou local. Depois que o informante confirma que o animal visualizado corresponde à publicação sugerida, o serviço de avistamentos grava o relato na tabela correspondente, atualiza a localização mais recente da publicação principal e preserva os registros anteriores para compor a linha do tempo. Portanto, a correspondência automática auxilia a descoberta de possíveis correspondências, enquanto o avistamento confirmado atualiza o acompanhamento espacial da publicação.
 
 
 \subsection{Ferramentas Auxiliares de Apoio}
@@ -201,6 +201,6 @@ Esses recursos foram utilizados de forma complementar, acompanhando as diferente
 
 O desenvolvimento do projeto apoiou-se em um conjunto de ferramentas integradas que cobriu desde o versionamento de código e a gestão de tarefas até a diagramação arquitetural e a prototipação das interfaces. A infraestrutura de desenvolvimento baseou-se na plataforma Node.js com o gerenciador npm para a administração de dependências, tendo o editor Visual Studio Code como ambiente de escrita e depuração.
 
-Para o controle de versões do código e acompanhamento das atividades, utilizaram-se o Git e a plataforma GitHub para versionamento distribuído, associados ao método Kanban no Trello. No suporte à modelagem e ao design, empregou-se o software Astah UML para a diagramação conceitual, o Figma para a concepção dos protótipos e a ferramenta Flow Labs para a elaboração de ativos gráficos auxiliares e do logotipo. O GitHub Copilot também foi utilizado como ferramenta auxiliar de programação, oferecendo sugestões e complementações de código e explicações sobre trechos do aplicativo (GitHub, 2026).
+Para o controle de versões do código e acompanhamento das atividades, utilizaram-se o Git e a plataforma GitHub para versionamento distribuído, associados ao método Kanban no Trello. No suporte à modelagem e ao design, empregou-se o software Astah UML para a diagramação conceitual e o Figma para a concepção dos protótipos. O ChatGPT foi utilizado como ferramenta de apoio ao desenvolvimento do código e à geração de imagens, a partir de instruções textuais (OpenAI, 2026). O GitHub Copilot também auxiliou a programação, oferecendo sugestões e complementações de código e explicações sobre trechos do aplicativo (GitHub, 2026).
 
 Com a definição da arquitetura de software, a modelagem do banco de dados e as ferramentas de desenvolvimento estabelecidas, o Capítulo~7 apresenta o projeto de interface do WeFIND, detalhando os aspectos de usabilidade, a identidade visual e as telas desenvolvidas.

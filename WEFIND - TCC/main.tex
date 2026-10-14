@@ -80,6 +80,11 @@
 }
 \makeatother
 
+% Capturas de tela mantêm a proporção e respeitam o mesmo limite de exibição.
+\newcommand{\capturaTela}[1]{%
+  \includegraphics[width=0.9\linewidth,height=9.2cm,keepaspectratio]{#1}%
+}
+
 % ============================================================
 % DEFINIÇÃO DO AMBIENTE QUADRO
 % ============================================================
@@ -198,7 +203,7 @@
 \setcounter{page}{1} % ABNT: a contagem inicia na folha de rosto (a capa nao conta)
 \input{pre-textuais/02_folha_rosto} \clearpage
 \input{pre-textuais/03_folha_aprovacao} \clearpage
-% \input{pre-textuais/04_agradecimentos} \clearpage
+\input{pre-textuais/04_agradecimentos} \clearpage
 \input{pre-textuais/05_resumo} \clearpage
 \input{pre-textuais/06_abstract} \clearpage
 \input{pre-textuais/07_lista_ilustracoes} \clearpage

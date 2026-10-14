@@ -1,19 +1,59 @@
-\section{TESTES}
+\section{TESTES E AVALIAÇÃO DO WEFIND}
 \setcounter{quadro}{4}
 
-A etapa de testes e validação experimental constitui um dos pilares mais relevantes no ciclo de desenvolvimento de software, sendo responsável por averiguar a qualidade das funcionalidades construídas, certificar a conformidade da aplicação perante os objetivos estabelecidos e identificar oportunidades de refinamento antes da disponibilização aos usuários finais (PRESSMAN; MAXIM, 2021). No contexto de soluções móveis voltadas a causas comunitárias e situações de urgência, como a localização e o resgate de animais domésticos perdidos, esse rigor torna-se ainda mais decisivo, pois a clareza visual, a facilidade de navegação e a estabilidade técnica impactam diretamente o sucesso e a rapidez das ações no ambiente real.
-
-Este capítulo apresenta o planejamento, a metodologia e a execução prática da avaliação do aplicativo WeFIND, concentrando-se na experiência de uso e na percepção de desempenho registradas por participantes do público-alvo durante a realização de atividades representativas na plataforma.
+Este capítulo apresenta a verificação funcional manual do WeFIND, a avaliação de usabilidade com tutores de animais domésticos e a análise estática de segurança do aplicativo Android. São descritos os procedimentos adotados, os resultados obtidos e as limitações de cada etapa.
 
 \subsection{VERIFICAÇÃO FUNCIONAL MANUAL}
 
-Antes da avaliação com participantes, o autor realizou verificações manuais dos fluxos funcionais descritos no Capítulo 4, incluindo acesso à conta, consulta e publicação de ocorrências, busca no mapa, filtros, registro de avistamentos, mensagens, avisos e moderação. As verificações ocorreram entre 10 e 25 de setembro de 2026, em um aparelho Xiaomi Redmi Note 13 com Android 15 (versão/build informada: AQ3A.240829.003). Durante os fluxos percorridos, não foram observados erros que impedissem a conclusão das operações. A geração e o compartilhamento do cartaz (RF15) também foram incluídos na terceira tarefa do roteiro aplicado aos participantes; como o questionário avaliou a conclusão do conjunto de tarefas, não houve registro isolado do resultado dessa funcionalidade.
+Antes da avaliação com participantes, o autor realizou verificações manuais dos fluxos funcionais descritos no Capítulo 4, incluindo acesso à conta, consulta e publicação de anúncios, busca no mapa, filtros, registro de avistamentos, mensagens, avisos e moderação. As verificações ocorreram entre 10 e 25 de setembro de 2026, em um aparelho Xiaomi Redmi Note 13 com Android 15 (versão/build informada: AQ3A.240829.003). Durante os fluxos percorridos, não foram observados erros que impedissem a conclusão das operações. A geração e o compartilhamento do cartaz (RF15) também foram incluídos na terceira tarefa do roteiro aplicado aos participantes; como o questionário avaliou a conclusão do conjunto de tarefas, não houve registro isolado do resultado dessa funcionalidade.
 
 Essas verificações foram conduzidas pelo próprio autor, sem roteiro formal previamente registrado, automação ou coleta sistemática de evidências. Portanto, seus resultados têm caráter exploratório e não equivalem a uma validação independente, a testes exaustivos de todas as condições de erro ou a uma garantia de ausência de defeitos. A avaliação de usabilidade com participantes, descrita nas seções seguintes, constitui uma atividade distinta.
 
-Além das verificações funcionais, foi realizada uma inspeção estática dos controles de segurança implementados no código e nas migrações do projeto. Essa inspeção confirmou o uso de HTTPS, a delegação do tratamento de senhas ao Supabase Auth, o uso de PKCE no fluxo OAuth, políticas RLS em tabelas com regras definidas, validações de entrada, códigos temporários gerados por fonte criptograficamente segura e armazenados como resumo SHA-256, limite de cinco tentativas por código, autenticação da função de mensageria e remoção de dados sensíveis dos logs. A atividade não substitui teste de invasão, auditoria da infraestrutura hospedada ou verificação independente das configurações de backup, restauração, expiração global de sessões e disponibilidade dos provedores.
+Além das verificações funcionais, foi realizada uma inspeção estática manual do código e das migrações, na qual foram identificadas práticas relacionadas à proteção da comunicação e dos dados, à autenticação e ao controle de acesso. O detalhamento dos controles observados e dos limites dessa inspeção está no Apêndice E. Essa atividade não substitui teste de invasão nem auditoria da infraestrutura hospedada.
 
-\subsection{TESTES DE USABILIDADE}
+\subsection{ANÁLISE ESTÁTICA DE SEGURANÇA DO APK}
+
+Em 14 de outubro de 2026, foi realizada uma análise estática do aplicativo WeFIND para Android com o MobSF, versão 4.5.4. Esse tipo de análise examina o arquivo do aplicativo sem executá-lo. A ferramenta apontou itens que merecem revisão, incluindo a compatibilidade com versões antigas do Android e algumas configurações internas do aplicativo e das bibliotecas utilizadas. Os resultados completos e a identificação do arquivo analisado estão no Apêndice E (MOBSF, 2026).
+
+Para contextualizar a avaliação e identificar quais informações o MobSF apresenta sobre o pacote analisado, a captura a seguir mostra o painel inicial do relatório. Ela é incluída para situar os resultados específicos dentro da análise do aplicativo WeFIND.
+
+\begin{figure}[H]
+    \centering
+    \caption{Visão geral do relatório estático do WeFIND no MobSF}
+    \label{fig:mobsf_visao_geral}
+    \capturaTela{imagens/06_seguranca/mobsf_visao_geral.png}
+    \fonte{Relatório gerado pelo MobSF 4.5.4 (2026)}
+\end{figure}
+
+O painel informa uma pontuação de segurança de 51/100 e não identifica rastreadores entre as 432 assinaturas examinadas. Essas métricas são próprias da ferramenta: não equivalem a uma certificação de segurança nem comprovam, por si só, a ausência de rastreamento. Para apresentar a origem de parte dos itens que exigem atenção, a captura seguinte mostra os resultados referentes ao manifesto Android, que descreve configurações e componentes do aplicativo.
+
+\begin{figure}[H]
+    \centering
+    \caption{Alertas da análise do manifesto Android pelo MobSF}
+    \label{fig:mobsf_manifesto}
+    \capturaTela{imagens/06_seguranca/mobsf_manifest.png}
+    \fonte{Relatório gerado pelo MobSF 4.5.4 (2026)}
+\end{figure}
+
+No manifesto, o MobSF contabilizou um alerta de severidade alta e sete avisos. O alerta alto está relacionado à possibilidade de instalação em versões antigas do Android; os avisos incluem a configuração de cópia de segurança e componentes exportados de bibliotecas utilizadas pelo aplicativo. A captura é apresentada para documentar esses achados e permitir que sejam relacionados às configurações verificadas, sem pressupor que todos representem vulnerabilidades confirmadas. A última captura complementa essa visão ao mostrar a seção de análise automatizada do código.
+
+\begin{figure}[H]
+    \centering
+    \caption{Alertas identificados na análise estática de código pelo MobSF}
+    \label{fig:mobsf_codigo}
+    \capturaTela{imagens/06_seguranca/mobsf_analise_codigo.png}
+    \fonte{Relatório gerado pelo MobSF 4.5.4 (2026)}
+\end{figure}
+
+Na análise de código, foram registrados zero alertas altos, sete avisos e três itens classificados como informativos. Os avisos incluem padrões que a ferramenta associa, por exemplo, a possíveis segredos embutidos, uso de MD5, armazenamento externo, consultas SQL e geração de valores aleatórios. Como a análise também abrange bibliotecas incluídas no pacote, esses avisos requerem verificação manual para determinar se se aplicam ao código do WeFIND. A ausência de registros em outras categorias do relatório também não comprova, isoladamente, que essas áreas estejam livres de problemas.
+
+Em conjunto, as capturas documentam os resultados da triagem automatizada e auxiliam a identificar pontos para revisão. Esta avaliação não incluiu a execução do aplicativo, testes de invasão nem análise da API ou da infraestrutura hospedada; portanto, não constitui uma avaliação completa da segurança do sistema.
+
+\subsection{AVALIAÇÃO DE USABILIDADE DO WEFIND}
+
+Para avaliar a experiência de uso do WeFIND, foi realizado um estudo com 12 tutores de animais, que percorreram cinco tarefas no aplicativo e, em seguida, responderam a um questionário com questões abertas e itens baseados na Escala de Usabilidade do Sistema (SUS). Esta seção apresenta os fundamentos e o instrumento adotado, descreve os procedimentos da avaliação e analisa os resultados obtidos, considerando também as limitações do método e da amostra.
+
+\subsubsection{USABILIDADE E ESCALA SUS}
 
 Os testes de usabilidade constituem uma metodologia empírica de avaliação focada em observar como pessoas reais interagem com um produto computacional para atingir metas determinadas. Conforme estabelece a norma técnica ABNT NBR ISO 9241-11 (2021), a usabilidade é definida como a medida na qual um sistema, produto ou serviço pode ser usado por usuários específicos para alcançar objetivos definidos com eficácia, eficiência e satisfação em um contexto de uso especificado.
 
@@ -21,13 +61,19 @@ No projeto de interfaces para dispositivos móveis, a usabilidade assume papel e
 
 Para mensurar esses fatores de forma padronizada, adotou-se o modelo conceitual da Escala de Usabilidade do Sistema (SUS), desenvolvido originalmente por Brooke (1996) e consolidado na literatura internacional de Interação Humano-Computador (SAURO; LEWIS, 2022). A SUS destaca-se pela versatilidade e robustez na captação da percepção global de usabilidade, operando por meio de dez afirmações estruturadas que alternam enunciados de teor positivo e negativo, reduzindo vieses de concordância automática e fornecendo um escore numérico confiável sobre a facilidade de uso do sistema.
 
-\subsection{PLANO E EXECUÇÃO DOS TESTES WEFIND}
+\subsubsection{ESTRATÉGIA E EXECUÇÃO DOS TESTES}
 
-A aplicação prática dos testes do WeFIND foi desenhada para colocar o sistema à prova perante representantes do seu público-alvo, confrontando as telas e fluxos desenvolvidos com as reações e percepções de tutores de animais domésticos. O plano envolveu a definição de um roteiro de tarefas essenciais, a estruturação de um questionário digital de coleta de dados e a posterior análise quantitativa e qualitativa dos resultados obtidos.
+A estratégia de avaliação estruturou-se na execução prática de um roteiro guiado por tarefas em dispositivos móveis, seguida pelo preenchimento de um formulário eletrônico de retorno disponibilizado via Google Forms, denominado ``WeFIND -- Teste de Usabilidade e Avaliação da Aplicação''. Em setembro de 2026, o convite para participar foi divulgado em um grupo do Facebook, cujo nome foi omitido. O APK do WeFIND foi disponibilizado para download em uma página de apresentação (landing page) criada para o projeto e hospedada no GitHub Pages, serviço de hospedagem de páginas do GitHub. Assim, as pessoas interessadas puderam obter o aplicativo, realizar as tarefas propostas e, ao final, responder ao formulário, que incluía a escala SUS e perguntas abertas sobre a experiência de uso. A amostra foi composta por 12 participantes voluntários, todos declarados tutores de animais de estimação. Por se tratar de recrutamento voluntário em um grupo de rede social, a amostra é não probabilística e os resultados descrevem os participantes que responderam, não podendo ser generalizados automaticamente para todos os usuários potenciais.
 
-\subsubsection{ESTRATÉGIA DE TESTE}
+A captura a seguir apresenta a página de apresentação utilizada para disponibilizar o aplicativo e permite visualizar o acesso ao download do APK.
 
-A estratégia de avaliação estruturou-se na execução prática de um roteiro guiado por tarefas em dispositivos móveis, seguida pelo preenchimento de um formulário eletrônico de retorno disponibilizado via Google Forms, denominado ``WeFIND -- Teste de Usabilidade e Avaliação da Aplicação''. A amostra do estudo foi composta por 12 participantes voluntários, todos declarados tutores de animais de estimação, garantindo total aderência ao perfil dos usuários finais para os quais o aplicativo foi idealizado.
+\begin{figure}[H]
+    \centering
+    \caption{Página de apresentação e disponibilização do aplicativo WeFIND}
+    \label{fig:landing_page_wefind}
+    \capturaTela{imagens/06_seguranca/landing_page_disponibilizacao.png}
+    \fonte{Captura de tela da página do WeFIND, hospedada no GitHub Pages (2026).}
+\end{figure}
 
 Cada voluntário recebeu a instrução de acessar o aplicativo WeFIND e percorrer cinco tarefas operacionais representativas das funcionalidades centrais do ecossistema:
 
@@ -39,15 +85,15 @@ Cada voluntário recebeu a instrução de acessar o aplicativo WeFIND e percorre
     \item Acessar e conferir as notificações e avisos recebidos na central do aplicativo.
 \end{enumerate}
 
-Após a realização do roteiro, os respondentes preencheram o instrumento de coleta, organizado em quatro seções articuladas: validação do perfil do respondente quanto à tutela de animais; questão conjunta avaliando a autopercepção sobre a conclusão das cinco tarefas; bloco das dez afirmações originais da escala SUS, traduzidas para o português e avaliadas em escala Likert de cinco pontos; e três perguntas abertas de caráter qualitativo para registro livre de pontos positivos, dificuldades vivenciadas e sugestões de aprimoramento.
+Após a realização do roteiro, os respondentes preencheram o instrumento de coleta, organizado em quatro seções articuladas: validação do perfil do respondente quanto à tutela de animais; questão conjunta avaliando a autopercepção sobre a conclusão das cinco tarefas; bloco das dez afirmações da escala SUS, apresentado em português conforme a redação de Teixeira (2015) e avaliado em escala Likert de cinco pontos; e três perguntas abertas de caráter qualitativo para registro livre de pontos positivos, dificuldades vivenciadas e sugestões de aprimoramento. A fonte consultada apresenta uma versão em português dos itens, mas não constitui, por si só, evidência de validação psicométrica dessa tradução.
 
 A pergunta de verificação da conclusão das atividades oferecia quatro alternativas de resposta: conclusão de todas as cinco tarefas com facilidade; conclusão de todas, porém com dúvidas em alguma etapa; conclusão parcial (apenas algumas tarefas); ou não conclusão das tarefas. Vale ressaltar que, por se tratar de uma pergunta conjunta que englobou todo o ciclo de tarefas em uma única resposta, o instrumento priorizou a percepção global da experiência do usuário, sem mensurar a taxa de sucesso individual isolada para cada uma das cinco etapas.
 
 Para o processamento dos dados quantitativos de usabilidade, as dez afirmações Likert (com pontuações de 1 a 5) foram submetidas ao procedimento normativo de cálculo do escore SUS (SAURO; LEWIS, 2022). Nas afirmações com enunciado positivo (itens ímpares: 1, 3, 5, 7 e 9), subtraiu-se 1 da pontuação assinalada pelo respondente. Nas afirmações com enunciado negativo (itens pares: 2, 4, 6, 8 e 10), subtraiu-se o valor assinalado de 5. A soma dos dez valores convertidos de cada participante foi multiplicada pelo coeficiente multiplicador 2,5, gerando uma escala normalizada final com pontuação contínua de 0 a 100 pontos.
 
-\subsubsection{TESTE DE USABILIDADE E DESEMPENHO}
+\subsubsection{RESULTADOS DA AVALIAÇÃO DE USABILIDADE}
 
-A tabulação dos dados permitiu analisar a aceitação do aplicativo sob diferentes perspectivas complementares: a taxa autorrelatada de conclusão das tarefas, a apuração estatística do questionário SUS, o exame qualitativo dos comentários espontâneos e a percepção de estabilidade e agilidade da interface durante a navegação.
+A tabulação dos dados permitiu analisar a aceitação do aplicativo sob diferentes perspectivas complementares: a conclusão autorrelatada das tarefas, a apuração estatística do questionário SUS, o exame qualitativo dos comentários espontâneos e os relatos de fluidez e estabilidade durante a navegação.
 
 No que se refere ao perfil dos respondentes e à conclusão das atividades propostas, a totalidade dos 12 participantes (100\%) confirmou ser tutora de animais domésticos, atendendo ao perfil definido para a avaliação. Em relação à execução prática do roteiro, todos os 12 voluntários selecionaram a opção ``Sim, concluí todas as 5 tarefas com facilidade''. O \hyperref[quadro:conclusao_tarefas]{Quadro 5} apresenta a distribuição consolidada das respostas obtidas nessa etapa.
 
@@ -126,12 +172,12 @@ A análise das questões abertas complementou as métricas numéricas, trazendo 
 
 Quanto às dúvidas e dificuldades, 7 dos 12 respondentes declararam não ter enfrentado qualquer obstáculo durante as tarefas (uma resposta permaneceu em branco). Quatro participantes apontaram dúvidas pontuais: dificuldade em identificar de imediato onde acessar a ficha detalhada de um animal anunciado, questionamento sobre a diferença entre as modalidades de registro (animal perdido versus animal avistado/encontrado), dúvida sobre qual o passo inicial ideal ao abrir a aplicação pela primeira vez e acesso ao histórico de registros efetuados anteriormente.
 
+As respostas globais sobre a conclusão das tarefas e os relatos abertos devem ser interpretados em conjunto. Embora todos tenham indicado que concluíram as cinco atividades com facilidade, quatro participantes também descreveram dúvidas pontuais. Esses relatos não anulam a conclusão autorrelatada, mas mostram que a percepção geral de facilidade pode coexistir com dificuldades localizadas. Como o formulário não avaliou cada tarefa separadamente, não é possível determinar em quais etapas essas dúvidas ocorreram nem estimar uma taxa de sucesso por tarefa.
+
 Dentre as sugestões práticas mencionadas, destacaram-se: aumentar o destaque visual do botão que abre os detalhes da publicação, inserir textos de apoio elucidando a diferença entre as opções de cadastro, enriquecer os filtros com características mais específicas, disponibilizar uma apresentação guiada de boas-vindas no primeiro acesso, permitir a opção de salvar publicações favoritas e facilitar a consulta ao histórico pessoal. Três participantes manifestaram satisfação plena sem sugerir melhorias imediatas, e dois não responderam ao campo opcional.
 
-Durante a condução prática das sessões de teste nos aparelhos físicos dos voluntários, avaliou-se igualmente a dimensão de desempenho operacional e estabilidade do software. Os participantes relataram uma experiência fluida e responsiva durante a navegação entre abas, sem ocorrência de travamentos, lentidões perceptíveis no carregamento das listagens ou encerramentos inesperados da aplicação.
+Como percepção qualitativa de uso, os participantes relataram fluidez durante a navegação entre as abas e ausência de travamentos ou encerramentos inesperados. Esses relatos representam a experiência percebida pelo grupo durante os testes; não foram coletadas medições objetivas de tempo de resposta, latência, consumo de memória ou desempenho sob carga.
 
-O módulo cartográfico, elemento central e tecnicamente mais exigente do aplicativo, apresentou boa agilidade na renderização dinâmica dos marcadores espaciais e no traçado vetorial de rotas sobre a malha viária. A rotina de composição do cartaz digital com código QR dinâmico e o compartilhamento nativo pelo sistema operacional responderam com agilidade, demonstrando que o consumo de memória e a renderização gráfica do React Native mantiveram-se dentro de patamares confortáveis para uso em smartphones cotidianos.
+A interpretação desses resultados deve ponderar as condições de contorno da pesquisa. O estudo envolveu uma amostra de 12 participantes voluntários, e a conclusão das tarefas foi registrada por meio de autopercepção global em resposta conjunta no formulário. As verificações funcionais exploratórias e os relatos de uso não equivalem a uma avaliação independente ou a medições objetivas: não foram coletados tempos por tarefa, latência, consumo de memória nem resultados de testes de carga sob diferentes condições de rede e volume de acessos. Ensaios sistemáticos de desempenho e carga podem ser realizados em etapas futuras do projeto.
 
-A interpretação desses resultados deve ponderar as condições de contorno da pesquisa. O estudo envolveu uma amostra de 12 participantes voluntários, e a conclusão das tarefas foi registrada por meio de autopercepção global em resposta conjunta no formulário. Embora a avaliação tenha capturado com rigor a perspectiva subjetiva do usuário e a ausência de falhas impeditivas, não foram implementadas sondas de telemetria contínua para cronometragem individualizada de cada microtarefa, nem medições laboratoriais de latência de pacotes sob diferentes variações de sinal celular (3G/4G/Wi-Fi) ou testes de estresse com alto volume de conexões simultâneas no banco de dados. Tais ensaios automatizados de carga e desempenho constituem uma recomendação natural para a continuidade do projeto em fases prévias à escala comercial.
-
-Em síntese, a avaliação empírica do WeFIND confirmou a conformidade do aplicativo perante seus requisitos de usabilidade e interface, atingindo escores de excelência internacional e demonstrando resposta operacional consistente, ao mesmo tempo em que forneceu subsídios objetivos para a evolução contínua da experiência do usuário.
+Em síntese, os resultados indicam uma percepção positiva de usabilidade entre os participantes consultados e oferecem subsídios para a evolução do WeFIND, mas devem ser interpretados como exploratórios. A verificação funcional foi manual e sem procedimento sistemático; a análise de segurança se limitou à inspeção estática e à análise automatizada, sem testes dinâmicos ou de invasão; e a avaliação de usabilidade contou com 12 voluntários, respostas autorrelatadas e nenhuma medição objetiva por tarefa ou de desempenho. Portanto, os achados não comprovam a ausência de defeitos ou a conformidade geral do sistema e não podem ser generalizados automaticamente para todos os usuários potenciais.
