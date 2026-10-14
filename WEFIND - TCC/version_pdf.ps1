@@ -1,7 +1,3 @@
-param (
-    [switch]$KeepMainCopy
-)
-
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $versoesDir = Join-Path $scriptDir "versoes_pdf"
 if (-not (Test-Path $versoesDir)) {
@@ -17,25 +13,22 @@ if ((Test-Path $oldVersionFile) -and (-not (Test-Path $versionFile))) {
 
 $mainPdf = Join-Path $scriptDir "main.pdf"
 if (-not (Test-Path $mainPdf)) {
-    $buildPdf = Join-Path $scriptDir "build\main.pdf"
-    if (Test-Path $buildPdf) {
-        $mainPdf = $buildPdf
-    } else {
-        Write-Error "Arquivo main.pdf não encontrado em $scriptDir nem em $scriptDir\build"
-        exit 1
-    }
+    Write-Error "Arquivo principal não encontrado: $mainPdf. Compile o TCC antes de versionar."
+    exit 1
 }
 
 $versionData = @{ current_version = 0; history = @() }
 if (Test-Path $versionFile) {
     try {
         $jsonContent = Get-Content $versionFile -Raw | ConvertFrom-Json
-        $versionData.current_version = $jsonContent.current_version
-        if ($jsonContent.history) {
-            $versionData.history = @($jsonContent.history)
+        if ($null -eq $jsonContent.current_version -or $null -eq $jsonContent.history) {
+            throw "version.json não contém current_version e history."
         }
+        $versionData.current_version = $jsonContent.current_version
+        $versionData.history = @($jsonContent.history)
     } catch {
-        Write-Warning "Não foi possível carregar version.json existente, iniciando em 0."
+        Write-Error "Não foi possível carregar version.json existente: $_"
+        exit 1
     }
 }
 
@@ -44,13 +37,12 @@ $timestamp = Get-Date -Format "dd-MM-yyyy-HH\hmm"
 $newPdfName = "TCC_WeFIND_v${nextVersion}_${timestamp}.pdf"
 $targetPdf = Join-Path $versoesDir $newPdfName
 
-if ($KeepMainCopy) {
-    Copy-Item $mainPdf $targetPdf -Force
-    Write-Host "Copiado $mainPdf para versoes_pdf\$newPdfName"
-} else {
-    Move-Item $mainPdf $targetPdf -Force
-    Write-Host "Movido $mainPdf para versoes_pdf\$newPdfName"
+if (Test-Path $targetPdf) {
+    Write-Error "O arquivo de versão já existe: $targetPdf"
+    exit 1
 }
+Copy-Item $mainPdf $targetPdf
+Write-Host "Copiado $mainPdf para versoes_pdf\$newPdfName"
 
 $newEntry = [PSCustomObject]@{
     version = $nextVersion
