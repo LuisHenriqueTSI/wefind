@@ -4,24 +4,24 @@ O design de interface de um aplicativo móvel voltado à utilidade pública é f
 
 No WeFIND, a construção das telas foi orientada por critérios de usabilidade, com destaque para as dez heurísticas de Nielsen (1994) adaptadas ao contexto dos smartphones e para as orientações da norma ABNT NBR ISO 9241-11 (ABNT, 2021). A norma define usabilidade a partir de eficácia, eficiência e satisfação. Esses princípios orientaram a organização dos fluxos de navegação, cadastro e registro de avistamentos; a verificação da experiência dos usuários será realizada na avaliação planejada.
 
-Outro cuidado central foi a acessibilidade digital, orientada pelas Diretrizes de Acessibilidade para Conteúdo Web (WCAG 2.1), no nível recomendado AA (W3C, 2023). No WeFIND, essas diretrizes serviram como referência para decisões de contraste, legibilidade e dimensões das áreas de toque, especialmente considerando o uso do smartphone em ambientes externos. A conformidade efetiva deverá ser verificada por inspeção e testes específicos.
+Outro cuidado central foi a acessibilidade digital, orientada pelas Diretrizes de Acessibilidade para Conteúdo Web (WCAG 2.2), no nível recomendado AA (W3C, 2023). No WeFIND, essas diretrizes serviram como referência para decisões de contraste, legibilidade e dimensões das áreas de toque, especialmente considerando o uso do smartphone em ambientes externos. A conformidade efetiva deverá ser verificada por inspeção e testes específicos.
 
 Dessa maneira, o projeto visual buscou harmonizar clareza de informações, ergonomia e acolhimento. As subseções a seguir apresentam as escolhas tipográficas, a identidade visual, a paleta de cores e os principais fluxos de telas da plataforma WeFIND.
 
 
-\subsection{Tipografia e Hierarquia Visual}
+\subsection{Tipografia e hierarquia visual}
 
-A definição tipográfica constitui a base fundamental do design de interface do WeFIND, visto que a legibilidade rápida de textos de alerta, características físicas dos animais e endereços é indispensável em momentos de urgência. A Figura~\ref{fig:tipografia} apresenta a família tipográfica adotada na aplicação.
+A tipografia contribui para a leitura e para a organização das informações nas telas do WeFIND. Em situações de busca, títulos, dados do animal e orientações precisam ser distinguidos com clareza. Por isso, a Roboto foi definida como referência tipográfica do projeto, com variações de peso e tamanho para estabelecer níveis de destaque.
 
 \begin{figure}[H]
     \centering
-    \caption{Família Tipográfica Roboto Adotada no WeFIND}
+    \caption{Família tipográfica Roboto e hierarquia visual definidas para o WeFIND}
     \label{fig:tipografia}
     \includegraphics[width=0.85\textwidth]{imagens/03_arquitetura_design/figura15_tipografia_roboto.png}
-    \fonte{Google Fonts (2024)}
+    \fonte{Autoria própria (2026), com base em Google Fonts (2024)}
 \end{figure}
 
-Adotou-se a família tipográfica sem serifa Roboto (Google Fonts, 2024), amplamente utilizada em aplicativos móveis por sua boa legibilidade em telas de diferentes resoluções. A hierarquia visual do WeFIND utiliza três variações da fonte: o peso em negrito é aplicado em títulos de tela, nomes de animais, valores de recompensa e marcadores de status para destacar as informações principais; o peso intermediário é empregado em botões de ação, itens do menu inferior e etiquetas de atributos como espécie, raça e porte; e o peso regular é usado nos corpos de texto, relatos de avistamentos e orientações de preenchimento. O espaçamento entre linhas e as áreas de toque mínimas de 48 por 48 pixels para botões seguem as recomendações de ergonomia móvel, facilitando o uso confortável do aplicativo com apenas uma mão.
+A Figura~\ref{fig:tipografia} apresenta os caracteres, números e símbolos da família, além dos pesos e tamanhos definidos como referência. A hierarquia prevê Roboto Bold (700) para títulos e cabeçalhos; Roboto Medium (500) para botões, rótulos e destaques de interface; e Roboto Regular (400) para textos corridos, instruções e descrições. A amostra também exemplifica a redução gradual do tamanho tipográfico, de 32 pt a 12 pt, conforme a importância e a extensão do conteúdo.
 
 
 \subsection{Identidade Visual e Conceito do Aplicativo}
@@ -32,7 +32,7 @@ Para fortalecer esse elo comunitário, a identidade visual do WeFIND priorizou u
 
 A inclusão conjunta do cão e do gato no símbolo gráfico reflete a realidade do convívio familiar brasileiro. Embora muitas campanhas de proteção animal concentrem-se historicamente apenas em cães, a perda e o abandono de felinos também são frequentes e dolorosos no ambiente urbano. Ao reunir as duas espécies em harmonia visual, a marca consolida desde o primeiro contato que a plataforma foi concebida para acolher tutores de ambos os animais com o mesmo nível de atenção.
 
-Para a concepção do ícone oficial, utilizou-se o ChatGPT (OPENAI, 2026) como ferramenta de inteligência artificial generativa, integrado ao processo de design no Figma. A ferramenta auxiliou na exploração de composições visuais e na definição de um conceito moderno e equilibrado.
+Para a concepção do ícone oficial, utilizou-se o ChatGPT (OpenAI, 2026) como ferramenta de inteligência artificial generativa, integrado ao processo de design no Figma. A ferramenta auxiliou na exploração de composições visuais e na definição de um conceito moderno e equilibrado.
 
 Os critérios solicitados incluíram estilo minimalista e plano, adequado para ícones em telas móveis de diversos tamanhos. Buscou-se a integração harmoniosa de silhuetas representativas do universo doméstico: o perfil amigável de um cão e de um gato, simbolizando as principais espécies acolhidas pelas famílias. No centro, posicionou-se o marcador de mapa, representando a busca ativa por satélite, com as cores terracota e verde sobre fundo branco:
 
@@ -56,12 +56,12 @@ A leitura do símbolo comunica com clareza o propósito da ferramenta. A forma c
 
 O símbolo foi também preparado para atender às exigências técnicas dos sistemas móveis contemporâneos, como os ícones adaptativos do Android, que utilizam máscaras de corte circulares e quadradas com áreas de segurança bem definidas. O ícone também conta com versão monocromática para a barra de notificações do celular, facilitando o reconhecimento imediato de alertas e mensagens.
 
-Na interface do aplicativo, a marca é utilizada de maneira consistente na tela inicial de apresentação, nos cartazes digitais de busca gerados para impressão e nas carteirinhas com código QR vinculadas às coleiras. Essa padronização busca reforçar a identificação visual da plataforma e associá-la à proposta de apoio ao bem-estar animal; a percepção de segurança depende também dos controles técnicos e das condições de uso descritos nos demais capítulos.
+Na interface do aplicativo, a marca é utilizada de maneira consistente na tela inicial de apresentação e nos cartazes digitais de busca. Essa padronização busca reforçar a identificação visual da plataforma e associá-la à proposta de apoio ao bem-estar animal; a percepção de segurança depende também dos controles técnicos e das condições de uso descritos nos demais capítulos.
 
 
 \subsection{Paleta Cromática Oficial}
 
-A definição cromática do WeFIND baseou-se nos princípios da psicologia das cores aplicados ao design digital (HELLER, 2021), buscando transmitir serenidade e afeto sem prejudicar a visibilidade de avisos urgentes. A Figura~\ref{fig:paleta_cores} apresenta a paleta oficial do sistema, organizada em três grupos estruturados.
+A definição cromática do WeFIND baseou-se nos princípios da psicologia das cores aplicados ao design digital (Heller, 2021), buscando transmitir serenidade e afeto sem prejudicar a visibilidade de avisos urgentes. A Figura~\ref{fig:paleta_cores} apresenta a paleta oficial do sistema, organizada em três grupos estruturados.
 
 \begin{figure}[H]
     \centering
@@ -260,29 +260,3 @@ O sistema também cruza atributos de publicações para apresentar correspondên
 \end{figure}
 
 A Figura~\ref{fig:tela_correspondencias}.a apresenta a lista de correspondências ordenada por similaridade e distância. A Figura~\ref{fig:tela_correspondencias}.b mostra a comparação dos atributos entre os registros selecionados. O resultado serve como apoio à decisão e não substitui a confirmação humana da identidade do animal.
-
-Por fim, os animais cadastrados pelo usuário podem ser consultados em um painel próprio e em uma carteirinha digital. Esse recurso concentra informações preventivas que podem ser acessadas mesmo quando ainda não existe uma publicação de animal perdido. A Figura~\ref{fig:tela_meus_pets_rg} apresenta essas duas telas.
-
-\begin{figure}[H]
-    \centering
-    \caption{Carteirinha Digital e Gestão dos Pets Tutelados}
-    \label{fig:tela_meus_pets_rg}
-    \vspace{0.15cm}
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-meus-pets-carteirinha-digital.jpeg}
-        \par\vspace{0.15cm}
-        {\small Figura~\thefigure.a) Painel de Pets}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-carteirinha-digital-rg.jpeg}
-        \par\vspace{0.15cm}
-        {\small Figura~\thefigure.b) Carteirinha com Código QR}
-    \end{minipage}
-    \par\vspace{0.12cm}
-    \fonte{Autoria própria (2026)}
-\end{figure}
-
-A Figura~\ref{fig:tela_meus_pets_rg}.a mostra o painel de pets cadastrados e o acesso aos respectivos dados. A Figura~\ref{fig:tela_meus_pets_rg}.b apresenta a carteirinha digital com os dados essenciais e o código QR para facilitar a identificação. O recurso fortalece a prevenção sem duplicar o cadastro de uma publicação.

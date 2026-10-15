@@ -1,14 +1,12 @@
 \section{ARQUITETURA DE SOFTWARE E TECNOLOGIAS}
 
-A implementação da plataforma WeFIND envolveu a escolha de tecnologias para o desenvolvimento da aplicação móvel, o armazenamento dos dados e a comunicação entre os serviços. Como ensinam Pressman e Maxim (2021) e Valente (2023), a arquitetura de software de um sistema móvel deve conciliar produtividade no ciclo de desenvolvimento, baixo acoplamento entre camadas e robustez na persistência e distribuição dos dados em nuvem.
+As decisões de arquitetura organizam a solução de software e orientam o detalhamento de seus componentes. Pressman e Maxim (2021) tratam o projeto arquitetural como uma etapa própria do processo de projeto, anterior ao projeto em nível de componentes. Para apoiar a comunicação dessas decisões, a ISO/IEC/IEEE 42010:2022 estabelece requisitos para estruturar e expressar descrições de arquitetura, incluindo pontos de vista e modelos, e distingue a arquitetura da descrição que a representa (ISO/IEC/IEEE, 2022).
 
-O projeto adotou o padrão arquitetural cliente-servidor distribuído, segmentado em duas camadas independentes: a camada cliente móvel (executada nos smartphones dos usuários) e a camada de serviços em nuvem (hospedada na infraestrutura do Supabase e na plataforma Render). Essa abordagem desacoplada assegura que a lógica de interface e renderização gráfica ocorra localmente no processador do celular, ao passo que as operações de autenticação, persistência relacional, armazenamento de arquivos multimídia, mensageria externa e sincronização em tempo real são delegadas a serviços gerenciados em nuvem (BaaS, modelo de infraestrutura de retaguarda em nuvem).
+Essa perspectiva permite apresentar não apenas quais tecnologias foram escolhidas, mas também como os elementos implementados se distribuem e se relacionam, sem confundir as capacidades oferecidas pelos provedores com funcionalidades verificadas no aplicativo. Assim, o capítulo começa pela arquitetura e pelas tecnologias da aplicação móvel; em seguida, descreve os serviços em nuvem, os mecanismos de segurança e a integração de mensageria; por fim, aborda a persistência e o ciclo de vida das publicações, além da lógica de correspondência automatizada entre anúncios.
 
-A consistência dos dados e a segurança das operações são garantidas pela integração com o banco de dados relacional PostgreSQL, estruturado com políticas de segurança em nível de linha (RLS). Esse mecanismo transfere o controle de acesso e isolamento de permissões para o próprio motor do banco de dados, impedindo que requisições não autorizadas alterem ou excluam dados alheios, mesmo em eventuais falhas na camada de apresentação móvel.
+\subsection{Arquitetura e tecnologias da plataforma}
 
-Este capítulo detalha as decisões técnicas e as ferramentas que compõem a arquitetura do WeFIND, descreve a infraestrutura de computação em nuvem provida pelo Supabase e pelo gateway de mensageria da Evolution API, apresenta a modelagem lógica relacional das entidades e tabelas no PostgreSQL e documenta as ferramentas auxiliares empregadas no projeto.
-
-\subsection{Arquitetura Geral da Plataforma}
+Para situar os componentes e as integrações utilizados na aplicação, a Figura~\ref{fig:arquitetura_wefind} apresenta uma visão geral da arquitetura do WeFIND.
 
 \begin{figure}[H]
     \centering
@@ -18,12 +16,9 @@ Este capítulo detalha as decisões técnicas e as ferramentas que compõem a ar
     \fonte{Autoria própria (2026), com auxílio de ferramenta de inteligência artificial}
 \end{figure}
 
-A Figura~\ref{fig:arquitetura_wefind} representa o fluxo principal entre as camadas da plataforma. O aplicativo móvel concentra a interface, a navegação, a localização, o uso da câmera, a geração de cartazes e a interação com os usuários. O Supabase reúne os serviços de autenticação, banco de dados, armazenamento de imagens e atualização em tempo real. A Evolution API, hospedada no Render, constitui a camada de mensageria externa utilizada para a comunicação pelo WhatsApp.
+A Figura~\ref{fig:arquitetura_wefind} apresenta três componentes: o cliente móvel, os serviços de backend do Supabase e o provedor externo de mensageria. O aplicativo concentra a interface e os recursos do dispositivo; o Supabase oferece autenticação, banco de dados, armazenamento e atualização em tempo real; e a Evolution API, hospedada no Render, intermedeia o envio de mensagens pelo WhatsApp.
 
-
-\subsection{Tecnologias do Aplicativo Móvel}
-
-A construção do aplicativo móvel exigiu a integração de ferramentas voltadas ao bom desempenho em smartphones, combinando compilação multiplataforma, baixo consumo de bateria em rotinas de GPS e suporte a estilização visual responsiva. A Figura~\ref{fig:principais_tecnologias} destaca as principais tecnologias adotadas no projeto.
+A aplicação móvel foi desenvolvida com React Native, React e Expo. A Figura~\ref{fig:principais_tecnologias} destaca as principais tecnologias adotadas no projeto.
 
 \begin{figure}[H]
     \centering
@@ -33,45 +28,53 @@ A construção do aplicativo móvel exigiu a integração de ferramentas voltada
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-A biblioteca React Native foi adotada como núcleo para a interface móvel, operando em estreita integração com o React. Foram utilizados React Native 0.81.5, React 19.1.0 e Expo SDK 54 (pacote \textit{expo} 54.0.29). O código da aplicação foi desenvolvido em JavaScript com JSX, conforme os arquivos-fonte do projeto (React, 2026; React Native, 2026; Expo, 2026). A decisão por essa tecnologia fundamentou-se em critérios técnicos de produtividade e desempenho perante outras alternativas de desenvolvimento móvel:
+A biblioteca React Native foi adotada como núcleo para a interface móvel, em integração com o React. Foram utilizados React Native 0.81.5, React 19.1.0 e Expo SDK 54 (pacote \textit{expo} 54.0.29). O código da aplicação foi desenvolvido em JavaScript com JSX (React, 2026; React Native, 2026; Expo, 2026).
 
 Em relação ao desenvolvimento puramente nativo (como construir separadamente uma aplicação em Kotlin para Android e outra em Swift para iOS), a abordagem isolada exigiria a manutenção de duas bases de código distintas. Para este projeto individual, o React Native permitiu desenvolver para as plataformas móveis a partir de uma base de código compartilhada em JavaScript e JSX.
 
-Frente a tecnologias baseadas em navegadores embutidos (como aplicações web convencionais ou plataformas baseadas em navegadores embutidos via \textit{WebView}), o React Native compila para os componentes de interface nativos do sistema operacional. Essa abordagem favorece o desempenho gráfico na renderização de mapas com múltiplos marcadores e na resposta aos eventos de toque, além de facilitar a comunicação com os sensores do dispositivo.
+Em relação a soluções baseadas em \textit{WebView}, o React Native permite compor a interface com componentes nativos e integrar recursos do dispositivo por meio de módulos. Não foi realizado um benchmark comparativo de desempenho entre essas abordagens no projeto.
 
-Em conjunto com o React Native, utilizou-se a plataforma Expo. O Expo foi escolhido por fornecer um conjunto de módulos nativos pré-configurados, reduzindo a necessidade de configurações manuais em ferramentas específicas de cada sistema operacional. No WeFIND, a integração com o aparelho apoiou-se em pacotes do Expo: \textit{expo-location} 19.0.8 para consultar os serviços de localização disponíveis no dispositivo, incluindo o GPS quando habilitado; \textit{expo-image-picker} 17.0.10 para acesso à câmera e à galeria; e \textit{expo-image-manipulator} 14.0.8 para comprimir fotos no dispositivo antes do envio. A precisão das coordenadas pode variar conforme o aparelho, as permissões concedidas e as condições de recepção (Expo, 2026).
+Em conjunto com o React Native, utilizou-se a plataforma Expo e seus módulos: \textit{expo-location} 19.0.8 para consultar os serviços de localização disponíveis no dispositivo; \textit{expo-image-picker} 17.0.10 para acesso à câmera e à galeria; e \textit{expo-image-manipulator} 14.0.8 para comprimir fotos antes do envio. A precisão das coordenadas depende do aparelho, das permissões concedidas e das condições de recepção (Expo, 2026).
 
 A camada cartográfica baseia-se em \textit{react-native-maps} 1.20.1, responsável pela renderização dos mapas do Google Maps e Apple Maps e pela exibição de marcadores. Para gerar os cartazes com código QR, empregou-se \textit{react-native-view-shot} 4.0.3, que captura a interface como imagem, junto ao módulo \textit{expo-sharing} 14.0.8 para abrir o compartilhamento nativo. A navegação entre telas utiliza \textit{@react-navigation/native} 7.1.25. A estilização visual adotou NativeWind 4.2.1, baseado em Tailwind CSS 3.4.19 (React Native Maps, 2026; React Native View Shot, 2026; Expo, 2026; React Navigation, 2026; NativeWind, 2026; Tailwind CSS, 2026).
 
-No Android, a visualização cartográfica utiliza o provedor Google Maps por meio da configuração da chave da Google Maps Platform, enquanto a biblioteca \textit{react-native-maps} fornece a integração da interface nativa com o React Native. A aplicação também pode abrir o Google Maps por meio de uma URL externa para apresentar a localização de uma publicação ou orientar o usuário até o ponto indicado. O funcionamento desses recursos depende da disponibilidade de conexão, da concessão da permissão de localização e da configuração válida da chave para o aplicativo (GOOGLE MAPS PLATFORM, 2026; REACT NATIVE MAPS, 2026).
+No Android, a visualização cartográfica utiliza o provedor Google Maps por meio da configuração da chave da Google Maps Platform, enquanto a biblioteca \textit{react-native-maps} integra o mapa à interface. A aplicação também pode abrir o Google Maps por meio de uma URL externa para apresentar a localização de uma publicação ou orientar o usuário até o ponto indicado. O funcionamento depende da conexão, das permissões de localização e da configuração válida da chave (Google Maps Platform, 2026; React Native Maps, 2026).
 
-Para proteger o tráfego de rede e a integridade das consultas, foram inseridas regras de validação no próprio aplicativo cliente. Os formulários executam verificações em tempo real sobre campos de preenchimento obrigatório, validam a consistência sintática de endereços de e-mail e realizam a formatação padronizada de números telefônicos antes do envio à nuvem.
+Os formulários também validam campos obrigatórios, verificam a sintaxe de endereços de e-mail e formatam números telefônicos antes do envio. Essas verificações no cliente apoiam a validação de entrada, mas não substituem os controles aplicados nos serviços de backend.
 
-\subsection{Serviços em Nuvem, Segurança e Mensageria}
+Para apoiar o desenvolvimento, utilizaram-se Node.js, npm e Visual Studio Code na implementação; Git e GitHub no controle de versões; Trello na organização das tarefas com Kanban; Astah UML na modelagem; e Figma na prototipação. ChatGPT e GitHub Copilot foram empregados como ferramentas auxiliares de programação e produção de conteúdo (OpenAI, 2026; GitHub, 2026). A Figura~\ref{fig:ferramentas_auxiliares} reúne parte desses recursos.
 
-Para organizar a descrição da infraestrutura, esta subseção apresenta os serviços em nuvem, os mecanismos de proteção e a integração de mensageria. O modelo de dados e o ciclo de vida das publicações são tratados separadamente, nas subseções seguintes.
+\begin{figure}[H]
+    \centering
+    \caption{Ferramentas auxiliares de apoio ao desenvolvimento do projeto}
+    \label{fig:ferramentas_auxiliares}
+    \includegraphics[width=0.88\textwidth]{imagens/03_arquitetura_design/figura12_ferramentas_auxiliares.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
 
-Na camada de serviços em nuvem, adotou-se a plataforma Supabase (SUPABASE, 2026), utilizando a biblioteca cliente \textit{@supabase/supabase-js} 2.87.3. A versão do serviço Supabase e do PostgreSQL gerenciado é administrada pela própria plataforma. A escolha do Supabase, em vez do Google Firebase ou de um backend próprio desenvolvido do zero, baseou-se em dois fatores principais:
+\subsection{Serviços em nuvem, segurança e mensageria}
 
-O Supabase Auth também intermedeia a autenticação social com o Google. Nesse fluxo, o aplicativo solicita ao Supabase uma URL de autenticação, abre o navegador do dispositivo para que o usuário conclua o login na conta Google e, após o retorno por um esquema de redirecionamento próprio do aplicativo, troca o código recebido por uma sessão autenticada. Dessa forma, o WeFIND não coleta nem armazena a senha da conta Google; a autenticação é realizada pelo provedor externo e a sessão resultante é gerenciada pelo Supabase Auth (SUPABASE, 2026).
+O backend utiliza a plataforma Supabase (Supabase, 2026) e a biblioteca cliente \textit{@supabase/supabase-js} 2.87.3. O Supabase reúne os serviços de autenticação, banco de dados PostgreSQL, armazenamento de arquivos e atualização em tempo real empregados pelo aplicativo; a versão dos serviços gerenciados é administrada pela plataforma. Essa composição foi escolhida para atender às necessidades do projeto sem desenvolver e manter todos esses componentes separadamente.
 
-Em comparação ao Firebase, que utiliza banco de dados NoSQL orientado a documentos, o Supabase utiliza o banco relacional PostgreSQL. No WeFIND, informações sobre animais, tutores, publicações e avistamentos exigem relações diretas e integridade referencial. Bancos NoSQL tornariam essas consultas complexas e gerariam duplicação de dados. Além disso, o Supabase oferece suporte nativo a políticas de segurança em nível de linha, assegurando que cada usuário acesse e altere apenas os seus próprios registros.
+O Supabase Auth também intermedeia a autenticação social com o Google. Nesse fluxo, o aplicativo solicita ao Supabase uma URL de autenticação, abre o navegador do dispositivo para que o usuário conclua o login na conta Google e, após o retorno por um esquema de redirecionamento próprio do aplicativo, troca o código recebido por uma sessão autenticada. Dessa forma, o WeFIND não coleta nem armazena a senha da conta Google; a autenticação é realizada pelo provedor externo e a sessão resultante é gerenciada pelo Supabase Auth (Supabase, 2026).
 
-Em relação à criação de um backend próprio (como uma API em Node.js com banco manual), o Supabase eliminou a necessidade de configurar servidores dedicados, certificados e rotinas manuais de manutenção. A plataforma fornece, de forma integrada, autenticação de usuários (Supabase Auth), banco de dados relacional (PostgreSQL), armazenamento de imagens na nuvem (Supabase Storage) e comunicação em tempo real para o chat e alertas.
+Para este projeto, o PostgreSQL foi selecionado por oferecer um modelo relacional adequado às relações entre perfis, publicações, imagens, avistamentos e conversas. Essa escolha descreve a necessidade atendida pelo WeFIND e não implica que bancos NoSQL sejam inadequados para outros sistemas.
 
-No que se refere à segurança, o WeFIND distribui os mecanismos de proteção entre o aplicativo móvel, as funções de borda e o banco de dados. As comunicações com o Supabase e com os serviços externos utilizam endereços HTTPS. O login com o Google emprega o fluxo OAuth com PKCE, enquanto o tratamento das senhas é delegado ao Supabase Auth, sem armazenamento ou implementação de hashes de senha no aplicativo. No banco de dados, as políticas de segurança em nível de linha (RLS) restringem as operações de acordo com o usuário autenticado e com as permissões administrativas definidas para cada tabela.
+O Supabase também foi preferido a implementar e operar, no escopo do projeto, serviços próprios para autenticação, persistência e armazenamento. Essa decisão reduz a quantidade de infraestrutura que a equipe precisa administrar diretamente, mas não elimina a dependência das configurações e da disponibilidade do provedor.
 
-As funções de borda concentram as operações que exigem credenciais de provedores externos. Dessa forma, a chave da Evolution API é mantida como variável de ambiente no servidor e não é incluída no aplicativo móvel. A função de mensageria exige uma sessão autenticada para receber solicitações de envio e devolve ao cliente somente o resultado necessário da operação, sem repassar o corpo da resposta do provedor.
+No login com o Google, o aplicativo utiliza o fluxo OAuth com PKCE e delega a autenticação ao Supabase Auth; a senha da conta Google não é coletada pelo aplicativo. As políticas de segurança em nível de linha (RLS) são configuradas no banco, com regras específicas para cada tabela. No esquema consultado, a leitura anônima de dados de perfis, publicações e avistamentos foi restringida; as regras de avistamentos e conversas também limitam o acesso conforme autenticação e participação. Assim, o comportamento de acesso depende das políticas efetivamente configuradas para cada entidade, não de uma garantia uniforme para todo o banco.
 
-Os códigos temporários utilizados no cadastro, na recuperação de senha e na alteração do telefone são gerados por uma fonte criptograficamente segura. No armazenamento, esses códigos são representados por resumos SHA-256, possuem prazo de validade e são removidos após o uso. O fluxo também limita a cinco tentativas de validação e aplica intervalo mínimo entre novas solicitações. Como medida complementar, os registros de log foram ajustados para não expor códigos, senhas, chaves, telefones completos ou respostas sensíveis de serviços externos.
+As funções de borda concentram operações que usam credenciais de provedores externos. A chave da Evolution API é mantida como variável de ambiente no servidor, fora do aplicativo móvel; a função de mensageria exige uma sessão autenticada para receber solicitações de envio.
 
-Backups, restauração, expiração global de sessões e disponibilidade da infraestrutura dependem de configurações operacionais dos provedores Supabase e Render. Por esse motivo, esses aspectos não são apresentados como garantias fornecidas exclusivamente pelo aplicativo.
+Os códigos temporários de cadastro, recuperação de senha e alteração de telefone são representados no armazenamento por resumos SHA-256, possuem prazo de validade e são removidos após o uso. O fluxo limita as tentativas de validação e aplica intervalo mínimo entre novas solicitações. Os registros de log também foram ajustados para evitar a exposição de credenciais e dados sensíveis.
 
-Para viabilizar a comunicação com o WhatsApp, utilizou-se a Evolution API (EVOLUTION API, 2026), hospedada na plataforma em nuvem Render (RENDER, 2026). A decisão por essa ferramenta em vez de APIs corporativas oficiais, como Meta Cloud API ou Twilio, considerou o escopo acadêmico e comunitário do projeto, além dos custos e dos procedimentos de configuração envolvidos nessas alternativas. Como solução de código aberto conectada por requisições HTTP REST, a Evolution API permitiu realizar, no ambiente utilizado, o envio de códigos para recuperação de senha e de avisos quando um animal é avistado sem cobrança por mensagem pela biblioteca. Os custos e a disponibilidade da hospedagem e da infraestrutura externa, contudo, dependem dos respectivos provedores.
+Backups, restauração, expiração global de sessões e disponibilidade dependem das configurações e dos serviços dos provedores Supabase e Render; não são garantias fornecidas exclusivamente pelo aplicativo.
 
-\subsection{Modelo de Dados e Persistência}
+Para a comunicação com o WhatsApp, utilizou-se a Evolution API (Evolution API, 2026), hospedada no Render (Render, 2026). No ambiente utilizado, a integração por requisições HTTP REST apoiou o envio de códigos de recuperação de senha e de avisos de avistamento. A disponibilidade e eventuais custos da hospedagem e dos serviços externos dependem dos respectivos provedores.
 
-A persistência estruturada dos dados é realizada no sistema gerenciador de banco de dados relacional PostgreSQL. Para organizar de forma consistente as entidades, atributos e relacionamentos da plataforma, desenvolveu-se o modelo lógico relacional apresentado na Figura~\ref{fig:modelo_logico_banco}.
+\subsection{Persistência e ciclo de vida das publicações}
+
+A persistência estruturada utiliza o PostgreSQL. A Figura~\ref{fig:modelo_logico_banco} apresenta o modelo lógico relacional adotado no projeto e os relacionamentos entre as entidades representadas.
 
 \begin{figure}[H]
     \centering
@@ -81,56 +84,39 @@ A persistência estruturada dos dados é realizada no sistema gerenciador de ban
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-O modelo lógico da Figura~\ref{fig:modelo_logico_banco} apresenta as principais entidades relacionais utilizadas pela plataforma. Estruturas complementares apoiam funcionalidades específicas, como acolhimento temporário, notificações, denúncias e ranking comunitário:
+Na Figura~\ref{fig:modelo_logico_banco}, os nomes representados são \textit{usuarios}, \textit{animais}, \textit{publicacoes}, \textit{fotos\_publicacoes}, \textit{avistamentos} e \textit{mensagens}. A seguir, descreve-se o conteúdo dessas entidades conforme o modelo apresentado na figura.
 
-A tabela \textit{usuarios} centraliza os dados cadastrais dos participantes do sistema. O campo identificador primário conecta-se diretamente à chave única fornecida pelo serviço Supabase Auth, registrando o nome, endereço de e-mail, fotografia de perfil, número de telefone para contato emergencial, cidade, estado de residência e o registro de data e hora de criação da conta.
+A entidade \textit{usuarios} centraliza os dados cadastrais dos participantes do sistema. Seu identificador primário conecta-se à chave única fornecida pelo serviço Supabase Auth e relaciona informações como nome, endereço de e-mail, fotografia de perfil, telefone, cidade, estado e data de criação da conta.
 
-A tabela \textit{animais} gerencia os animais domésticos cadastrados preventivamente pelos tutores, registrando nome, espécie, raça, porte físico, coloração da pelagem, sexo, idade aproximada, código de microchip eletrônico, código QR exclusivo para a coleira de identificação e URL da foto de perfil para emissão da carteirinha digital.
+A entidade \textit{animais} representa os animais domésticos associados aos usuários no modelo apresentado.
 
-A tabela \textit{publicacoes} armazena os anúncios georreferenciados cadastrados pela comunidade, classificados como Perdido, Encontrado ou Adoção. Cada registro está vinculado ao usuário autor e pode possuir uma chave estrangeira para a tabela \textit{animais} (\textit{pet\_id}), viabilizando alertas automáticos sem redigitação de dados. A tabela armazena título, descrição, coordenadas de latitude e longitude em ponto flutuante, endereço, data do fato, indicador de resolução, carimbo de criação (\textit{created\_at}), data da última renovação (\textit{updated\_at}) e data limite para expiração ativa (\textit{data\_expiracao}).
+A entidade \textit{publicacoes} reúne anúncios georreferenciados de animais perdidos ou encontrados. Cada registro relaciona-se ao usuário responsável e, no modelo, pode referenciar um animal cadastrado. Também contempla título, descrição, coordenadas, endereço, data do fato, situação de resolução, datas de criação e atualização e prazo de expiração.
 
-A tabela \textit{fotos\_publicacoes} gerencia a galeria de imagens vinculada a cada anúncio, mantendo cardinalidade um-para-muitos com a tabela \textit{publicacoes} e armazenando a URL pública da mídia persistida no armazenamento em nuvem do Supabase Storage.
+A entidade \textit{fotos\_publicacoes} organiza as imagens associadas às publicações, mantendo uma relação de um para muitos com \textit{publicacoes} e registrando o endereço dos arquivos armazenados.
 
-A tabela \textit{avistamentos} organiza os relatos colaborativos fornecidos pela comunidade ao visualizarem animais soltos na via pública. Cada registro conecta-se à respectiva publicação e ao usuário informante, registrando as coordenadas de latitude e longitude do ponto do avistamento, referências descritivas, fotografia de evidência e carimbo temporal.
+A entidade \textit{avistamentos} reúne relatos da comunidade sobre animais observados em outros locais ou momentos. Cada registro associa-se à publicação e ao usuário informante e pode incluir localização, descrição, fotografia e data do relato.
 
-A tabela \textit{mensagens} dá suporte ao canal de comunicação privativo da aplicação. Ela reúne o identificador da publicação em discussão, o usuário remetente, o destinatário, o conteúdo textual da mensagem, anexo opcional de imagem, indicador booleano de confirmação de leitura e registro cronológico do envio.
+A entidade \textit{mensagens} representa a comunicação entre participantes, relacionando a publicação em discussão, remetente, destinatário, conteúdo, eventual anexo, estado de leitura e data de envio.
 
-Complementarmente, a persistência dá suporte às entidades de colaboração comunitária: a tabela de voluntários de acolhimento (\textit{foster\_volunteers}) registra os membros dispostos a atuar como lar temporário, suas preferências de espécies e especificações da moradia; por sua vez, o serviço de pontuação e ranking (\textit{ranking.js}) agrega dinamicamente no cliente e na nuvem os registros da semana corrente, atribuindo pontuações (10 pontos por publicação, 25 pontos por lar temporário ativo e 60 pontos por reencontro confirmado) e aplicando pseudonimização no nome dos membros (exibindo apenas o primeiro nome e a inicial do sobrenome) para preservar a privacidade perante a LGPD.
+O modelo também prevê estruturas de apoio à comunicação de avisos e à moderação, relacionadas aos requisitos de notificações e denúncias.
 
-A segurança e a integridade do banco de dados relacional são asseguradas por políticas de segurança em nível de linha. Por meio desse mecanismo, implementado diretamente no mecanismo do PostgreSQL, define-se que qualquer usuário autenticado ou visitante possui permissão de leitura sobre as publicações de animais ativos, porém apenas o usuário proprietário daquele registro detém privilégios para alterar ou excluir suas próprias publicações e dados de perfil, impedindo modificações não autorizadas.
+As publicações têm vigência ativa de 30 dias, contados a partir do cadastro ou da última renovação. Três dias antes do vencimento, o aplicativo pode enviar um aviso para que o responsável renove o anúncio. Sem renovação, a publicação fica inativa e deixa de aparecer no mural e no mapa público, mas ainda pode ser renovada durante o período adicional de 30 dias.
 
-\subsection{Ciclo de Vida das Publicações e Política de Limpeza}
+Após o período de carência, a publicação pode ser removida permanentemente pela rotina de limpeza acionada durante o carregamento do mural, com intervalo mínimo de uma hora entre verificações na mesma execução do aplicativo. No fluxo de limpeza local, são considerados somente os anúncios do usuário autenticado, e a exclusão também remove os registros das fotos relacionadas e os arquivos correspondentes no Supabase Storage. Portanto, o sistema não executa uma varredura global: a remoção definitiva das publicações de cada conta depende da execução da rotina no contexto dessa conta.
 
-Para solucionar a permanência de postagens antigas nas redes sociais, nas quais animais já resgatados continuam sendo compartilhados por meses, o WeFIND adota uma lógica ativa de controle do ciclo de vida das publicações.
+\subsection{Correspondência automatizada entre publicações}
 
-Cada anúncio possui um período de 30 dias de vigência ativa, contado a partir do cadastro ou da última renovação. Três dias antes do vencimento, o aplicativo envia um aviso para que o responsável possa renovar a publicação. Caso a busca prossiga, a prorrogação é realizada com um toque no botão ``Renovar'' no painel de gestão. Sem a renovação, a publicação fica inativa e deixa de aparecer no mural e no mapa público, mas ainda pode ser renovada durante o período de carência de 30 dias.
-
-Após o período de carência, a publicação pode ser removida permanentemente pela rotina de limpeza acionada pelo aplicativo durante o carregamento do mural, com intervalo mínimo de uma hora entre verificações na mesma execução do aplicativo. No fluxo de limpeza local, são considerados os anúncios do usuário autenticado. A exclusão remove também os registros de fotos relacionados e os arquivos correspondentes no Supabase Storage. Assim, a regra prevê uma vigência de 30 dias e, sem renovação, uma janela adicional de 30 dias antes da remoção definitiva, quando a rotina de limpeza for executada.
-
-\subsection{Motor Heurístico de Correspondência Multicritério}
-
-A localização de um animal doméstico depende da agilidade com que informações complementares são conectadas. Em redes sociais e canais informais, os usuários precisam revisar manualmente dezenas de postagens para tentar reconhecer seu animal em fotografias divulgadas por terceiros. Para automatizar essa verificação, o WeFIND incorpora o módulo de correspondência automática, que realiza o cruzamento sistemático entre publicações ativas de tipos complementares (animais Perdidos e animais Encontrados).
-
-O motor opera em duas etapas sequenciais: a triagem eliminatória imediata e o cômputo ponderado de similaridade morfológica e espacial. Seu resultado é uma sugestão de correspondência entre publicações; o motor não registra automaticamente um avistamento nem altera a localização de uma publicação.
-
-\subsubsection{Critérios de Eliminação Imediata}
-
-Para reduzir o envio de alertas pouco relevantes, o algoritmo executa previamente uma checagem de viabilidade biológica e física. Três critérios funcionam como filtros eliminatórios imediatos: caso qualquer um deles seja violado, o sistema atribui escore nulo (0 pontos), encerrando o cálculo sem necessidade de avaliações adicionais.
-
-O primeiro critério corresponde à incompatibilidade de espécies, em que registros pertencentes a categorias zoológicas distintas (como cão e gato, ou equino e ave) são descartados sumariamente. O segundo critério avalia a divergência de sexo comprovado, invalidando a equivalência quando ambos os anúncios informam com certeza o gênero do animal e estes divergem formalmente entre macho e fêmea. Por fim, o terceiro critério trata dos portes físicos antagônicos, considerando mutuamente exclusivos os casos em que um animal classificado nos extremos inferiores da escala (porte mini ou pequeno) é confrontado com outro registrado nos limites superiores (porte grande ou gigante).
-
-\subsubsection{Sistema de Ponderação, Penalidades e Proximidade por Haversine}
-
-Ultrapassada a barreira dos critérios eliminatórios, os anúncios são submetidos a uma matriz de pontuação cumulativa projetada para produzir um escore heurístico entre 0 e 100 pontos. Cada atributo físico coincidente adiciona valor ao índice de compatibilidade, ao passo que divergências relevantes em raça, pelagem ou distância geográfica aplicam penalidades. Esses pesos constituem uma decisão de projeto e ainda não representam uma probabilidade estatística calibrada. O \hyperref[quadro:matching]{Quadro 4} consolida os critérios, as condições de pontuação e os pesos implementados no algoritmo.
+O WeFIND compara publicações não resolvidas de animais perdidos e encontrados para sugerir possíveis correspondências. Antes de calcular a pontuação, a rotina descarta pares com espécies incompatíveis, sexo informado como oposto ou porte classificado nos extremos pequeno e grande/gigante. Para os demais pares, soma bônus e penalidades definidos para atributos do animal e proximidade geográfica, calculada pela fórmula de Haversine quando há coordenadas. O resultado é um índice heurístico entre 0 e 100, limitado nessa faixa e arredondado; não representa uma probabilidade estatística de reencontro. O \hyperlink{quadro:matching}{Quadro~4} resume as regras implementadas.
 
 \vspace{0.3cm}
 {
-\phantomsection\hypertarget{quadro:matching}{}\label{quadro:matching}
+\phantomsection\hypertarget{quadro:matching}{}
 \small
 \renewcommand{\arraystretch}{1.12}
 \begin{longtable}{|>{\raggedright\arraybackslash}p{3.3cm}|>{\raggedright\arraybackslash}p{8.4cm}|>{\centering\arraybackslash}p{2.5cm}|}
 \hline
 \multicolumn{3}{|c|}{\textbf{Quadro 4: Critérios e Pesos do Algoritmo de Correspondência do WeFIND}} \\ \hline
+\label{quadro:matching}
 \textbf{Critério Avaliado} & \textbf{Condição Lógica e Regra de Negócio} & \textbf{Pontuação} \\ \hline
 \endfirsthead
 
@@ -147,60 +133,39 @@ Ultrapassada a barreira dos critérios eliminatórios, os anúncios são submeti
 \multicolumn{3}{|c|}{\textbf{Fonte:} Autoria própria (2026)} \\ \hline
 \endlastfoot
 
-\textbf{Espécie Animal} & Mesma espécie biológica confirmada (cão, gato, ave, cavalo). & +20 pontos \\ \cline{2-3}
-& Espécie genérica ou não informada em um dos cadastros. & +10 pontos \\ \hline
-\textbf{Sexo / Gênero} & Mesmo sexo informado em ambas as publicações. & +10 pontos \\ \cline{2-3}
-& Sexo não informado em pelo menos um dos anúncios. & +3 pontos \\ \hline
-\textbf{Porte Físico} & Mesmo porte identificado (ex.: ambos médios). & +15 pontos \\ \cline{2-3}
-& Portes contíguos na escala (pequeno e médio, ou médio e grande). & +6 pontos \\ \hline
-\textbf{Raça Declarada} & Mesma raça pura específica (ex.: Labrador com Labrador). & +25 pontos \\ \cline{2-3}
-& Raças compatíveis ou variações de grafia aproximadas. & +18 pontos \\ \cline{2-3}
-& Ambos classificados como sem raça definida (SRD/mestiço). & +8 pontos \\ \cline{2-3}
-& Raças puras declaradas claramente divergentes (conflito). & -20 pontos \\ \hline
-\textbf{Cores da Pelagem} & Duas ou mais cores coincidentes via dicionário semântico. & +20 pontos \\ \cline{2-3}
-& Uma única cor coincidente entre os dois animais. & +12 pontos \\ \cline{2-3}
-& Cores expressamente opostas sem intersecção (ex.: preto e branco). & -25 pontos \\ \hline
-\textbf{Faixa Etária} & Mesma faixa de idade declarada (filhote, jovem, adulto, idoso). & +5 pontos \\ \cline{2-3}
-& Conflito biológico flagrante (filhote versus animal sênior). & -15 pontos \\ \hline
-\textbf{Proximidade Geográfica} & Raio imediato até 1,2~km calculado pela fórmula de Haversine. & +15 pontos \\ \cline{2-3}
-& Mesma vizinhança urbana entre 1,2~km e 3,5~km de distância. & +10 pontos \\ \cline{2-3}
-& Mesma região geográfica entre 3,5~km e 8,0~km de distância. & +5 pontos \\ \cline{2-3}
-& Distância excessiva superior a 20,0~km entre as coordenadas. & -15 pontos \\ \cline{2-3}
-& Sem coordenadas GPS: mesmo bairro (+12 pts) ou mesma cidade (+5 pts). & +5 a +12 pts \\ \hline
+\textbf{Espécie} & Compatível e informada nos dois anúncios. & +20 pontos \\ \cline{2-3}
+& Uma das espécies ausente ou genérica. & +10 pontos \\ \cline{2-3}
+& Espécies incompatíveis. & Par descartado \\ \hline
+\textbf{Sexo} & Mesmo sexo identificado nos dois registros. & +10 pontos \\ \cline{2-3}
+& Sexo ausente ou não conclusivo em pelo menos um registro. & +3 pontos \\ \cline{2-3}
+& Sexos opostos informados. & Par descartado \\ \hline
+\textbf{Porte} & Mesmo porte nos dois anúncios. & +15 pontos \\ \cline{2-3}
+& Portes diferentes sem incompatibilidade extrema. & +6 pontos \\ \cline{2-3}
+& Porte ausente em um dos registros. & +5 pontos \\ \cline{2-3}
+& Porte pequeno/mini comparado a grande/gigante. & Par descartado \\ \hline
+\textbf{Raça} & Mesmo texto de raça após normalização. & +25 pontos \\ \cline{2-3}
+& Um texto de raça contém o outro após normalização. & +18 pontos \\ \cline{2-3}
+& Ambos classificados como SRD, mestiços ou sem raça informada. & +8 pontos \\ \cline{2-3}
+& Duas raças informadas e diferentes. & -20 pontos \\ \cline{2-3}
+& Um registro classificado como SRD e o outro com raça informada. & +4 pontos \\ \hline
+\textbf{Cor da pelagem} & Duas ou mais palavras-chave de cor em comum. & +20 pontos \\ \cline{2-3}
+& Uma palavra-chave de cor em comum. & +12 pontos \\ \cline{2-3}
+& Cores reconhecidas, sem palavra-chave em comum. & -25 pontos \\ \cline{2-3}
+& Cor ausente ou não reconhecida. & +4 pontos \\ \hline
+\textbf{Idade} & Mesma idade/faixa textual informada. & +5 pontos \\ \cline{2-3}
+& Um filhote comparado a um animal idoso/sênior. & -15 pontos \\ \cline{2-3}
+& Demais casos. & Sem pontuação adicional \\ \hline
+\textbf{Distância com coordenadas} & Até 1,2~km; até 3,5~km; até 8~km. & +15; +10; +5 pontos \\ \cline{2-3}
+& Acima de 8~km até 20~km. & +2 pontos \\ \cline{2-3}
+& Acima de 20~km. & -15 pontos \\ \hline
+\textbf{Localização sem GPS} & Mesma cidade e mesmo bairro; mesma cidade, sem bairro coincidente. & +12; +5 pontos \\ \cline{2-3}
+& Cidades diferentes. & -20 pontos \\ \cline{2-3}
+& Sem coordenadas e sem cidade comparável. & Sem pontuação adicional \\ \hline
 \end{longtable}
 }
 
-\subsubsection{Classificação Semântica e Disparo Automatizado de Notificações}
+O sistema apresenta correspondências com pontuação mínima de 55\% na busca padrão. Já a rotina de notificações aplica o limiar de 60\% e processa até três resultados por publicação. A diferença entre os limites permite exibir sugestões que ainda não acionam notificações automáticas. A pontuação, portanto, serve como critério de ordenação e triagem, não como confirmação de identidade.
 
-O total de pontos obtido é convertido em um índice heurístico de compatibilidade apresentado em uma escala de 0\% a 100\%. Essa escala é utilizada apenas para ordenar e comunicar o grau relativo de semelhança entre os registros; não representa a probabilidade estatística de que os dois anúncios correspondam ao mesmo animal.
-
-A faixa de compatibilidade muito alta, com índices iguais ou superiores a 85\%, sinaliza convergência em vários atributos físicos e proximidade geográfica. A faixa de compatibilidade alta, situada entre 70\% e 84\%, indica um conjunto relevante de características coincidentes. A faixa de compatibilidade possível, compreendida entre 60\% e 69\%, recomenda conferência manual dos registros. Escores inferiores a 60\% não atingem o limiar definido para notificação automática.
-
-Sempre que uma nova publicação atinge compatibilidade de no mínimo 60\% com algum animal ativo no banco de dados, o WeFIND aciona a rotina \textit{processAndNotifyPetMatches}. Esse serviço registra a sugestão e pode notificar ambas as partes envolvidas por meio da central interna, de alertas nativos e, quando o serviço externo estiver configurado e disponível, de mensagens no WhatsApp via Evolution API. A confirmação da identidade e eventual atualização de localização pertencem a fluxos posteriores e dependem de ação humana.
-
-\subsubsection{Distinção entre Correspondência Automática e Registro de Avistamento}
-
-A correspondência automática e o registro de avistamento utilizam informações semelhantes, mas possuem finalidades e efeitos distintos. A correspondência automática compara duas publicações ativas de status oposto, Perdido e Encontrado, para identificar uma possível relação entre o animal perdido por um usuário e o animal encontrado por outro. Seu produto é um escore heurístico e uma notificação, sem alteração automática das publicações.
-
-O registro de avistamento parte de uma publicação já existente e acrescenta um novo relato sobre o animal observado em outro momento ou local. Depois que o informante confirma que o animal visualizado corresponde à publicação sugerida, o serviço de avistamentos grava o relato na tabela correspondente, atualiza a localização mais recente da publicação principal e preserva os registros anteriores para compor a linha do tempo. Portanto, a correspondência automática auxilia a descoberta de possíveis correspondências, enquanto o avistamento confirmado atualiza o acompanhamento espacial da publicação.
-
-
-\subsection{Ferramentas Auxiliares de Apoio}
-
-Durante as etapas de planejamento, especificação, escrita de código e desenho visual, recorreu-se a um conjunto de ferramentas auxiliares de apoio ao desenvolvimento, apresentadas na Figura~\ref{fig:ferramentas_auxiliares}.
-
-Esses recursos foram utilizados de forma complementar, acompanhando as diferentes necessidades do projeto. Enquanto algumas ferramentas apoiaram a organização das tarefas e o controle das versões, outras contribuíram para a modelagem do sistema, a criação das interfaces e a produção dos elementos visuais. A seleção conjunta buscou manter o processo de desenvolvimento organizado, rastreável e compatível com as características de uma aplicação móvel.
-
-\begin{figure}[H]
-    \centering
-    \caption{Ferramentas auxiliares de apoio ao desenvolvimento do projeto}
-    \label{fig:ferramentas_auxiliares}
-    \includegraphics[width=0.88\textwidth]{imagens/03_arquitetura_design/figura12_ferramentas_auxiliares.png}
-    \fonte{Autoria própria (2026)}
-\end{figure}
-
-O desenvolvimento do projeto apoiou-se em um conjunto de ferramentas integradas que cobriu desde o versionamento de código e a gestão de tarefas até a diagramação arquitetural e a prototipação das interfaces. A infraestrutura de desenvolvimento baseou-se na plataforma Node.js com o gerenciador npm para a administração de dependências, tendo o editor Visual Studio Code como ambiente de escrita e depuração.
-
-Para o controle de versões do código e acompanhamento das atividades, utilizaram-se o Git e a plataforma GitHub para versionamento distribuído, associados ao método Kanban no Trello. No suporte à modelagem e ao design, empregou-se o software Astah UML para a diagramação conceitual e o Figma para a concepção dos protótipos. O ChatGPT foi utilizado como ferramenta de apoio ao desenvolvimento do código e à geração de imagens, a partir de instruções textuais (OpenAI, 2026). O GitHub Copilot também auxiliou a programação, oferecendo sugestões e complementações de código e explicações sobre trechos do aplicativo (GitHub, 2026).
+O registro de avistamento é um fluxo separado: após a confirmação pelo usuário, o aplicativo grava o relato associado à publicação e atualiza sua localização mais recente, preservando os avistamentos anteriores. A sugestão de correspondência, por si só, não registra um avistamento nem altera a publicação.
 
 Com a definição da arquitetura de software, a modelagem do banco de dados e as ferramentas de desenvolvimento estabelecidas, o Capítulo~7 apresenta o projeto de interface do WeFIND, detalhando os aspectos de usabilidade, a identidade visual e as telas desenvolvidas.

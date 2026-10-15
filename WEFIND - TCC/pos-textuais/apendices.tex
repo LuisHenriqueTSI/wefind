@@ -4,7 +4,7 @@
 \section*{APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO}
 \addcontentsline{toc}{section}{APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO}
 
-Esta seção apresenta a especificação textual detalhada dos oito casos de uso fundamentais que compõem o escopo operacional da plataforma WeFIND, descrevendo atores, pré-condições, fluxos principais, alternativas e exceções.
+Esta seção apresenta a especificação textual de sete casos de uso que compõem o escopo funcional central da plataforma WeFIND, descrevendo atores, pré-condições, fluxos principais, alternativas e exceções.
 
 \vspace{0.5cm}
 
@@ -41,7 +41,7 @@ Esta seção apresenta a especificação textual detalhada dos oito casos de uso
 4a. Campos obrigatórios vazios: o sistema impede o envio e exibe avisos de preenchimento obrigatório nos campos destacados.\par
 6a. Credenciais incorretas: o sistema emite alerta visual de erro e retém o usuário no formulário para nova tentativa.
 } \\ \hline
-\textbf{Pós-Condições} & Sessão iniciada com permissões de publicação, chat e gestão de pets ativas. \\ \hline
+\textbf{Pós-Condições} & Sessão iniciada com permissões de publicação e comunicação ativas. \\ \hline
 \end{tabular}
 \end{table}
 
@@ -97,13 +97,13 @@ Esta seção apresenta a especificação textual detalhada dos oito casos de uso
 \textbf{Nome do Caso de Uso} & Manter Publicação \\ \hline
 \textbf{Ator Principal} & Usuário (Autenticado) \\ \hline
 \textbf{Atores Secundários} & Banco de Dados (PostgreSQL) e Supabase Storage \\ \hline
-\textbf{Resumo} & Permite cadastrar, editar, encerrar como reencontrado ou adotado, ou excluir anúncios de animais perdidos, encontrados ou para adoção. \\ \hline
+\textbf{Resumo} & Permite cadastrar, editar, encerrar como reencontrado ou excluir anúncios de animais perdidos e encontrados. \\ \hline
 \textbf{Pré-Condições} & Usuário autenticado e com permissão de localização ativa. \\ \hline
 \multicolumn{2}{|l|}{\textbf{Fluxo Principal:}} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
 1. O usuário aciona o botão de nova publicação (``+'') na barra de navegação.\par
-2. O sistema apresenta o formulário solicitando a categoria: ``Perdido'', ``Encontrado'' ou ``Adoção''.\par
-3. O usuário seleciona a categoria. No caso de animal encontrado, define se foi ``Visto na rua'' ou se ``Está em Lar Temporário''.\par
+2. O sistema apresenta o formulário solicitando a categoria: ``Perdido'' ou ``Encontrado''.\par
+3. O usuário seleciona a categoria correspondente à situação do animal.\par
 4. O usuário adiciona fotografias (com recorte integrado) e seleciona os atributos físicos do pet (espécie, raça, porte, cor, idade).\par
 5. O sistema executa obrigatoriamente por inclusão (\textit{<<include>>}) o caso de uso \textbf{Selecionar Localização no Mapa}, capturando as coordenadas geográficas.\par
 6. O usuário confirma a publicação.\par
@@ -112,9 +112,8 @@ Esta seção apresenta a especificação textual detalhada dos oito casos de uso
 } \\ \hline
 \multicolumn{2}{|l|}{\textbf{Fluxos Alternativos:}} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-3a. Informar tutor de terceiros (\textit{<<extend>>}): o usuário aciona a extensão para indicar o contato de outro responsável pelo animal.\par
 4a. Edição de publicação existente: o autor atualiza fotos ou descrições do anúncio já publicado.\par
-4b. Encerramento com sucesso: o autor altera o status para ``Reencontrado'' ou ``Adotado'', arquivando a publicação.
+4b. Encerramento com sucesso: o autor altera o status para ``Reencontrado'', encerrando a busca.
 } \\ \hline
 \multicolumn{2}{|l|}{\textbf{Fluxos de Exceção:}} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
@@ -238,7 +237,7 @@ Esta seção apresenta a especificação textual detalhada dos oito casos de uso
 
 \clearpage
 
-\subsection*{Caso de Uso UC07: Cadastro Preventivo de Pets}
+\subsection*{Caso de Uso UC07: Manter Moderação e Denúncias}
 \noindent
 \begin{table}[H]
 \centering
@@ -246,42 +245,6 @@ Esta seção apresenta a especificação textual detalhada dos oito casos de uso
 \begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
 \hline
 \textbf{Identificador} & UC07 \\ \hline
-\textbf{Nome do Caso de Uso} & Cadastro Preventivo de Pets \\ \hline
-\textbf{Ator Principal} & Usuário (Autenticado) \\ \hline
-\textbf{Atores Secundários} & Banco de Dados (PostgreSQL) e Supabase Storage \\ \hline
-\textbf{Resumo} & Permite cadastrar previamente os dados dos animais domésticos tutelados, gerando a ficha de identificação com código QR de autenticidade. \\ \hline
-\textbf{Pré-Condições} & Usuário logado na sua conta. \\ \hline
-\multicolumn{2}{|l|}{\textbf{Fluxo Principal:}} \\
-\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-1. O usuário acessa a opção ``Animais Tutelados'' no menu do perfil.\par
-2. O sistema lista os animais tutelados previamente cadastrados ou oferece a opção de novo cadastro.\par
-3. O usuário insere a foto do animal, nome, espécie, raça, data de nascimento e dados veterinários (vacinas e castração).\par
-4. O usuário confirma o salvamento dos dados.\par
-5. O sistema grava os registros e gera a ficha de identificação do animal tutelado com código QR e identificador único.\par
-6. A ficha do animal fica disponível para consulta, emissão da carteirinha ou acionamento de alerta de desaparecimento.
-} \\ \hline
-\multicolumn{2}{|l|}{\textbf{Fluxos Alternativos:}} \\
-\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-6a. Acionamento de alerta de desaparecimento: caso o animal tutelado desapareça ou fuja, o tutor aciona o comando de alerta de desaparecimento, transformando a ficha preventiva diretamente em uma publicação de busca no mapa sem necessidade de redigitação.
-} \\ \hline
-\multicolumn{2}{|l|}{\textbf{Fluxos de Exceção:}} \\
-\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-3a. Campos obrigatórios em branco: o sistema barra a finalização do registro caso nome ou espécie do pet não tenham sido informados.
-} \\ \hline
-\textbf{Pós-Condições} & Cadastro do animal tutelado ativo e vinculado à conta do tutor. \\ \hline
-\end{tabular}
-\end{table}
-
-\vspace{0.8cm}
-
-\subsection*{Caso de Uso UC08: Manter Moderação e Denúncias}
-\noindent
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
-\hline
-\textbf{Identificador} & UC08 \\ \hline
 \textbf{Nome do Caso de Uso} & Manter Moderação e Denúncias \\ \hline
 \textbf{Ator Principal} & Administrador \\ \hline
 \textbf{Atores Secundários} & Banco de Dados (PostgreSQL) \\ \hline
@@ -309,18 +272,6 @@ Esta seção apresenta a especificação textual detalhada dos oito casos de uso
 \end{table}
 
 \clearpage
-
-\subsection*{Diagrama completo de casos de uso}
-
-O diagrama a seguir apresenta a versão completa dos casos de uso modelados para a plataforma WeFIND, incluindo os relacionamentos e os recursos detalhados que foram omitidos da representação resumida do Capítulo~4.
-
-\begin{figure}[H]
-    \centering
-    \caption{Diagrama completo de casos de uso da plataforma WeFIND}
-    \label{fig:diagrama_casos_de_uso_completo}
-    \includegraphics[width=\textwidth]{imagens/02_modelagem/figura06_diagrama_casos_de_uso_completo.pdf}
-    \fonte{Autoria própria (2026)}
-\end{figure}
 
 \clearpage
 
@@ -439,21 +390,21 @@ A Figura~\ref{fig:forms_chat_tempo_real} destaca expressiva aprovação ao chat 
 
 \clearpage
 
-Ao prestar acolhimento temporário a um animal resgatado, os voluntários necessitam de garantias para sua privacidade domiciliar. A pesquisa consultou a comunidade sobre a ocultação do endereço exato nas páginas públicas de anúncios, como detalhado na Figura~\ref{fig:forms_ocultacao_endereco}.
+O questionário também investigou a preferência dos participantes sobre a exposição de endereços residenciais em páginas públicas, como detalhado na Figura~\ref{fig:forms_ocultacao_endereco}.
 
 \begin{figure}[H]
     \centering
-    \caption{Preferência sobre a ocultação do endereço residencial exato ao acolher animal}
+    \caption{Preferência sobre a ocultação do endereço residencial exato em publicações}
     \label{fig:forms_ocultacao_endereco}
     \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_ocultacao_endereco.png}
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{figure}
 
-Na Figura~\ref{fig:forms_ocultacao_endereco}, 80\% dos entrevistados (16 respostas) manifestaram preferência expressa por manter o endereço residencial e o número predial ocultos do público geral até que haja comprovação idônea de tutela. Outros 10\% declararam não se importar e 10\% mostraram-se indiferentes, o que orientou a inclusão de mecanismos de anonimização geográfica na exibição dos cartões.
+Na Figura~\ref{fig:forms_ocultacao_endereco}, 80\% dos entrevistados (16 respostas) manifestaram preferência por manter o endereço residencial e o número predial ocultos do público geral. Outros 10\% declararam não se importar e 10\% mostraram-se indiferentes. Os resultados descrevem as respostas do grupo consultado.
 
 \clearpage
 
-Para evitar devoluções indevidas, golpes ou apropriação de animais por pessoas não autorizadas, o questionário submeteu a validação de procedimentos formais de comprovação de tutela prévia, conforme ilustrado na Figura~\ref{fig:forms_comprovacao_tutela}.
+O questionário também consultou os participantes sobre a apresentação de informações que auxiliem a verificar a responsabilidade por um animal, conforme ilustrado na Figura~\ref{fig:forms_comprovacao_tutela}.
 
 \begin{figure}[H]
     \centering
@@ -463,11 +414,11 @@ Para evitar devoluções indevidas, golpes ou apropriação de animais por pesso
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{figure}
 
-A apuração da Figura~\ref{fig:forms_comprovacao_tutela} revela que 70\% dos participantes aprovam a apresentação de evidências documentais ou fotos antigas antes da restituição do pet (45\% destacando a prevenção a golpes e 25\% apoiando desde que o fluxo seja simples). Outros 25\% manifestaram receio de burocratização e 5\% não souberam opinar, direcionando o sistema a adotar uma etapa de envio de comprovação ágil e sem complexidade.
+Na Figura~\ref{fig:forms_comprovacao_tutela}, 70\% dos participantes aprovaram a apresentação de evidências documentais ou fotos antigas antes da restituição do animal (45\% destacaram a prevenção a golpes e 25\% apoiaram a medida desde que o fluxo fosse simples). Outros 25\% manifestaram receio de burocratização e 5\% não souberam opinar. Esses dados representam as opiniões coletadas e não descrevem um requisito do escopo central.
 
 \clearpage
 
-Acolher animais encontrados até a localização do tutor ou encaminhá-los para adoção responsável é uma demanda contínua de bem-estar animal. O levantamento investigou o interesse comunitário em uma seção dedicada a lares temporários e adoção, como exposto na Figura~\ref{fig:forms_adocao_lar_temporario}.
+O formulário também investigou o interesse dos participantes em temas relacionados à adoção e ao acolhimento temporário, conforme exposto na Figura~\ref{fig:forms_adocao_lar_temporario}.
 
 \begin{figure}[H]
     \centering
@@ -477,11 +428,11 @@ Acolher animais encontrados até a localização do tutor ou encaminhá-los para
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{figure}
 
-Conforme demonstrado na Figura~\ref{fig:forms_adocao_lar_temporario}, 70\% dos voluntários (14 respostas) afirmaram que utilizariam uma seção específica tanto para adotar pets quanto para oferecer lar temporário, e outros 20\% (4 respostas) manifestaram interesse no módulo de adoção, totalizando 90\% de intenção favorável. Esse resultado ratifica a decisão de integrar os fluxos de busca e acolhimento solidário no WeFIND.
+Na Figura~\ref{fig:forms_adocao_lar_temporario}, 70\% dos voluntários (14 respostas) afirmaram que utilizariam uma seção tanto para adoção quanto para oferecer lar temporário, e 20\% (4 respostas) manifestaram interesse em adoção. O resultado registra a intenção declarada pelos respondentes e não corresponde a uma avaliação de funcionalidades do escopo central.
 
 \clearpage
 
-O oferecimento de gratificações é frequentemente adotado por tutores como forma de incentivar buscas na comunidade. O instrumento de pesquisa avaliou a receptividade à inclusão de valores ou avisos de recompensa no anúncio de busca, conforme mostra a Figura~\ref{fig:forms_recompensa_resgate}.
+O instrumento de pesquisa também avaliou a opinião dos participantes sobre a possibilidade de oferecer uma recompensa, conforme mostra a Figura~\ref{fig:forms_recompensa_resgate}.
 
 \begin{figure}[H]
     \centering
@@ -491,7 +442,7 @@ O oferecimento de gratificações é frequentemente adotado por tutores como for
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{figure}
 
-A Figura~\ref{fig:forms_recompensa_resgate} evidencia que 95\% dos participantes (19 respostas) apoiam a inclusão da opção de recompensa financeira diretamente na publicação para estimular a mobilização comunitária. Os restantes 5\% indicaram que poderiam utilizar o recurso dependendo do caso, registrando 0\% de rejeição à ferramenta e justificando a inclusão do campo de gratificação opcional no aplicativo.
+Na Figura~\ref{fig:forms_recompensa_resgate}, 95\% dos participantes (19 respostas) apoiaram a possibilidade de oferecer recompensa financeira diretamente na publicação, enquanto 5\% indicaram que poderiam utilizá-la dependendo do caso. Esses dados registram opiniões dos respondentes e não descrevem um requisito do escopo central.
 
 \clearpage
 
@@ -573,13 +524,13 @@ Escala de avaliação de usabilidade aplicada aos 12 participantes do teste do W
 \section*{APÊNDICE C: GUIA DE UTILIZAÇÃO DO SISTEMA WeFIND (MANUAL DO USUÁRIO)}
 \addcontentsline{toc}{section}{APÊNDICE C: GUIA DE UTILIZAÇÃO DO SISTEMA WeFIND (MANUAL DO USUÁRIO)}
 
-Este guia prático foi elaborado para orientar tutores de animais domésticos, protetores independentes e membros da comunidade na utilização cotidiana do aplicativo WeFIND. Organizado em formato de manual de instruções passo a passo, o documento detalha a experiência de uso da plataforma por meio de capturas das telas reais do sistema, explicando o propósito de cada função de maneira direta e intuitiva para facilitar o resgate e o reencontro de animais de estimação.
+Este guia prático foi elaborado para orientar tutores de animais domésticos, protetores independentes e membros da comunidade na utilização do aplicativo WeFIND. Organizado em formato de manual de instruções passo a passo, o documento apresenta capturas das telas do sistema e explica os principais fluxos de busca e divulgação de animais perdidos e encontrados.
 
-Para utilizar a ferramenta plenamente, o usuário necessita apenas de um smartphone com sistema operacional Android ou iOS e conexão com a internet, seja por rede móvel celular ou Wi-Fi. Durante o primeiro acesso, o aplicativo solicita autorização para utilizar o serviço de localização geográfica (GPS) e o acesso à câmera e galeria de fotos. Essas permissões são indispensáveis para o funcionamento dos recursos centrais: a localização permite calcular distâncias e exibir publicações em um raio próximo ao usuário, enquanto a câmera viabiliza o registro de fotografias do animal e a leitura imediata dos códigos QR de identificação.
+Para utilizar a ferramenta, o usuário necessita de um smartphone com sistema operacional Android ou iOS e conexão com a internet, seja por rede móvel celular ou Wi-Fi. Durante o uso, o aplicativo pode solicitar autorização para acessar a localização geográfica e a câmera ou galeria de fotos. Esses recursos apoiam a consulta de publicações próximas e o registro de fotografias.
 
-O roteiro está estruturado em torno dos seis procedimentos essenciais da aplicação: a criação e gestão da conta de usuário; a exploração espacial do mapa com cálculo de rotas; o cadastro ágil de animais encontrados ou perdidos; a geração automática de cartazes digitais para impressão e compartilhamento; o canal de conversas privativas em tempo real; e a administração preventiva do perfil dos pets com emissão do documento de identidade digital (RG Pet).
+O roteiro está estruturado em torno de cinco procedimentos da aplicação: a criação e gestão da conta; a consulta do mapa e das rotas; o cadastro de animais perdidos ou encontrados; a geração e o compartilhamento de cartazes; e a comunicação privada entre usuários.
 
-Ao longo das páginas seguintes, cada procedimento é ilustrado com imagens das interfaces correspondentes, acompanhadas de orientações objetivas sobre os campos a preencher e os botões a acionar. Recomenda-se que o usuário realize o cadastro preventivo de seus animais tutelados com antecedência, garantindo que as informações e a carteirinha com código QR estejam prontas para consulta caso ocorra qualquer imprevisto ou tentativa de fuga.
+Ao longo das páginas seguintes, cada procedimento é ilustrado com imagens das interfaces correspondentes, acompanhadas de orientações sobre os campos a preencher e as ações disponíveis.
 
 Visando resguardar a privacidade e a segurança dos participantes, o sistema não exibe o endereço residencial exato nem o número de telefone particular em páginas públicas, mantendo o diálogo restrito ao canal de mensagens privativo do aplicativo. Caso surjam dúvidas adicionais durante a navegação prática, o usuário pode recorrer à seção de ajuda e suporte presente no menu de configurações da aplicação, que disponibiliza orientações complementares sobre guarda responsável e políticas comunitárias de uso.
 
@@ -622,7 +573,7 @@ Para acessar a plataforma, o usuário informa seu e-mail e senha cadastrados na 
 
 \subsection*{Passo 2: Navegação no Mapa Interativo e Traçado de Rotas}
 \noindent
-Após o ingresso no aplicativo, o usuário é direcionado à exploração espacial, onde pode visualizar animais perdidos, encontrados e disponíveis para adoção georreferenciados em sua vizinhança. O sistema integra a navegação em mapa contínuo por GPS com ferramentas de traçado de rotas viárias em tempo real para orientar o resgate. A Figura~C2 apresenta o mapa principal com marcadores dinâmicos e o traçado de rota ao vivo.
+Após o ingresso no aplicativo, o usuário pode consultar no mapa as publicações de animais perdidos e encontrados. A Figura~C2 apresenta o mapa principal com marcadores e uma rota até o local associado à publicação selecionada.
 
 \begin{figure}[H]
     \centering
@@ -740,34 +691,6 @@ O sistema de mensageria (Figura~C5) viabiliza o contato ágil e protegido entre 
 
 \clearpage
 
-\subsection*{Passo 6: Cadastro Preventivo e Carteirinha Digital (RG Pet)}
-\noindent
-Como parte essencial da guarda responsável, o WeFIND oferece um ambiente preventivo onde os tutores cadastram seus animais de estimação antes de qualquer imprevisto ou fuga. O módulo emite uma carteirinha digital de identificação (RG Pet) dotada de código QR exclusivo para fixação em coleiras. A Figura~C6 apresenta o painel preventivo Meus Pets e a carteirinha digital com código QR.
-
-\begin{figure}[H]
-    \centering
-    \caption{Gestão Preventiva de Pets e Carteirinha Digital (RG Pet)}
-    \label{fig:manual_meus_pets_rg}
-    \vspace{0.15cm}
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-meus-pets-carteirinha-digital.jpeg}
-        \par\vspace{0.12cm}
-        {\small Figura C6.a) Painel Meus Pets}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.48\textwidth}
-        \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-carteirinha-digital-rg.jpeg}
-        \par\vspace{0.12cm}
-        {\small Figura C6.b) Carteirinha (RG Pet)}
-    \end{minipage}
-    \par\vspace{0.1cm}
-    \fonte{Autoria própria (2026)}
-\end{figure}
-
-A gestão preventiva reúne recursos para manter os animais da família devidamente identificados antes de qualquer incidente (Figura~C6). No painel Meus Pets (Figura~C6.a), o tutor gerencia o cadastro de seus animais tutelados e dispõe do botão de emergência ``Alerta de Fuga'', que transforma o perfil em uma publicação de busca ativa com um único toque. Ao abrir a carteirinha digital (Figura~C6.b), o aplicativo gera a identificação visual com código QR permanente para fixação em coleiras, possibilitando que qualquer pessoa que aviste o animal na rua escaneie o código com a câmera do celular para acionar o responsável imediatamente.
-
 \clearpage
 
 % ============================================================
@@ -820,7 +743,7 @@ Todos os 19 respondentes apontaram perda de alcance das publicações após algu
 A comunidade precisa poder sinalizar conteúdo suspeito para análise. & \textbf{RF13} & Envio de denúncia vinculada à publicação ou ao conteúdo reportado. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Denúncias exigem análise e ação administrativa para apoiar a integridade das informações. & \textbf{RF14} & Consulta de denúncias e moderação do conteúdo pelo administrador. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 80\% dos respondentes avaliaram com nota máxima e 20\% com nota 4 a geração automatizada de cartazes. & \textbf{RF15} & Geração de cartaz digital com informações da publicação e código QR para exportação ou compartilhamento. & Incluído na tarefa 3 da avaliação com participantes; resultado individual não registrado. \\ \hline
-Publicações sem atualização podem permanecer visíveis após o fim da busca. & \textbf{RF16} & Vigência de 30 dias, aviso três dias antes do vencimento, ocultação após expirar, renovação possível durante mais 30 dias e exclusão definitiva pela rotina de limpeza acionada no aplicativo. & Verificação individual não registrada. \\ \hline
+Publicações sem atualização podem permanecer visíveis após o fim da busca. & \textbf{RF16} & Vigência de 30 dias, aviso três dias antes do vencimento, ocultação após expirar, renovação durante 30 dias de carência e remoção definitiva, após esse prazo, pela rotina local para publicações do usuário autenticado. & Verificação individual não registrada. \\ \hline
 A comparação entre anúncios perdidos e encontrados pode apoiar a identificação de possíveis correspondências. & \textbf{RF17} & Comparação automática de publicações por espécie, características físicas e distância, com apresentação de sugestões de correspondência e confirmação final pelos usuários. & Verificação individual não registrada. \\ \hline
 \end{longtable}
 }
@@ -847,10 +770,10 @@ Este apêndice registra os dados necessários para identificar o pacote analisad
 Data da análise & 14 de outubro de 2026 \\ \hline
 Ferramenta & Mobile Security Framework (MobSF), versão 4.5.4 \\ \hline
 Tipo de análise & Estática; o aplicativo não foi executado \\ \hline
-Arquivo analisado & \texttt{WeFIND\_v2.0.apk} \\ \hline
+Arquivo analisado & \textit{WeFIND\_v2.0.apk} \\ \hline
 Aplicativo e versão & WeFIND, versão 1.0.0 \\ \hline
-Identificador do pacote & \texttt{com.wefind.app} \\ \hline
-Resumo SHA-256 & \parbox[t]{10.5cm}{\ttfamily\small f383cd85\allowbreak36142706\allowbreak d14d6e9d\allowbreak44bebdb2\allowbreak23ee7d78\allowbreak77bc9446\allowbreak a4fb21ff\allowbreak685b90f9} \\ \hline
+Identificador do pacote & \textit{com.wefind.app} \\ \hline
+Resumo SHA-256 & \parbox[t]{10.5cm}{\itshape\small f383cd85\allowbreak36142706\allowbreak d14d6e9d\allowbreak44bebdb2\allowbreak23ee7d78\allowbreak77bc9446\allowbreak a4fb21ff\allowbreak685b90f9} \\ \hline
 \end{tabular}
 \caption{Identificação do pacote submetido à análise estática}
 \fonte{Relatório do MobSF (2026)}

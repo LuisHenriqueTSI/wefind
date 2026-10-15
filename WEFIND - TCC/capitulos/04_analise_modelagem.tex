@@ -2,7 +2,7 @@
 
 A fase de análise e modelagem de sistemas traduz os requisitos levantados junto aos usuários em especificações técnicas estruturadas, regras de negócio e modelos conceituais padronizados (Pressman; Maxim, 2021; Sommerville, 2019). Essa etapa assegura a compreensão das funções do aplicativo, delimita o escopo operacional e previne inconsistências arquiteturais antes da programação (Valente, 2023).
 
-No projeto WeFIND, a análise dos requisitos funcionais priorizou os fluxos centrais de busca e reencontro de animais, orientados pela pesquisa de campo (Capítulo 3). Os requisitos não funcionais foram revistos com base em atributos de qualidade da norma ISO/IEC 25010 (ISO, 2023), mantendo-se os critérios pertinentes ao sistema e passíveis de verificação. A modelagem foi documentada por meio da \textit{Unified Modeling Language} (UML), com diagramas de casos de uso e de classes. Recursos adicionais implementados, mas não essenciais a esse recorte, são identificados separadamente como complementares.
+No projeto WeFIND, a análise dos requisitos funcionais priorizou os fluxos centrais de busca e reencontro de animais, orientados pela pesquisa de campo (Capítulo 3). Os requisitos não funcionais foram revistos com base em atributos de qualidade da norma ISO/IEC 25010 (ISO, 2023), mantendo-se os critérios pertinentes ao sistema e passíveis de verificação. A modelagem foi documentada por meio da \textit{Unified Modeling Language} (UML), com diagramas de casos de uso e de classes.
 
 
 \subsection{Engenharia e Levantamento de Requisitos}
@@ -11,7 +11,7 @@ A especificação de requisitos define formalmente as funções do aplicativo e 
 
 O escopo funcional central abrange criação e acesso à conta; atualização do perfil; consulta e gestão do ciclo de vida das publicações de animais perdidos ou encontrados; busca geográfica em lista e mapa; correspondência entre publicações; registro de avistamentos; comunicação entre participantes; notificações relacionadas à busca; geração e compartilhamento de cartazes de divulgação; e denúncia e moderação básica de conteúdo.
 
-O aplicativo também contém recursos complementares implementados, como publicações de adoção, cadastro preventivo de animais e identificação por QR code, histórias de reencontro, ranking comunitário, oferta de lares temporários e recompensas. Esses recursos permanecem descritos como extensões do produto, mas não compõem o conjunto de requisitos do escopo central deste trabalho.
+O aplicativo contém outras funcionalidades, mas elas não integram o escopo funcional central nem os resultados avaliados neste trabalho.
 
 
 \subsubsection{Requisitos Funcionais}
@@ -57,12 +57,12 @@ O \hyperref[quadro:funcionais]{Quadro 2} consolida os 17 requisitos funcionais c
 \textbf{RF13} & Denunciar conteúdo & Permitir ao usuário autenticado enviar denúncia sobre uma publicação ou conteúdo suspeito para análise administrativa. \\ \hline
 \textbf{RF14} & Analisar denúncias e moderar conteúdo & Permitir ao administrador consultar denúncias, analisar o conteúdo reportado e aplicar medidas de moderação disponíveis. \\ \hline
 \textbf{RF15} & Gerar e compartilhar cartaz de divulgação & Permitir gerar e compartilhar uma imagem da publicação nos formatos A4, vertical 9:16 ou quadrado 1:1. No formato A4, incluir código QR que direcione à página pública da publicação. \\ \hline
-\textbf{RF16} & Expirar e remover publicação não renovada & Manter a publicação ativa por 30 dias a partir do cadastro ou da renovação e avisar o responsável três dias antes do vencimento. Sem renovação, ocultá-la do mural e do mapa, permitindo renová-la durante 30 dias de carência. Ao fim desse período, removê-la permanentemente por meio da rotina de limpeza acionada pelo aplicativo. \\ \hline
+\textbf{RF16} & Expirar e remover publicação não renovada & Manter a publicação ativa por 30 dias a partir do cadastro ou da renovação e avisar o responsável três dias antes do vencimento. Sem renovação, ocultá-la do mural e do mapa, permitindo renová-la durante 30 dias de carência. Após esse período, ao carregar o mural, a rotina de limpeza pode remover permanentemente as publicações vencidas do usuário autenticado. \\ \hline
 \textbf{RF17} & Sugerir correspondências entre publicações & Permitir que o sistema compare publicações ativas de animais perdidos e encontrados com base na espécie, nas características físicas e na distância geográfica, apresentando sugestões de possíveis correspondências sem confirmar automaticamente que se trata do mesmo animal. \\ \hline
 \end{longtable}
 }
 
-A especificação funcional do Quadro 2 prioriza as necessidades de busca e reencontro identificadas na pesquisa de campo e na análise das plataformas similares. Os 17 requisitos organizam os fluxos de consulta e publicação de anúncios, busca espacial, correspondência entre publicações, avistamentos, comunicação, divulgação por cartaz, ciclo de vida das publicações e moderação. Os demais recursos complementares descritos anteriormente foram implementados, mas não integram o escopo funcional central nem a contagem apresentada neste quadro.
+A especificação funcional do Quadro 2 prioriza as necessidades de busca e reencontro identificadas na pesquisa de campo e na análise das plataformas similares. Os 17 requisitos organizam os fluxos de consulta e publicação de anúncios, busca espacial, correspondência entre publicações, avistamentos, comunicação, divulgação por cartaz, ciclo de vida das publicações e moderação. Assim, o quadro delimita o escopo funcional central deste trabalho.
 
 
 \subsubsection{Requisitos Não Funcionais}
@@ -116,7 +116,7 @@ No desenvolvimento da aplicação proposta, utilizou-se a \textit{Unified Modeli
 
 O diagrama de casos de uso da \textit{Unified Modeling Language} (UML) sintetiza as principais funcionalidades do sistema a partir do ponto de vista dos usuários. Ele apresenta as ações que cada perfil de usuário pode realizar dentro do aplicativo (Bezerra, 2021; Valente, 2023). Segundo Pressman e Maxim (2021), os casos de uso não precisam detalhar cada regra interna do sistema ou do banco de dados, mas sim apresentar as ações práticas que têm utilidade direta para as pessoas que utilizam a aplicação.
 
-Para representar o sistema de forma clara, elaborou-se um diagrama geral de casos de uso com foco nas funções centrais do WeFIND. A Figura~\ref{fig:diagrama_casos_de_uso} apresenta essa visão geral, enquanto a versão detalhada é disponibilizada no Apêndice~A.
+Para representar o sistema de forma clara, elaborou-se um diagrama geral de casos de uso com foco nas funções centrais do WeFIND. A Figura~\ref{fig:diagrama_casos_de_uso} apresenta essa visão geral; as especificações textuais dos casos de uso estão no Apêndice~A.
 
 \begin{figure}[H]
     \centering
@@ -134,12 +134,12 @@ Para representar o sistema de forma clara, elaborou-se um diagrama geral de caso
 
 O diagrama apresenta três atores em uma hierarquia: o usuário autenticado especializa o usuário visitante e, por isso, herda suas funções; o administrador, por sua vez, especializa o usuário autenticado e também pode executar as ações disponíveis a esse perfil. O visitante pode consultar e pesquisar publicações, visualizar o mapa e os detalhes dos anúncios, criar uma conta e entrar no sistema. Ao se autenticar, passa a poder cadastrar publicações e manter as próprias publicações e os próprios avistamentos, além de utilizar mensagens privadas, consultar notificações e sugestões de correspondência, gerar cartazes, denunciar publicações e manter seu perfil. O administrador também pode moderar conteúdo e analisar denúncias.
 
-As relações de inclusão indicam etapas obrigatórias: tanto o cadastro de uma publicação quanto o registro de um avistamento incluem a seleção da localização no mapa. Já a informação de dados de um responsável de terceiro estende o cadastro de publicação quando essa situação se aplica. A visualização dos detalhes pode ser complementada por ações opcionais, como traçar uma rota, enviar uma mensagem, compartilhar a publicação ou registrar um avistamento. A opção de atualizar a localização também complementa a consulta das publicações. O diagrama resume as funções centrais; regras de negócio e fluxos alternativos são especificados no Quadro 2 e no Apêndice A.
+As relações de inclusão indicam etapas obrigatórias: tanto o cadastro de uma publicação quanto o registro de um avistamento incluem a seleção da localização no mapa. A visualização dos detalhes pode ser complementada por ações como traçar uma rota, enviar uma mensagem, compartilhar a publicação ou registrar um avistamento. O diagrama resume as funções centrais; regras de negócio e fluxos alternativos são especificados no Quadro 2 e no Apêndice A.
 
 
 \subsubsection{Diagrama de Classes de Domínio}
 
-O diagrama de classes de domínio organiza as entidades da aplicação, seus atributos, operações e relações. A Figura~\ref{fig:diagrama_classes} apresenta uma visão resumida do modelo implementado, concentrada nas entidades diretamente relacionadas aos fluxos de publicação, avistamento, comunicação e moderação.
+O diagrama de classes de domínio organiza as entidades da aplicação, seus atributos e relações. A Figura~\ref{fig:diagrama_classes} apresenta uma visão resumida das entidades relacionadas aos fluxos centrais de publicação, avistamento, comunicação e moderação.
 
 \begin{figure}[H]
     \centering
@@ -154,6 +154,6 @@ O diagrama de classes de domínio organiza as entidades da aplicação, seus atr
 \enlargethispage{2\baselineskip}
 No modelo, \textit{Usuario} representa as contas e concentra os dados e operações de autenticação, perfil e participação na plataforma. \textit{Publicacao} representa os registros de animais, reunindo categoria, situação, descrição, localização, características e operações de criação, edição, encerramento, renovação e compartilhamento. A classe \textit{Avistamento} registra relatos associados a uma publicação, enquanto \textit{FotoPublicacao} organiza as imagens vinculadas a esse registro.
 
-A comunicação privada é representada pelas classes \textit{Conversa} e \textit{Mensagem}. A classe \textit{Denuncia} apoia o envio e o tratamento administrativo de denúncias relacionadas às publicações. A classe \textit{Devolucao} representa o fluxo de solicitação e resposta relacionado à devolução ou à entrega do animal, conforme o estado indicado no modelo. As associações e multiplicidades apresentadas na figura indicam os vínculos entre usuários, publicações, avistamentos, imagens, conversas, mensagens, devoluções e denúncias; os métodos foram mantidos na figura para evidenciar as principais operações de cada entidade.
+A comunicação privada é representada pelas classes \textit{Conversa} e \textit{Mensagem}. A classe \textit{Denuncia} apoia o envio e o tratamento administrativo de denúncias relacionadas às publicações. As associações apresentadas na figura indicam os vínculos entre usuários, publicações, avistamentos, imagens, conversas, mensagens, notificações e denúncias.
 
 Com os requisitos funcionais formalizados e a modelagem de classes de domínio consolidada, o Capítulo 5 apresenta a solução proposta com o aplicativo WeFIND, detalhando a concepção da ferramenta, sua arquitetura e as decisões técnicas adotadas.

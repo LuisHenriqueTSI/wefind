@@ -1,7 +1,9 @@
 \section{TESTES E AVALIAÇÃO DO WEFIND}
 \setcounter{quadro}{4}
 
-Este capítulo apresenta a verificação funcional manual do WeFIND, a avaliação de usabilidade com tutores de animais domésticos e a análise estática de segurança do aplicativo Android. São descritos os procedimentos adotados, os resultados obtidos e as limitações de cada etapa.
+Na engenharia de software, os testes são uma etapa importante para detectar falhas antes que o produto seja entregue ao cliente (Pressman; Maxim, 2016, p. 402). No WeFIND, após a implementação, foram realizadas avaliações para examinar os fluxos funcionais, compreender a experiência de uso e identificar aspectos de segurança que merecem atenção. Seus resultados oferecem subsídios para o aprimoramento do aplicativo, mas não comprovam a ausência de defeitos nem garantem a segurança integral do sistema.
+
+Este capítulo descreve as verificações funcionais manuais, a avaliação de usabilidade conduzida com tutores de animais e a análise estática do aplicativo Android com o MobSF. São apresentados os procedimentos, os resultados e as limitações de cada atividade, delimitando o alcance das conclusões.
 
 \subsection{VERIFICAÇÃO FUNCIONAL MANUAL}
 
@@ -13,7 +15,7 @@ Além das verificações funcionais, foi realizada uma inspeção estática manu
 
 \subsection{ANÁLISE ESTÁTICA DE SEGURANÇA DO APK}
 
-Em 14 de outubro de 2026, foi realizada uma análise estática do aplicativo WeFIND para Android com o MobSF, versão 4.5.4. Esse tipo de análise examina o arquivo do aplicativo sem executá-lo. A ferramenta apontou itens que merecem revisão, incluindo a compatibilidade com versões antigas do Android e algumas configurações internas do aplicativo e das bibliotecas utilizadas. Os resultados completos e a identificação do arquivo analisado estão no Apêndice E (MOBSF, 2026).
+Em 14 de outubro de 2026, foi realizada uma análise estática do aplicativo WeFIND para Android com o MobSF, versão 4.5.4. Esse tipo de análise examina o arquivo do aplicativo sem executá-lo. A ferramenta apontou itens que merecem revisão, incluindo a compatibilidade com versões antigas do Android e algumas configurações internas do aplicativo e das bibliotecas utilizadas. Os resultados completos e a identificação do arquivo analisado estão no Apêndice E (MobSF, 2026).
 
 Para contextualizar a avaliação e identificar quais informações o MobSF apresenta sobre o pacote analisado, a captura a seguir mostra o painel inicial do relatório. Ela é incluída para situar os resultados específicos dentro da análise do aplicativo WeFIND.
 
@@ -51,15 +53,13 @@ Em conjunto, as capturas documentam os resultados da triagem automatizada e auxi
 
 \subsection{AVALIAÇÃO DE USABILIDADE DO WEFIND}
 
-Para avaliar a experiência de uso do WeFIND, foi realizado um estudo com 12 tutores de animais, que percorreram cinco tarefas no aplicativo e, em seguida, responderam a um questionário com questões abertas e itens baseados na Escala de Usabilidade do Sistema (SUS). Esta seção apresenta os fundamentos e o instrumento adotado, descreve os procedimentos da avaliação e analisa os resultados obtidos, considerando também as limitações do método e da amostra.
-
-\subsubsection{USABILIDADE E ESCALA SUS}
+Para avaliar a experiência de uso do WeFIND, foi realizado um estudo com 12 tutores de animais, que percorreram cinco tarefas no aplicativo e, em seguida, responderam a um questionário com questões abertas e itens baseados na Escala de Usabilidade do Sistema (SUS). A seguir, são descritos os critérios considerados, o instrumento e os procedimentos adotados, além dos resultados e das limitações do método e da amostra.
 
 Os testes de usabilidade constituem uma metodologia empírica de avaliação focada em observar como pessoas reais interagem com um produto computacional para atingir metas determinadas. Conforme estabelece a norma técnica ABNT NBR ISO 9241-11 (2021), a usabilidade é definida como a medida na qual um sistema, produto ou serviço pode ser usado por usuários específicos para alcançar objetivos definidos com eficácia, eficiência e satisfação em um contexto de uso especificado.
 
-No projeto de interfaces para dispositivos móveis, a usabilidade assume papel estratégico ao mitigar a carga cognitiva do usuário, prevenir erros operacionais e assegurar que as ações essenciais sejam executadas de forma ágil e intuitiva (ROGERS; SHARP; PREECE, 2023). Em momentos de aflição provocados pela perda de um animal de estimação, telas sobrecarregadas, terminologias ambíguas ou formulários confusos podem induzir o usuário à desistência ou ao preenchimento incorreto de dados vitais. Assim, a verificação da facilidade de aprendizado e da fluidez dos fluxos operacionais é indispensável para validar a proposta de valor do WeFIND.
+No projeto de interfaces para dispositivos móveis, a usabilidade assume papel estratégico ao mitigar a carga cognitiva do usuário, prevenir erros operacionais e assegurar que as ações essenciais sejam executadas de forma ágil e intuitiva (Rogers; Sharp; Preece, 2023). Em momentos de aflição provocados pela perda de um animal de estimação, telas sobrecarregadas, terminologias ambíguas ou formulários confusos podem induzir o usuário à desistência ou ao preenchimento incorreto de dados vitais. Assim, a verificação da facilidade de aprendizado e da fluidez dos fluxos operacionais é indispensável para validar a proposta de valor do WeFIND.
 
-Para mensurar esses fatores de forma padronizada, adotou-se o modelo conceitual da Escala de Usabilidade do Sistema (SUS), desenvolvido originalmente por Brooke (1996) e consolidado na literatura internacional de Interação Humano-Computador (SAURO; LEWIS, 2022). A SUS destaca-se pela versatilidade e robustez na captação da percepção global de usabilidade, operando por meio de dez afirmações estruturadas que alternam enunciados de teor positivo e negativo, reduzindo vieses de concordância automática e fornecendo um escore numérico confiável sobre a facilidade de uso do sistema.
+Para mensurar esses fatores de forma padronizada, adotou-se o modelo conceitual da Escala de Usabilidade do Sistema (SUS), desenvolvido originalmente por Brooke (1996) e consolidado na literatura internacional de Interação Humano-Computador (Sauro; Lewis, 2022). A SUS destaca-se pela versatilidade e robustez na captação da percepção global de usabilidade, operando por meio de dez afirmações estruturadas que alternam enunciados de teor positivo e negativo, reduzindo vieses de concordância automática e fornecendo um escore numérico confiável sobre a facilidade de uso do sistema.
 
 \subsubsection{ESTRATÉGIA E EXECUÇÃO DOS TESTES}
 
@@ -89,7 +89,7 @@ Após a realização do roteiro, os respondentes preencheram o instrumento de co
 
 A pergunta de verificação da conclusão das atividades oferecia quatro alternativas de resposta: conclusão de todas as cinco tarefas com facilidade; conclusão de todas, porém com dúvidas em alguma etapa; conclusão parcial (apenas algumas tarefas); ou não conclusão das tarefas. Vale ressaltar que, por se tratar de uma pergunta conjunta que englobou todo o ciclo de tarefas em uma única resposta, o instrumento priorizou a percepção global da experiência do usuário, sem mensurar a taxa de sucesso individual isolada para cada uma das cinco etapas.
 
-Para o processamento dos dados quantitativos de usabilidade, as dez afirmações Likert (com pontuações de 1 a 5) foram submetidas ao procedimento normativo de cálculo do escore SUS (SAURO; LEWIS, 2022). Nas afirmações com enunciado positivo (itens ímpares: 1, 3, 5, 7 e 9), subtraiu-se 1 da pontuação assinalada pelo respondente. Nas afirmações com enunciado negativo (itens pares: 2, 4, 6, 8 e 10), subtraiu-se o valor assinalado de 5. A soma dos dez valores convertidos de cada participante foi multiplicada pelo coeficiente multiplicador 2,5, gerando uma escala normalizada final com pontuação contínua de 0 a 100 pontos.
+Para o processamento dos dados quantitativos de usabilidade, as dez afirmações Likert (com pontuações de 1 a 5) foram submetidas ao procedimento normativo de cálculo do escore SUS (Sauro; Lewis, 2022). Nas afirmações com enunciado positivo (itens ímpares: 1, 3, 5, 7 e 9), subtraiu-se 1 da pontuação assinalada pelo respondente. Nas afirmações com enunciado negativo (itens pares: 2, 4, 6, 8 e 10), subtraiu-se o valor assinalado de 5. A soma dos dez valores convertidos de cada participante foi multiplicada pelo coeficiente multiplicador 2,5, gerando uma escala normalizada final com pontuação contínua de 0 a 100 pontos.
 
 \subsubsection{RESULTADOS DA AVALIAÇÃO DE USABILIDADE}
 
@@ -139,7 +139,7 @@ Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo S
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{table}
 
-Na literatura especializada de usabilidade (SAURO; LEWIS, 2022), sistemas computacionais que alcançam escores médios superiores a 68 pontos situam-se acima da média mercadológica, enquanto pontuações que superam a barreira de 80,3 pontos classificam o produto no nível de excelência máxima (Grau A), correspondendo ao percentil mais elevado de satisfação e intuitividade de produtos digitais. O resultado de 93,33 pontos obtido pelo WeFIND indica percepção positiva dos participantes sobre a facilidade e a satisfação de uso, sem permitir concluir, isoladamente, que as diretrizes adotadas sejam superiores a outras alternativas.
+Na literatura especializada de usabilidade (Sauro; Lewis, 2022), sistemas computacionais que alcançam escores médios superiores a 68 pontos situam-se acima da média mercadológica, enquanto pontuações que superam a barreira de 80,3 pontos classificam o produto no nível de excelência máxima (Grau A), correspondendo ao percentil mais elevado de satisfação e intuitividade de produtos digitais. O resultado de 93,33 pontos obtido pelo WeFIND indica percepção positiva dos participantes sobre a facilidade e a satisfação de uso, sem permitir concluir, isoladamente, que as diretrizes adotadas sejam superiores a outras alternativas.
 
 Para identificar as dimensões específicas da experiência que mais se destacaram, calcularam-se as médias aritméticas das notas brutas atribuídas a cada uma das dez afirmações do questionário, em escala de 1,00 a 5,00 pontos. O \hyperref[quadro:medias_itens_sus]{Quadro 7} sintetiza as médias apuradas. Para as afirmações de conotação negativa (itens pares), médias próximas a 1,00 representam baixa concordância com problemas operacionais, sinalizando um comportamento desejável da interface.
 
