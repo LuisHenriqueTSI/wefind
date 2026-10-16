@@ -54,8 +54,6 @@ export default function PetMatchModal({
 
   const currentMatch = candidates[Math.min(currentIndex, candidates.length - 1)] || candidates[0];
   const matchData = currentMatch?.match || {};
-  const percentage = matchData.percentage ?? 75;
-  const badgeColor = matchData.badgeColor || COLORS.primary;
 
   const isNewItemLost = newItem?.status === 'lost';
   const newItemPhoto = getItemPhotoUrl(newItem);
@@ -134,20 +132,6 @@ export default function PetMatchModal({
                 </TouchableOpacity>
               </View>
             )}
-
-            <View style={styles.matchSummary}>
-              <View>
-                <Text style={[styles.matchLabel, { color: colors.textSecondary }]}>Semelhança</Text>
-                {matchData.distanceKm != null && (
-                  <Text style={[styles.distanceText, { color: colors.textMuted }]}>
-                    Cerca de {matchData.distanceKm} km de distância
-                  </Text>
-                )}
-              </View>
-              <View style={[styles.percentagePill, { backgroundColor: isDark ? '#17352B' : '#E8F5EE' }]}>
-                <Text style={[styles.percentageNumber, { color: badgeColor }]}>{percentage}%</Text>
-              </View>
-            </View>
 
             <View style={styles.compareContainer}>
               <View style={[styles.petCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.cardBorder }]}>
@@ -337,30 +321,6 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: 16,
     maxHeight: 460,
-  },
-
-  matchSummary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  percentageNumber: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  matchLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  percentagePill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  distanceText: {
-    fontSize: 11,
-    marginTop: 3,
   },
 
   compareContainer: {
