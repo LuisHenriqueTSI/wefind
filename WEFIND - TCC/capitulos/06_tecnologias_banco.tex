@@ -4,7 +4,7 @@ Os capítulos anteriores descrevem o que o WeFIND faz; falta mostrar sobre quais
 
 Para apoiar a comunicação dessas decisões, a ISO/IEC/IEEE 42010:2022 estabelece requisitos para estruturar e expressar descrições de arquitetura, incluindo pontos de vista e modelos, e distingue a arquitetura da descrição que a representa (ISO, 2022).
 
-Essa perspectiva permite apresentar não apenas quais tecnologias foram escolhidas, mas também como os elementos implementados se distribuem e se relacionam, sem confundir as capacidades oferecidas pelos provedores com funcionalidades verificadas no aplicativo.
+Essa perspectiva permite apresentar não apenas quais tecnologias foram escolhidas, mas também como os elementos implementados se distribuem e se relacionam.
 
 \subsection{Arquitetura e tecnologias da plataforma}
 
@@ -34,7 +34,7 @@ A biblioteca React Native foi adotada como núcleo para a interface móvel, em i
 
 Em relação ao desenvolvimento puramente nativo (como construir separadamente uma aplicação em Kotlin para Android e outra em Swift para iOS), a abordagem isolada exigiria a manutenção de duas bases de código distintas. Para este projeto individual, o React Native permitiu desenvolver para as plataformas móveis a partir de uma base de código compartilhada em JavaScript e JSX.
 
-Em relação a soluções baseadas em \textit{WebView}, o React Native permite compor a interface com componentes nativos e integrar recursos do dispositivo por meio de módulos. Não foi realizado um benchmark comparativo de desempenho entre essas abordagens no projeto.
+Em relação a soluções baseadas em \textit{WebView}, o React Native permite compor a interface com componentes nativos e integrar recursos do dispositivo por meio de módulos.
 
 Em conjunto com o React Native, utilizou-se a plataforma Expo e seus módulos: \textit{expo-location} 19.0.8 para consultar os serviços de localização disponíveis no dispositivo; \textit{expo-image-picker} 17.0.10 para acesso à câmera e à galeria; e \textit{expo-image-manipulator} 14.0.8 para comprimir fotos antes do envio. A precisão das coordenadas depende do aparelho, das permissões concedidas e das condições de recepção (Expo, 2026).
 
@@ -42,7 +42,7 @@ A camada cartográfica baseia-se em \textit{react-native-maps} 1.20.1, responsá
 
 No Android, a visualização cartográfica utiliza o provedor Google Maps por meio da configuração da chave da Google Maps Platform, enquanto a biblioteca \textit{react-native-maps} integra o mapa à interface. A aplicação também pode abrir o Google Maps por meio de uma URL externa para apresentar a localização de uma publicação ou orientar o usuário até o ponto indicado. O funcionamento depende da conexão, das permissões de localização e da configuração válida da chave (Google Maps Platform, 2026; React Native Maps, 2026).
 
-Os formulários também validam campos obrigatórios, verificam a sintaxe de endereços de e-mail e formatam números telefônicos antes do envio. Essas verificações no cliente apoiam a validação de entrada, mas não substituem os controles aplicados nos serviços de backend.
+Os formulários também validam campos obrigatórios, verificam a sintaxe de endereços de e-mail e formatam números telefônicos antes do envio. Essas verificações no cliente complementam os controles aplicados nos serviços de backend.
 
 Para apoiar o desenvolvimento, utilizaram-se Node.js, npm e Visual Studio Code na implementação; Git e GitHub no controle de versões; Trello na organização das tarefas com Kanban; Astah UML na modelagem; e Figma na prototipação. ChatGPT e GitHub Copilot foram empregados como ferramentas auxiliares de programação e produção de conteúdo (OpenAI, 2026; GitHub, 2026). A Figura~\ref{fig:ferramentas_auxiliares} reúne parte desses recursos.
 
@@ -60,11 +60,11 @@ O backend utiliza a plataforma Supabase (Supabase, 2026) e a biblioteca cliente 
 
 O Supabase Auth também intermedeia a autenticação social com o Google. Nesse fluxo, o aplicativo solicita ao Supabase uma URL de autenticação, abre o navegador do dispositivo para que o usuário conclua o login na conta Google e, após o retorno por um esquema de redirecionamento próprio do aplicativo, troca o código recebido por uma sessão autenticada. Dessa forma, o WeFIND não coleta nem armazena a senha da conta Google; a autenticação é realizada pelo provedor externo e a sessão resultante é gerenciada pelo Supabase Auth (Supabase, 2026).
 
-Para este projeto, o PostgreSQL foi selecionado por oferecer um modelo relacional adequado às relações entre perfis, publicações, imagens, avistamentos e conversas. Essa escolha descreve a necessidade atendida pelo WeFIND e não implica que bancos NoSQL sejam inadequados para outros sistemas.
+Para este projeto, o PostgreSQL foi selecionado por oferecer um modelo relacional adequado às relações entre perfis, publicações, imagens, avistamentos e conversas.
 
 O Supabase também foi preferido a implementar e operar, no escopo do projeto, serviços próprios para autenticação, persistência e armazenamento. Essa decisão reduz a quantidade de infraestrutura que precisa ser administrada diretamente no projeto, mas não elimina a dependência das configurações e da disponibilidade do provedor.
 
-Esse fluxo de login com o Google segue o padrão OAuth com PKCE. As políticas de segurança em nível de linha (RLS) são configuradas no banco, com regras específicas para cada tabela. No esquema consultado, a leitura anônima de dados de perfis, publicações e avistamentos foi restringida; as regras de avistamentos e conversas também limitam o acesso conforme autenticação e participação. Assim, o comportamento de acesso depende das políticas efetivamente configuradas para cada entidade, não de uma garantia uniforme para todo o banco.
+Esse fluxo de login com o Google segue o padrão OAuth com PKCE. As políticas de segurança em nível de linha (RLS) são configuradas no banco, com regras específicas para cada tabela. No esquema consultado, a leitura anônima de dados de perfis, publicações e avistamentos foi restringida; as regras de avistamentos e conversas também limitam o acesso conforme autenticação e participação.
 
 As funções de borda concentram operações que usam credenciais de provedores externos. A chave da Evolution API é mantida como variável de ambiente no servidor, fora do aplicativo móvel; a função de mensageria exige uma sessão autenticada para receber solicitações de envio.
 
@@ -72,7 +72,7 @@ Os códigos temporários de cadastro, recuperação de senha e alteração de te
 
 Backups, restauração, expiração global de sessões e disponibilidade dependem das configurações e dos serviços dos provedores Supabase e Render; não são garantias fornecidas exclusivamente pelo aplicativo.
 
-Para a comunicação com o WhatsApp, utilizou-se a Evolution API (Evolution API, 2026), hospedada no Render (Render, 2026). No ambiente utilizado, a integração por requisições HTTP REST apoiou o envio de códigos de recuperação de senha e de avisos de avistamento. A disponibilidade e eventuais custos da hospedagem e dos serviços externos dependem dos respectivos provedores.
+Para a comunicação com o WhatsApp, utilizou-se a Evolution API (Evolution API, 2026), hospedada no Render (Render, 2026). No ambiente utilizado, a integração por requisições HTTP REST apoiou o envio de códigos de recuperação de senha e de avisos de avistamento.
 
 \subsection{Persistência e ciclo de vida das publicações}
 
@@ -82,25 +82,19 @@ A persistência estruturada utiliza o PostgreSQL. A Figura~\ref{fig:modelo_logic
     \centering
     \caption{Modelo Lógico Relacional do Banco de Dados PostgreSQL}
     \label{fig:modelo_logico_banco}
-    \includegraphics[width=0.95\textwidth]{imagens/02_modelagem/figura09_modelo_logico_banco.png}
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{imagens/02_modelagem/figura09_modelo_logico_banco_v3.png}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:modelo_logico_banco}, os nomes representados são \textit{usuarios}, \textit{animais}, \textit{publicacoes}, \textit{fotos\_publicacoes}, \textit{avistamentos} e \textit{mensagens}. A figura apresenta apenas o núcleo relacional dos fluxos de publicação, avistamento e comunicação; as tabelas de apoio a notificações, denúncias, conversas e devoluções, representadas como classes no diagrama de domínio (Figura~\ref{fig:diagrama_classes}), não foram incluídas nesse recorte para preservar a legibilidade. Do mesmo modo, a tabela \textit{animais}, que registra os animais cadastrados pelos próprios tutores, não integra os fluxos centrais modelados no diagrama de classes. A seguir, descreve-se o conteúdo das entidades representadas na figura.
+A Figura~\ref{fig:modelo_logico_banco} reúne as tabelas que sustentam os fluxos centrais do aplicativo, com os nomes adotados no banco de dados: \textit{profiles}, \textit{items}, \textit{item\_photos}, \textit{sightings}, \textit{conversations}, \textit{messages}, \textit{notifications}, \textit{reports}, \textit{rewards} e \textit{item\_claims}. As chaves primárias (PK) e estrangeiras (FK) estão destacadas, e as linhas indicam relacionamentos de um para muitos: o traço marca o lado ``um'' e o pé de galinha, o lado ``muitos''. Tabelas auxiliares, como a de códigos temporários de verificação, e as de recursos complementares não integram esse recorte.
 
-A entidade \textit{usuarios} centraliza os dados cadastrais dos participantes do sistema. Seu identificador primário conecta-se à chave única fornecida pelo serviço Supabase Auth e relaciona informações como nome, endereço de e-mail, fotografia de perfil, telefone, cidade, estado e data de criação da conta.
+A tabela \textit{profiles} armazena os dados cadastrais dos usuários. Seu identificador corresponde ao identificador da conta criada no Supabase Auth, e os demais campos registram nome, e-mail, número de WhatsApp, foto de perfil, cidade, estado, a indicação de perfil administrador e a preferência por receber avisos pelo WhatsApp.
 
-A entidade \textit{animais} representa os animais domésticos associados aos usuários no modelo apresentado.
+A tabela \textit{items} concentra as publicações de animais perdidos e encontrados. Cada registro está vinculado ao usuário responsável (\textit{owner\_id}) e reúne título, descrição, categoria, situação, características do animal (espécie, raça, porte, sexo, cor e idade), endereço, bairro, cidade, estado, coordenadas geográficas, data do ocorrido, indicação de encerramento (\textit{resolved}) e prazo de expiração (\textit{expires\_at}). As fotografias ficam em \textit{item\_photos}, que guarda o endereço de cada arquivo enviado ao Supabase Storage.
 
-A entidade \textit{publicacoes} reúne anúncios georreferenciados de animais perdidos ou encontrados. Cada registro relaciona-se ao usuário responsável e, no modelo, pode referenciar um animal cadastrado. Também contempla título, descrição, coordenadas, endereço, data do fato, situação de resolução, datas de criação e atualização e prazo de expiração.
+A tabela \textit{sightings} registra os avistamentos, associando cada relato à publicação e ao usuário informante, com local, descrição, foto e data. A comunicação privada é organizada em \textit{conversations}, que vincula dois participantes a uma publicação e registra se a conversa está ativa ou encerrada, e em \textit{messages}, que guarda remetente, destinatário, conteúdo, eventual foto, estado de leitura e data de envio de cada mensagem.
 
-A entidade \textit{fotos\_publicacoes} organiza as imagens associadas às publicações, mantendo uma relação de um para muitos com \textit{publicacoes} e registrando o endereço dos arquivos armazenados.
-
-A entidade \textit{avistamentos} reúne relatos da comunidade sobre animais observados em outros locais ou momentos. Cada registro associa-se à publicação e ao usuário informante e pode incluir localização, descrição, fotografia e data do relato.
-
-A entidade \textit{mensagens} representa a comunicação entre participantes, relacionando a publicação em discussão, remetente, destinatário, conteúdo, eventual anexo, estado de leitura e data de envio.
-
-O modelo também prevê estruturas de apoio à comunicação de avisos e à moderação, relacionadas aos requisitos de notificações e denúncias.
+Por fim, \textit{notifications} armazena os avisos de cada usuário, com tipo, título, mensagem, publicação relacionada e indicação de leitura; \textit{reports} registra as denúncias, com motivo, detalhes, situação e o administrador responsável pela análise; \textit{rewards} guarda a recompensa opcional oferecida em uma publicação, com valor, moeda, descrição e situação; e \textit{item\_claims} registra as solicitações de devolução com comprovação de tutela, associando a publicação e o solicitante ao relato, à fotografia enviada, à situação do pedido e ao eventual motivo de recusa.
 
 As publicações têm vigência ativa de 30 dias, contados a partir do cadastro ou da última renovação. Três dias antes do vencimento, o aplicativo pode enviar um aviso para que o responsável renove o anúncio. Sem renovação, a publicação fica inativa e deixa de aparecer no mural e no mapa público, mas ainda pode ser renovada durante o período adicional de 30 dias.
 

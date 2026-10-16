@@ -9,14 +9,14 @@ No projeto WeFIND, a análise dos requisitos funcionais priorizou os fluxos cent
 
 A especificação de requisitos define formalmente as funções do aplicativo e suas restrições operacionais (Sommerville, 2019). No WeFIND, os requisitos funcionais centrais foram formulados a partir das necessidades identificadas na pesquisa de campo e da análise de sistemas similares (Capítulo 3). Para tornar o escopo mais claro e os modelos mais legíveis, operações correlatas foram agrupadas em requisitos que descrevem resultados observáveis para os usuários. A matriz de rastreabilidade entre necessidades, requisitos centrais e funcionalidades é apresentada no Apêndice D, que também registra as verificações funcionais manuais relatadas pelo autor.
 
-O escopo funcional central abrange criação e acesso à conta; atualização do perfil; consulta e gestão do ciclo de vida das publicações de animais perdidos ou encontrados; busca geográfica em lista e mapa; correspondência entre publicações; registro de avistamentos; comunicação entre participantes; notificações relacionadas à busca; geração e compartilhamento de cartazes de divulgação; e denúncia e moderação básica de conteúdo.
+O escopo funcional central abrange criação e acesso à conta; atualização do perfil; consulta e gestão do ciclo de vida das publicações de animais perdidos ou encontrados; busca geográfica em lista e mapa; correspondência entre publicações; registro de avistamentos; comunicação entre participantes; notificações relacionadas à busca; geração e compartilhamento de cartazes de divulgação; comprovação de tutela antes da devolução de um animal encontrado; e denúncia e moderação básica de conteúdo.
 
 O aplicativo contém outras funcionalidades, mas elas não integram o escopo funcional central nem os resultados avaliados neste trabalho.
 
 
 \subsubsection{Requisitos Funcionais}
 
-O \hyperref[quadro:funcionais]{Quadro 2} consolida os 17 requisitos funcionais centrais do WeFIND. Cada requisito apresenta um identificador, uma denominação baseada em ação observável e o comportamento esperado. Operações correlatas, como criar, editar e encerrar uma publicação, são reunidas para evitar fragmentação excessiva; a especificação, por si só, não representa evidência de validação de cada comportamento.
+O \hyperref[quadro:funcionais]{Quadro 2} consolida os 18 requisitos funcionais centrais do WeFIND. Cada requisito apresenta um identificador, uma denominação baseada em ação observável e o comportamento esperado. Operações correlatas, como criar, editar e encerrar uma publicação, são reunidas para evitar fragmentação excessiva.
 
 \vspace{0.3cm}
 {
@@ -45,10 +45,10 @@ O \hyperref[quadro:funcionais]{Quadro 2} consolida os 17 requisitos funcionais c
 \textbf{RF01} & Criar e acessar conta & Permitir cadastro, autenticação, recuperação de senha e encerramento de sessão de usuários. \\ \hline
 \textbf{RF02} & Atualizar perfil & Permitir ao usuário consultar e atualizar seus dados básicos de perfil e contato. \\ \hline
 \textbf{RF03} & Consultar publicações & Exibir publicações ativas de animais perdidos ou encontrados em lista e apresentar seus detalhes, incluindo imagens, características e local informado. \\ \hline
-\textbf{RF04} & Publicar anúncio de animal & Permitir a usuários autenticados criar uma publicação sobre um animal perdido ou encontrado, informando características, descrição, imagens e localização selecionada ou confirmada no mapa. \\ \hline
+\textbf{RF04} & Publicar anúncio de animal & Permitir a usuários autenticados criar uma publicação sobre um animal perdido ou encontrado, informando características, descrição, imagens e localização selecionada ou confirmada no mapa; em publicações de animais perdidos, o autor pode indicar opcionalmente uma recompensa, com valor e descrição. \\ \hline
 \textbf{RF05} & Atualizar publicação própria & Permitir ao autor editar ou excluir sua publicação e atualizar sua situação quando o animal for reencontrado. \\ \hline
 \textbf{RF06} & Visualizar publicações no mapa & Apresentar em mapa as publicações ativas de animais perdidos ou encontrados, posicionadas conforme o local registrado. \\ \hline
-\textbf{RF07} & Pesquisar e filtrar publicações & Permitir localizar publicações por espécie, situação, características e distância, considerando a localização informada pelo usuário. \\ \hline
+\textbf{RF07} & Pesquisar e filtrar publicações & Permitir localizar publicações por espécie, situação, características, distância e oferta de recompensa, considerando a localização informada pelo usuário. \\ \hline
 \textbf{RF08} & Traçar rota até o local informado & Apresentar uma rota até o local associado à publicação, quando houver dados de localização suficientes. \\ \hline
 \textbf{RF09} & Registrar avistamento & Permitir a usuário autenticado registrar um avistamento vinculado a uma publicação, com local, data ou horário, descrição e imagem opcional. \\ \hline
 \textbf{RF10} & Consultar e atualizar avistamentos próprios & Exibir os avistamentos associados à publicação e permitir que seu autor edite ou remova o próprio relato. \\ \hline
@@ -59,15 +59,16 @@ O \hyperref[quadro:funcionais]{Quadro 2} consolida os 17 requisitos funcionais c
 \textbf{RF15} & Gerar e compartilhar cartaz de divulgação & Permitir gerar e compartilhar uma imagem da publicação nos formatos A4, vertical 9:16 ou quadrado 1:1. No formato A4, incluir código QR que direcione à página pública da publicação. \\ \hline
 \textbf{RF16} & Expirar e remover publicação não renovada & Manter a publicação ativa por 30 dias a partir do cadastro ou da renovação e avisar o responsável três dias antes do vencimento. Sem renovação, ocultá-la do mural e do mapa, permitindo renová-la durante 30 dias de carência. Após esse período, ao carregar o mural, a rotina de limpeza pode remover permanentemente as publicações vencidas do usuário autenticado. \\ \hline
 \textbf{RF17} & Sugerir correspondências entre publicações & Permitir que o sistema compare publicações ativas de animais perdidos e encontrados com base na espécie, nas características físicas e na distância geográfica, apresentando sugestões de possíveis correspondências sem confirmar automaticamente que se trata do mesmo animal. \\ \hline
+\textbf{RF18} & Solicitar e analisar comprovação de tutela & Permitir que o usuário que se identifica como tutor de um animal anunciado como encontrado envie uma solicitação de devolução com relato e fotografias, e que o autor da publicação analise, aprove ou recuse a solicitação; a aprovação libera ao solicitante o endereço exato do local onde o animal está acolhido, e o resultado é notificado. \\ \hline
 \end{longtable}
 }
 
-A especificação funcional do Quadro 2 prioriza as necessidades de busca e reencontro identificadas na pesquisa de campo e na análise das plataformas similares. Os 17 requisitos organizam os fluxos de consulta e publicação de anúncios, busca espacial, correspondência entre publicações, avistamentos, comunicação, divulgação por cartaz, ciclo de vida das publicações e moderação. Assim, o quadro delimita o escopo funcional central deste trabalho.
+A especificação funcional do Quadro 2 prioriza as necessidades de busca e reencontro identificadas na pesquisa de campo e na análise das plataformas similares. Os 18 requisitos organizam os fluxos de consulta e publicação de anúncios, busca espacial, correspondência entre publicações, avistamentos, comunicação, divulgação por cartaz, ciclo de vida das publicações, comprovação de tutela e moderação. Assim, o quadro delimita o escopo funcional central deste trabalho.
 
 
 \subsubsection{Requisitos Não Funcionais}
 
-Enquanto os requisitos funcionais estabelecem as ações oferecidas pela aplicação, os Requisitos Não Funcionais (RNF) registram restrições e critérios de qualidade do sistema (Valente, 2023). A seleção considerou atributos da ISO/IEC 25010 (ISO, 2023) e priorizou critérios incorporados ao projeto. As verificações desses critérios foram realizadas por inspeção do código e da configuração da aplicação, sem uma campanha independente de medições; por isso, o texto não os apresenta como resultados experimentais validados.
+Enquanto os requisitos funcionais estabelecem as ações oferecidas pela aplicação, os Requisitos Não Funcionais (RNF) registram restrições e critérios de qualidade do sistema (Valente, 2023). A seleção considerou atributos da ISO/IEC 25010 (ISO, 2023) e priorizou critérios incorporados ao projeto. O atendimento a esses critérios foi verificado por inspeção do código e da configuração da aplicação.
 
 O \hyperref[quadro:nao_funcionais]{Quadro 3} sintetiza quatro requisitos não funcionais relativos à autenticação e ao controle de acesso, à privacidade da localização, à comunicação segura e ao tratamento de imagens.
 
@@ -102,19 +103,19 @@ O \hyperref[quadro:nao_funcionais]{Quadro 3} sintetiza quatro requisitos não fu
 \end{longtable}
 }
 
-Os critérios selecionados concentram-se em autenticação e autorização (RNF01), privacidade da localização exposta publicamente (RNF02), segurança de transporte (RNF03) e preparação das imagens enviadas (RNF04). A avaliação de usabilidade com participantes é descrita no Capítulo 8. Não foram atribuídos limites de desempenho ou disponibilidade que não tenham sido medidos, e não foi registrada uma medição sistemática do limite de tamanho definido para o RNF04.
+Os critérios selecionados concentram-se em autenticação e autorização (RNF01), privacidade da localização exposta publicamente (RNF02), segurança de transporte (RNF03) e preparação das imagens enviadas (RNF04). A avaliação de usabilidade com participantes é descrita no Capítulo 8.
 
 
 \subsection{Modelagem Conceitual e Estrutural do Sistema}
 
-A modelagem de software é uma etapa fundamental no desenvolvimento de qualquer sistema, pois organiza visualmente a lógica, as regras e o funcionamento da aplicação antes e durante a escrita do código. Ao criar esquemas visuais padronizados, o desenvolvedor alinha as expectativas com os requisitos e evita inconsistências que poderiam comprometer a arquitetura ou a experiência de uso (Bezerra, 2021).
+A modelagem de software é uma etapa fundamental no desenvolvimento de qualquer sistema, pois organiza visualmente a lógica, as regras e o funcionamento da aplicação antes e durante a escrita do código. Ao criar esquemas visuais padronizados, o desenvolvedor alinha as expectativas com os requisitos e evita inconsistências que poderiam comprometer a arquitetura ou a experiência de uso (Bezerra, 2015).
 
 No desenvolvimento da aplicação proposta, utilizou-se a \textit{Unified Modeling Language} (UML) como padrão para documentar o sistema. A UML permite enxergar o aplicativo por duas perspectivas complementares: a comportamental, expressa nos diagramas de casos de uso que apresentam as ações disponibilizadas a cada perfil de usuário; e a estrutural, representada pelo diagrama de classes de domínio.
 
 
 \subsubsection{Diagrama de Casos de Uso}
 
-O diagrama de casos de uso da \textit{Unified Modeling Language} (UML) sintetiza as principais funcionalidades do sistema a partir do ponto de vista dos usuários. Ele apresenta as ações que cada perfil de usuário pode realizar dentro do aplicativo (Bezerra, 2021; Valente, 2023). Segundo Pressman e Maxim (2021), os casos de uso não precisam detalhar cada regra interna do sistema ou do banco de dados, mas sim apresentar as ações práticas que têm utilidade direta para as pessoas que utilizam a aplicação.
+O diagrama de casos de uso da \textit{Unified Modeling Language} (UML) sintetiza as principais funcionalidades do sistema a partir do ponto de vista dos usuários. Ele apresenta as ações que cada perfil de usuário pode realizar dentro do aplicativo (Bezerra, 2015; Valente, 2023). Segundo Pressman e Maxim (2021), os casos de uso não precisam detalhar cada regra interna do sistema ou do banco de dados, mas sim apresentar as ações práticas que têm utilidade direta para as pessoas que utilizam a aplicação.
 
 Para representar o sistema de forma clara, elaborou-se um diagrama geral de casos de uso com foco nas funções centrais do WeFIND. A Figura~\ref{fig:diagrama_casos_de_uso} apresenta essa visão geral; as especificações textuais dos casos de uso estão no Apêndice~A.
 
@@ -139,21 +140,18 @@ As relações de inclusão indicam etapas obrigatórias: tanto o cadastro de uma
 
 \subsubsection{Diagrama de Classes de Domínio}
 
-O diagrama de classes de domínio organiza as entidades da aplicação, seus atributos e relações. A Figura~\ref{fig:diagrama_classes} apresenta uma visão resumida das entidades relacionadas aos fluxos centrais de publicação, avistamento, comunicação e moderação.
+O diagrama de classes de domínio organiza as entidades da aplicação, seus atributos e relações. A Figura~\ref{fig:diagrama_classes}, apresentada em página na orientação horizontal para melhor legibilidade, traz uma visão resumida das entidades relacionadas aos fluxos centrais de publicação, avistamento, comunicação e moderação.
 
-\begin{figure}[H]
+\begin{sidewaysfigure}
     \centering
     \caption{Diagrama de Classes de Domínio do Sistema Proposto}
     \label{fig:diagrama_classes}
-    \vspace{0.3cm}
-    \includegraphics[trim=12mm 95mm 12mm 8mm, clip, width=0.99\textwidth]{imagens/02_modelagem/figura08_diagrama_classes.pdf}
-    \vspace{0.8cm}
+    \includegraphics[width=\textheight,height=0.85\textwidth,keepaspectratio]{imagens/02_modelagem/figura08_diagrama_classes_v3.png}
     \fonte{Autoria própria (2026)}
-\end{figure}
+\end{sidewaysfigure}
 
-\enlargethispage{2\baselineskip}
-No modelo, \textit{Usuario} representa as contas e concentra os dados e operações de autenticação, perfil e participação na plataforma. \textit{Publicacao} representa os registros de animais, reunindo categoria, situação, descrição, localização, características e operações de criação, edição, encerramento, renovação e compartilhamento. A classe \textit{Avistamento} registra relatos associados a uma publicação, enquanto \textit{FotoPublicacao} organiza as imagens vinculadas a esse registro.
+No modelo, \textit{Usuario} representa as contas e concentra os dados e operações de autenticação, perfil e participação na plataforma. \textit{Publicacao} representa os registros de animais, reunindo categoria, situação, descrição, localização, características, a indicação de recompensa e operações de criação, edição, encerramento, renovação e compartilhamento. A classe \textit{Avistamento} registra relatos associados a uma publicação, enquanto \textit{FotoPublicacao} organiza as fotografias de cada publicação, com até seis imagens por anúncio.
 
-A comunicação privada é representada pelas classes \textit{Conversa} e \textit{Mensagem}, enquanto \textit{Notificacao} registra os avisos destinados aos usuários, como sugestões de correspondência e atualizações relevantes. A classe \textit{Devolucao} representa a solicitação e a análise da devolução de um animal, com mensagem, comprovante e estado do pedido. Os atributos \textit{pontos}, \textit{nivel} e \textit{isVoluntarioLar} representam, respectivamente, a pontuação de participação, o nível derivado dessa pontuação e a indicação de disponibilidade para atuar como lar voluntário. A classe \textit{Denuncia} apoia o envio e o tratamento administrativo de denúncias relacionadas às publicações. As associações apresentadas na figura indicam os vínculos entre usuários, publicações, avistamentos, imagens, conversas, mensagens, notificações, devoluções e denúncias.
+A comunicação privada é representada pelas classes \textit{Conversa} e \textit{Mensagem}: cada conversa reúne as mensagens trocadas entre remetente e destinatário a respeito de uma publicação, com registro de leitura e eventual foto anexada. A classe \textit{Notificacao} registra os avisos destinados a cada usuário, como possíveis correspondências, novos avistamentos, mensagens e lembretes de renovação, guardando o tipo do aviso, o título, a mensagem, a referência ao registro relacionado e a indicação de leitura; cada usuário pode receber várias notificações, e cada notificação pode se referir a uma publicação. A classe \textit{Denuncia} apoia o envio e o tratamento administrativo de denúncias relacionadas às publicações. As associações apresentadas na figura indicam os vínculos entre usuários, publicações, avistamentos, imagens, conversas, mensagens, notificações e denúncias.
 
 Com os requisitos funcionais formalizados e a modelagem de classes de domínio consolidada, o Capítulo 5 apresenta a solução proposta com o aplicativo WeFIND, detalhando a concepção da ferramenta, seus fluxos principais e suas regras de negócio; a arquitetura e as decisões técnicas são tratadas no Capítulo 6.

@@ -10,16 +10,16 @@ O primeiro eixo compreende a busca espacial georreferenciada, organizando o mapa
 
 O segundo eixo estabelece o registro colaborativo de avistamentos. Por meio desse recurso, os usuários relatam animais observados em vias públicas com fotografias e coordenadas, construindo uma linha do tempo vinculada à publicação correspondente.
 
-O terceiro eixo reúne comunicação, privacidade e divulgação. O sistema oferece um canal de mensagens privado entre os participantes e permite compartilhar cartazes de busca, apoiando a circulação das informações sem expor publicamente o telefone do usuário. Como o cartaz pode incluir dados fornecidos pelo autor da publicação, sua divulgação deve considerar as informações nele apresentadas.
+O terceiro eixo reúne comunicação, privacidade e divulgação. O sistema oferece um canal de mensagens privado entre os participantes e permite compartilhar cartazes de busca, apoiando a circulação das informações sem expor publicamente o telefone do usuário.
 
 
 \subsection{Escolha da Plataforma Móvel}
 
 A decisão de desenvolver o WeFIND como um aplicativo para celular fundamentou-se na necessidade de apoiar ações realizadas em deslocamento, nas quais o usuário precisa consultar publicações, registrar avistamentos ou receber alertas diretamente no smartphone.
 
-O uso de recursos geográficos em sistemas de apoio a buscas por animais também é abordado no contexto brasileiro por Souza et al. (2022), que apresentam um algoritmo de recomendação de rotas para orientar a procura por animais desaparecidos. O WeFIND tem um escopo diferente: organiza publicações e relatos de avistamento por localização, sem recomendar o percurso do animal nem afirmar onde ele se encontra. A opção por uma aplicação móvel busca permitir que o usuário consulte publicações e registre informações durante uma busca, conforme as condições do aparelho, das permissões e da conexão disponível.
+O uso de recursos geográficos em sistemas de apoio a buscas por animais também é abordado no contexto brasileiro por Souza et al. (2022), que apresentam um algoritmo de recomendação de rotas para orientar a procura por animais desaparecidos. O WeFIND tem um escopo diferente: organiza publicações e relatos de avistamento por localização, sem recomendar o percurso do animal nem afirmar onde ele se encontra. A opção por uma aplicação móvel permite que o usuário consulte publicações e registre informações durante a própria busca, na rua.
 
-A plataforma móvel reúne recursos que podem apoiar esse contexto operacional. As notificações podem informar os usuários sobre atualizações relevantes, desde que haja conexão e que as permissões e configurações do dispositivo permitam sua entrega. O acesso à câmera facilita o registro de fotografias, enquanto os recursos de localização podem auxiliar no registro do ponto do avistamento; a precisão desse ponto pode variar conforme o dispositivo, as condições de recepção e a forma de indicação da localização. A geração de cartazes digitais com código QR viabiliza a divulgação externa impressa e em redes sociais, direcionando os interessados de volta à publicação no aplicativo.
+A plataforma móvel reúne recursos que apoiam esse contexto. As notificações informam os usuários sobre atualizações relevantes, o acesso à câmera facilita o registro de fotografias e os recursos de localização auxiliam na marcação do ponto do avistamento. A geração de cartazes digitais com código QR viabiliza a divulgação externa impressa e em redes sociais, direcionando os interessados de volta à publicação no aplicativo.
 
 
 \subsection{Correspondência de Animais e Registro de Avistamentos}
@@ -51,6 +51,12 @@ Para assegurar clareza operacional, o WeFIND estabelece distinção formal entre
 
 As categorias iniciais de cadastro compreendem ``Perdido'' (publicação gerada pelo tutor à procura de seu animal) e ``Encontrado'' (anúncio criado por quem localizou um animal ou o observou em via pública).
 
-O termo ``Reencontrado'' representa o encerramento da busca ativa quando o animal retorna ao tutor ou a tutela é confirmada entre as partes. Até que essa ação seja formalizada pelo autor, a publicação permanece ativa no mapa e no mural.
+O termo ``Reencontrado'' representa o encerramento da busca ativa quando o animal retorna ao tutor ou a tutela é confirmada entre as partes.
+
+\subsection{Comprovação de Tutela}
+
+Quando alguém encontra um animal e o anuncia no WeFIND, outra pessoa pode se apresentar como seu tutor. Para reduzir o risco de devolução a quem não é responsável pelo animal, preocupação apontada pela maioria dos participantes da pesquisa de campo (Apêndice B, Figura~B9), o aplicativo oferece um fluxo de comprovação de tutela. Nas publicações de animais encontrados, o endereço exato e o número do imóvel de quem acolheu o animal ficam ocultos. Para liberá-los, o interessado envia uma solicitação de devolução com um relato que justifique a tutela e fotografias que possam comprová-la, como imagens antigas do animal ou documentos, como a carteira de vacinação.
+
+A solicitação fica pendente e o autor da publicação é avisado por notificação e por mensagem privada. Ele então analisa o relato e as imagens e decide aprovar ou recusar o pedido, podendo registrar o motivo da recusa; o solicitante é notificado da decisão. Com a aprovação, o endereço exato é liberado ao solicitante para que as partes combinem a devolução. Assim, o recurso concilia a privacidade de quem acolheu o animal com a necessidade de devolvê-lo ao tutor. Até que essa ação seja formalizada pelo autor, a publicação permanece ativa no mapa e no mural.
 
 O Capítulo 6 apresenta a arquitetura do sistema, as tecnologias empregadas e o modelo de dados que sustentam essas funcionalidades.
