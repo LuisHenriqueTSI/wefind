@@ -14,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import * as storiesService from '../services/stories';
 import OptimizedImage from '../components/OptimizedImage';
+import LoginPillButton from '../components/LoginPillButton';
 import COLORS from '../constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -32,21 +33,6 @@ const SHOTS = {
   conversa: require('../../assets/conhecer/conversa.jpeg'),
   tutela: require('../../assets/conhecer/tutela.jpeg'),
 };
-
-const ACHADOS = [
-  {
-    queixa: 'Todos os 19 que responderam a essa pergunta disseram que a publicação perde alcance depois de algumas horas.',
-    resposta: 'Aqui o anúncio fica ativo por 30 dias, aparece no mapa e avisa quem está por perto.',
-  },
-  {
-    queixa: '17 de 19 sentiram falta de um mapa para saber onde o animal sumiu ou foi visto.',
-    resposta: 'Cada publicação e cada avistamento tem um ponto no mapa, com rota até o local.',
-  },
-  {
-    queixa: '14 de 19 se preocupam em deixar o telefone pessoal exposto em grupos.',
-    resposta: 'As conversas acontecem dentro do app, ligadas à publicação, sem mostrar o seu número.',
-  },
-];
 
 const ETAPAS = [
   {
@@ -130,15 +116,7 @@ const SobreScreen = ({ navigation }) => {
             </Text>
           </View>
           {!user ? (
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Login')}
-              style={styles.headerLogin}
-              activeOpacity={0.75}
-              accessibilityLabel="Entrar na conta"
-            >
-              <MaterialIcons name="person" size={16} color="#FFFFFF" />
-              <Text style={styles.headerLoginText}>Entrar</Text>
-            </TouchableOpacity>
+            <LoginPillButton onPress={() => navigation.navigate('Login')} />
           ) : null}
         </View>
       </View>
@@ -180,21 +158,7 @@ const SobreScreen = ({ navigation }) => {
           )}
         </View>
 
-        {/* 2. O que a pesquisa mostrou */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>O que ouvimos de quem já procurou um animal</Text>
-          <Text style={[styles.sectionLead, { color: colors.textSecondary }]}>
-            Antes de criar o app, 20 pessoas responderam a uma pesquisa sobre como divulgam e procuram animais perdidos.
-          </Text>
-          {ACHADOS.map((a, i) => (
-            <View key={i} style={[styles.achado, { borderTopColor: colors.cardBorder }]}>
-              <Text style={[styles.achadoQueixa, { color: colors.text }]}>{a.queixa}</Text>
-              <Text style={[styles.achadoResposta, { color: colors.textSecondary }]}>{a.resposta}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* 3. Do sumiço ao reencontro */}
+        {/* 2. Do sumiço ao reencontro */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Do sumiço ao reencontro</Text>
           <Text style={[styles.sectionLead, { color: colors.textSecondary }]}>É assim que uma busca anda dentro do aplicativo.</Text>
@@ -221,7 +185,7 @@ const SobreScreen = ({ navigation }) => {
           })}
         </View>
 
-        {/* 4. E mais */}
+        {/* 3. E mais */}
         <View style={[styles.extras, { backgroundColor: isDark ? colors.surface : colors.primaryLight, borderColor: colors.cardBorder }]}>
           <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 14 }]}>E mais</Text>
           <View style={styles.extrasGrid}>
@@ -235,7 +199,7 @@ const SobreScreen = ({ navigation }) => {
           </View>
         </View>
 
-        {/* 5. Reencontros enviados pelos usuários (aparece só quando existem) */}
+        {/* 4. Reencontros enviados pelos usuários (aparece só quando existem) */}
         {stories.length > 0 ? (
           <View style={styles.section}>
             <View style={styles.storiesHeader}>
@@ -269,7 +233,7 @@ const SobreScreen = ({ navigation }) => {
           </View>
         ) : null}
 
-        {/* 6. Chamada final */}
+        {/* 5. Chamada final */}
         {!user ? (
           <View style={[styles.final, { backgroundColor: heroBg }]}>
             <Text style={styles.finalTitulo}>Pronto para ajudar?</Text>
@@ -307,18 +271,6 @@ const styles = StyleSheet.create({
   brandRow: { flexDirection: 'row', alignItems: 'center' },
   brandLogo: { width: 28, height: 28, marginRight: 7 },
   brandText: { fontWeight: '900', fontSize: 22, letterSpacing: 0.5 },
-  headerLogin: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.16)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  headerLoginText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
 
   scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
 
@@ -365,9 +317,6 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 22, lineHeight: 27, fontWeight: '900', letterSpacing: -0.4 },
   sectionLead: { fontSize: 14, lineHeight: 20, marginTop: 8, marginBottom: 8 },
 
-  achado: { borderTopWidth: 1, paddingVertical: 16 },
-  achadoQueixa: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
-  achadoResposta: { fontSize: 14, lineHeight: 20, marginTop: 10, paddingLeft: 12, borderLeftWidth: 3, borderLeftColor: FITA },
 
   etapa: { alignItems: 'center', borderTopWidth: 1, paddingVertical: 20 },
   etapaTexto: { flex: 1 },

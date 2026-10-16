@@ -2222,40 +2222,46 @@ const styles = StyleSheet.create({
   loadingText: { color: '#374151', fontWeight: '600', fontSize: 13 },
 });
 
-const getSpeciesEmoji = (item) => {
-  const species = (item.species || item.extra_fields?.species || '').toLowerCase();
-  const title = (item.title || '').toLowerCase();
+const getSpeciesIcon = (item) => {
+  const species = String(item.species || item.extra_fields?.species || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  const title = String(item.title || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  const value = `${species} ${title}`;
 
-  if (species.includes('cachorro') || species.includes('cao') || species.includes('cão') || title.includes('cachorro') || title.includes('cão')) {
-    return '🐶';
-  }
-  if (species.includes('gato') || title.includes('gato')) {
-    return 'CAT_ICON';
-  }
-  if (species.includes('ave') || species.includes('passaro') || species.includes('pássaro') || species.includes('calopsita') || species.includes('papagaio')) {
-    return '🦜';
-  }
-  if (species.includes('cavalo') || species.includes('equino') || species.includes('egua') || species.includes('égua')) {
-    return '🐴';
-  }
-  if (species.includes('bovino') || species.includes('vaca') || species.includes('boi')) {
-    return '🐮';
-  }
-  if (species.includes('coelho')) {
-    return '🐰';
-  }
-  return '🐾';
+  if (/\b(cachorro|cao|canino|dog)\b/.test(value)) return 'dog';
+  if (/\b(gato|felino|cat)\b/.test(value)) return 'cat';
+  if (/\b(ave|aves|passaro|calopsita|papagaio|bird)\b/.test(value)) return 'bird';
+  if (/\b(cavalo|equino|egua|horse)\b/.test(value)) return 'horse';
+  if (/\b(bovino|vaca|boi|cow)\b/.test(value)) return 'cow';
+  if (/\b(coelho|rabbit)\b/.test(value)) return 'rabbit';
+  return 'paw';
 };
 
 const PetMapMarker = React.memo(({ item, isSelected, onPress, onCalloutPress }) => {
   const [tracksViewChanges, setTracksViewChanges] = useState(true);
 
   useEffect(() => {
-    // Permite que o React Native monte o layout visual antes de congelar a renderização do marcador
-    const timer = setTimeout(() => {
-      setTracksViewChanges(false);
-    }, 600);
-    return () => clearTimeout(timer);
+    let isMounted = true;
+    let timer;
+
+    MaterialCommunityIcons.loadFont()
+      .then(() => {
+        if (!isMounted) return;
+        timer = setTimeout(() => setTracksViewChanges(false), 600);
+      })
+      .catch((error) => {
+        console.warn('[MapScreen] Não foi possível carregar o ícone do marcador:', error);
+      });
+
+    return () => {
+      isMounted = false;
+      if (timer) clearTimeout(timer);
+    };
   }, [isSelected, item.id]);
 
   const coordinate = {
@@ -2268,7 +2274,7 @@ const PetMapMarker = React.memo(({ item, isSelected, onPress, onCalloutPress }) 
   const statusColor = isAdoption ? '#DB2777' : (isFound ? '#16A34A' : '#EA580C');
   const statusLabel = isAdoption ? 'Adoção' : (isFound ? 'Encontrado' : 'Perdido');
   const statusIcon = isAdoption ? '💖' : (isFound ? '🟢' : '🔴');
-  const emoji = getSpeciesEmoji(item);
+  const speciesIcon = getSpeciesIcon(item);
 
   const RING_SIZE = 32;
   const BORDER_W = 2.5;
@@ -2301,27 +2307,7 @@ const PetMapMarker = React.memo(({ item, isSelected, onPress, onCalloutPress }) 
           elevation: 4,
         }}
       >
-        {/* Emoji ou Ícone da Espécie */}
-        {emoji === 'CAT_ICON' ? (
-          <Image
-            source={require('../../assets/cat_face.png')}
-            style={{
-              width: 18,
-              height: 18,
-            }}
-            resizeMode="contain"
-          />
-        ) : (
-          <Text
-            style={{
-              fontSize: 17,
-              includeFontPadding: false,
-              textAlign: 'center',
-            }}
-          >
-            {emoji}
-          </Text>
-        )}
+        <MaterialCommunityIcons name={speciesIcon} size={19} color={statusColor} />
       </View>
 
       {/* Balão de Seleção Perfeitamente Centralizado Acima do Marcador */}
