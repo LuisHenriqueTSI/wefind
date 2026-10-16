@@ -61,15 +61,7 @@ a{color:inherit}
 .celular-mapa{right:7%;bottom:-40px;width:42%;transform:rotate(5deg);z-index:1}
 @keyframes colar{from{opacity:0;transform:translateY(-24px) rotate(-9deg)}to{opacity:1;transform:rotate(-4deg)}}
 
-/* porque */
-.porque{background:var(--musgo);color:var(--branco);padding:96px 0}
-.porque h2{color:var(--branco)}
 .secao-lead{margin-top:16px;max-width:62ch;color:var(--cinza);font-size:1.08rem}
-.porque .secao-lead{color:#B9CBBB}
-.achados{margin-top:52px;display:grid;gap:0}
-.achado{display:grid;grid-template-columns:1fr 1fr;gap:48px;padding:28px 0;border-top:1px solid rgba(255,255,255,.18)}
-.achado-queixa{font-family:var(--titulo);font-size:1.5rem;font-weight:700;line-height:1.25}
-.achado-resposta{color:#D9E5DA;padding-left:20px;border-left:4px solid var(--fita);align-self:center}
 
 /* jornada */
 .jornada{padding:104px 0 40px}
@@ -152,8 +144,6 @@ code{font-size:.9em;background:var(--nevoa);padding:1px 6px;border-radius:5px}
   .hero{grid-template-columns:1fr;gap:40px;padding:44px 0 64px}
   .mural{height:480px}
   .cartaz{width:66%}
-  .achado{grid-template-columns:1fr;gap:14px}
-  .achado-queixa{font-size:1.3rem}
   .etapa,.etapa:nth-child(even){grid-template-columns:1fr;gap:24px}
   .etapa img,.etapa:nth-child(even) img{order:0;width:180px}
   .extras-grade,.instalar{grid-template-columns:1fr;gap:32px}
