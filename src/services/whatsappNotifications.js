@@ -62,6 +62,10 @@ export async function sendWhatsAppMessage({ phone, title, message, text }) {
   return { sent: Boolean(data?.ok), data };
 }
 
+// Envia um aviso do sistema para o WhatsApp de um usuário.
+// O número e a autorização (whatsapp_notifications_enabled) são consultados
+// pela função de borda no servidor: o aparelho de quem dispara o aviso
+// nunca recebe o telefone do destinatário.
 export async function dispatchSystemNotificationToWhatsApp({ userId, title, message, type }) {
   if (!userId || !title || !message) {
     console.warn('[dispatchSystemNotificationToWhatsApp] Dados insuficientes');
@@ -69,30 +73,20 @@ export async function dispatchSystemNotificationToWhatsApp({ userId, title, mess
   }
 
   try {
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('whatsapp, phone, whatsapp_notifications_enabled')
-      .eq('id', userId)
-      .maybeSingle();
+    const { data, error } = await supabase.functions.invoke('notify-whatsapp', {
+      body: { userId, title, message, type },
+    });
 
-    if (profileError) {
-      console.warn('[whatsapp-notifications] Falha ao buscar perfil:', profileError);
-      return { sent: false, reason: 'profile-error', error: profileError };
+    if (error) {
+      console.warn('[whatsapp-notifications] Falha no envio via função protegida:', error.message);
+      return { sent: false, reason: 'notification-function-error' };
     }
 
-    if (profile?.whatsapp_notifications_enabled === false) {
-      console.log('[whatsapp-notifications] ⚠️ Usuário optou por não receber notificações por WhatsApp:', userId);
-      return { sent: false, reason: 'user-opted-out' };
+    if (!data?.ok) {
+      return { sent: false, reason: data?.reason || 'not-sent', data };
     }
 
-    const rawPhone = profile?.whatsapp || profile?.phone;
-    const phone = normalizeWhatsAppNumber(rawPhone);
-    if (!phone) {
-      console.warn('[whatsapp-notifications] Nenhum WhatsApp/telefone encontrado');
-      return { sent: false, reason: 'missing-whatsapp' };
-    }
-
-    return sendWhatsAppMessage({ phone, title, message, text: message });
+    return { sent: true, data };
   } catch (error) {
     console.warn('[whatsapp-notifications] Exceção ao encaminhar para WhatsApp:', error);
     return { sent: false, reason: 'exception', error };

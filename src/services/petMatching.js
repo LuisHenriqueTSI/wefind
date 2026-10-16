@@ -297,7 +297,7 @@ export const findMatchesForPet = async (petItem, options = {}) => {
     // Query otimizada buscando candidatos ativos do status oposto
     let query = supabase
       .from('items')
-      .select('*, profiles!owner_id(name, email, whatsapp, phone, avatar_url, avatar_path), item_photos(id, url)')
+      .select('*, profiles!owner_id(name, avatar_url, avatar_path), item_photos(id, url)')
       .eq('resolved', false)
       .eq('status', targetStatus)
       .neq('id', petItem.id);

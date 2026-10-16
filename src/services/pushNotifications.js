@@ -265,7 +265,7 @@ export async function broadcastLostPetAlertToNearbyUsers(petItem, currentUserId 
     // 1. Busca todos os perfis de usuários cadastrados no sistema
     const { data: profiles, error: profilesErr } = await supabase
       .from('profiles')
-      .select('id, name, city, state, neighborhood, extra_fields, expo_push_token, whatsapp, phone')
+      .select('id, name, city, state, neighborhood, extra_fields, expo_push_token')
       .neq('id', currentUserId || '00000000-0000-0000-0000-000000000000');
 
     if (profilesErr || !profiles || profiles.length === 0) {
@@ -349,18 +349,17 @@ export async function broadcastLostPetAlertToNearbyUsers(petItem, currentUserId 
       });
     }
 
-    // 4. Dispara alerta no WhatsApp para quem autorizou
+    // 4. Dispara alerta no WhatsApp. A função de borda consulta o número e
+    //    respeita a opção whatsapp_notifications_enabled de cada usuário.
     for (const target of targetUsers) {
-      if (target.extra_fields?.whatsapp_notifications_enabled) {
-        try {
-          await dispatchSystemNotificationToWhatsApp({
-            userId: target.id,
-            title: alertTitle,
-            message: alertMessage,
-            type: 'nearby_lost_pet',
-          });
-        } catch (_) {}
-      }
+      try {
+        await dispatchSystemNotificationToWhatsApp({
+          userId: target.id,
+          title: alertTitle,
+          message: alertMessage,
+          type: 'nearby_lost_pet',
+        });
+      } catch (_) {}
     }
 
     // 5. Dispara notificação local instantânea no aparelho (para demonstração no Expo Go e testes locais)

@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Linking,
   StyleSheet,
-  ActivityIndicator,
   Dimensions,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,34 +14,93 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import * as storiesService from '../services/stories';
 import OptimizedImage from '../components/OptimizedImage';
-import { WeFindText, WeFindLogo } from '../components/WeFindBrand';
 import COLORS from '../constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// Paleta da tela (as mesmas cores da landing page)
+const MUSGO = '#17301D';
+const FITA = '#F2CF5B';
+
+// Telas reais do aplicativo
+const SHOTS = {
+  cartaz: require('../../assets/conhecer/cartaz.jpeg'),
+  mapa: require('../../assets/conhecer/mapa.jpeg'),
+  publicar: require('../../assets/conhecer/publicar.jpeg'),
+  avistamento: require('../../assets/conhecer/avistamento.jpeg'),
+  correspondencias: require('../../assets/conhecer/correspondencias.jpeg'),
+  conversa: require('../../assets/conhecer/conversa.jpeg'),
+  tutela: require('../../assets/conhecer/tutela.jpeg'),
+};
+
+const ACHADOS = [
+  {
+    queixa: 'Todos os 19 que responderam a essa pergunta disseram que a publicação perde alcance depois de algumas horas.',
+    resposta: 'Aqui o anúncio fica ativo por 30 dias, aparece no mapa e avisa quem está por perto.',
+  },
+  {
+    queixa: '17 de 19 sentiram falta de um mapa para saber onde o animal sumiu ou foi visto.',
+    resposta: 'Cada publicação e cada avistamento tem um ponto no mapa, com rota até o local.',
+  },
+  {
+    queixa: '14 de 19 se preocupam em deixar o telefone pessoal exposto em grupos.',
+    resposta: 'As conversas acontecem dentro do app, ligadas à publicação, sem mostrar o seu número.',
+  },
+];
+
+const ETAPAS = [
+  {
+    shot: 'publicar',
+    titulo: 'Publique o caso',
+    texto: 'Informe espécie, porte, cor e outras características, adicione até seis fotos e marque no mapa onde o animal sumiu ou foi encontrado. Se quiser, ofereça uma recompensa.',
+  },
+  {
+    shot: 'avistamento',
+    titulo: 'A vizinhança avisa onde viu',
+    texto: 'Quem cruzar com o animal registra um avistamento com local, horário, descrição e foto. O autor da publicação recebe o aviso na hora.',
+  },
+  {
+    shot: 'correspondencias',
+    titulo: 'O app sugere animais parecidos',
+    texto: 'O WeFIND compara anúncios de perdidos e encontrados pela espécie, pelas características e pela distância. Quando aparece um animal compatível, você é avisado no app e, se autorizar, no WhatsApp.',
+  },
+  {
+    shot: 'conversa',
+    titulo: 'Converse sem expor seu número',
+    texto: 'O contato entre quem procura e quem encontrou acontece em um chat privado, com dica de segurança e envio de fotos.',
+  },
+  {
+    shot: 'tutela',
+    titulo: 'Comprove que o animal é seu',
+    texto: 'Em animais encontrados, o endereço exato fica protegido. O tutor envia fotos ou documentos, quem acolheu analisa e, ao aprovar, o endereço é liberado para combinar a devolução.',
+  },
+];
+
+const EXTRAS = [
+  { icon: 'qr-code-2', titulo: 'Cartaz com QR code', texto: 'Imagem pronta para imprimir ou postar, nos formatos A4, stories e feed.' },
+  { icon: 'tune', titulo: 'Filtros e raio de busca', texto: 'Veja só cães ou gatos, perdidos ou encontrados, na distância que escolher.' },
+  { icon: 'notifications-active', titulo: 'Avisos no app e no WhatsApp', texto: 'Avistamentos, mensagens, possíveis correspondências e lembretes de renovação.' },
+  { icon: 'flag', titulo: 'Denúncias e moderação', texto: 'Conteúdo suspeito pode ser denunciado e é analisado pela administração.' },
+];
+
+// Moldura de celular para as capturas de tela
+const PhoneShot = ({ source, width, style }) => (
+  <View style={[styles.phone, { width, height: width * (1200 / 540) }, style]}>
+    <Image source={source} style={styles.phoneImg} resizeMode="cover" />
+  </View>
+);
+
 const SobreScreen = ({ navigation }) => {
   const { user } = useAuth();
   const { colors, isDark } = useTheme();
-
   const [stories, setStories] = useState([]);
-  const [loadingStories, setLoadingStories] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-    const fetchStories = async () => {
-      try {
-        setLoadingStories(true);
-        const data = await storiesService.listSuccessStories();
-        if (isMounted) {
-          setStories(data || []);
-        }
-      } catch (err) {
-        console.log('[SobreScreen] Erro ao carregar mural:', err.message);
-      } finally {
-        if (isMounted) setLoadingStories(false);
-      }
-    };
-    fetchStories();
+    storiesService
+      .listSuccessStories()
+      .then((data) => { if (isMounted) setStories(data || []); })
+      .catch((err) => console.log('[SobreScreen] Erro ao carregar mural:', err.message));
     return () => { isMounted = false; };
   }, []);
 
@@ -54,595 +112,298 @@ const SobreScreen = ({ navigation }) => {
     }
   };
 
-  const handleGoToMural = () => {
-    navigation.navigate('MuralReencontros');
-  };
+  const handleGoToMural = () => navigation.navigate('MuralReencontros');
 
-  const handleSendStoryDirect = () => {
-    navigation.navigate('MuralReencontros', { openSendModal: true });
-  };
-
-  const mockStories = [
-    {
-      id: 'mock1',
-      petName: 'Bolinha [Exemplo]',
-      author: 'Carlos S.',
-      location: 'Centro, São Paulo',
-      rating: 5,
-      testimonial: 'Graças ao cartaz digital gerado no WeFIND, um vizinho reconheceu o Bolinha na praça em menos de 2 horas! Muito obrigado.',
-      photoUrl: null,
-    },
-    {
-      id: 'mock2',
-      petName: 'Nina [Exemplo]',
-      author: 'Mariana T.',
-      location: 'Vila Mariana, SP',
-      rating: 5,
-      testimonial: 'O radar no mapa foi fundamental. Recebi um alerta de alguém que viu a Nina duas ruas abaixo da minha casa.',
-      photoUrl: null,
-    }
-  ];
-
-  const displayedStories = stories.length > 0 ? stories.slice(0, 4) : mockStories;
+  const heroBg = isDark ? colors.surface : MUSGO;
+  const shotWidth = Math.min(132, SCREEN_WIDTH * 0.34);
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      {/* HEADER SUPERIOR (Design Moderno e Harmonizado com o App) */}
-      <View style={{ backgroundColor: colors.headerBg, paddingTop: 40, paddingBottom: 10, paddingHorizontal: 18, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 }}>
-          <View style={{ flex: 1, flexDirection: 'column', alignItems: 'flex-start', marginRight: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-              <Image
-                source={require('../../assets/logo_outlined.png')}
-                style={{ width: 28, height: 28, marginRight: 7 }}
-                resizeMode="contain"
-              />
-              <Text style={{ fontWeight: '900', fontSize: 22, letterSpacing: 0.5 }}>
-                <Text style={{ color: COLORS.weColor || '#B1734A' }}>We</Text>
-                <Text style={{ color: '#FFFFFF' }}>FIND</Text>
-              </Text>
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(255, 255, 255, 0.16)',
-                borderRadius: 20,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                marginTop: 2,
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.28)',
-              }}
-            >
-              <MaterialIcons name="auto-awesome" size={13} color="#FEA937" style={{ marginRight: 4 }} />
-              <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '700' }}>
-                Conhecer a Plataforma
-              </Text>
-            </View>
+      {/* Cabeçalho */}
+      <View style={[styles.header, { backgroundColor: colors.headerBg, borderBottomColor: colors.border }]}>
+        <View style={styles.headerRow}>
+          <View style={styles.brandRow}>
+            <Image source={require('../../assets/logo_outlined.png')} style={styles.brandLogo} resizeMode="contain" />
+            <Text style={styles.brandText}>
+              <Text style={{ color: COLORS.weColor || '#B1734A' }}>We</Text>
+              <Text style={{ color: '#FFFFFF' }}>FIND</Text>
+            </Text>
           </View>
-
           {!user ? (
             <TouchableOpacity
               onPress={() => navigation.navigate('Login')}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(255, 255, 255, 0.16)',
-                borderRadius: 20,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.28)',              }}
+              style={styles.headerLogin}
               activeOpacity={0.75}
               accessibilityLabel="Entrar na conta"
             >
-              <View
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 12,
-                  backgroundColor: '#FEA937',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 6,
-                }}
-              >
-                <MaterialIcons name="person" size={15} color="#FFFFFF" />
-              </View>
-              <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13, letterSpacing: 0.2 }}>
-                Entrar
-              </Text>
-              <MaterialIcons name="chevron-right" size={16} color="rgba(255, 255, 255, 0.75)" style={{ marginLeft: 2 }} />
+              <MaterialIcons name="person" size={16} color="#FFFFFF" />
+              <Text style={styles.headerLoginText}>Entrar</Text>
             </TouchableOpacity>
           ) : null}
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* 1. SECTION: DIVULGAÇÃO (ZIGZAG 1) */}
-        <View style={[styles.zigzagSection, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
-          <View style={styles.zigzagTextContainer}>
-            <Text style={[styles.zigzagTitle, { color: colors.text }]}>Utilize poderosas ferramentas de divulgação</Text>
-            <Text style={[styles.zigzagDesc, { color: colors.textSecondary }]}>
-              Tudo foi projetado para aumentar significativamente suas chances de trazer seu pet de volta para casa. Crie sua publicação agora e gere cartazes com QR code inteligentes!
-            </Text>
-          </View>
-          <View style={styles.zigzagImageContainer}>
-            <Image 
-              source={require('../../assets/wefind_poster_feature.jpg')}
-              style={styles.zigzagImage}
-              resizeMode="contain"
-            />
-          </View>
-        </View>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* 1. Abertura: o cartaz colado na parede */}
+        <View style={[styles.hero, { backgroundColor: heroBg, borderColor: colors.cardBorder }]}>
+          <Text style={styles.heroTitle}>Perdeu ou encontrou um animal? Avise quem está perto.</Text>
+          <Text style={styles.heroLead}>
+            No WeFIND, a publicação fica no mapa, recebe avistamentos da vizinhança e é comparada com anúncios parecidos. Tudo no mesmo lugar, sem expor o seu telefone.
+          </Text>
 
-        {/* 2. SECTION: COMUNIDADE (ZIGZAG 2) */}
-        <View style={[styles.zigzagSection, { backgroundColor: colors.surface, borderColor: colors.cardBorder, flexDirection: 'row-reverse' }]}>
-          <View style={[styles.zigzagTextContainer, { paddingRight: 0, paddingLeft: 16 }]}>
-            <Text style={[styles.zigzagTitle, { color: colors.text }]}>Alerta rápido para a vizinhança</Text>
-            <Text style={[styles.zigzagDesc, { color: colors.textSecondary }]}>
-              Ative uma campanha de busca inteligente. Seu alerta aparece no mapa da região, conectando você à comunidade de protetores.
-            </Text>
-          </View>
-          <View style={styles.zigzagImageContainer}>
-            <Image 
-              source={require('../../assets/wefind_how_it_works_minimalist.jpg')}
-              style={styles.zigzagImage}
-              resizeMode="contain"
-            />
-          </View>
-        </View>
-
-        {/* 2. MURAL DE REENCONTROS (DESTAQUE PRINCIPAL) */}
-        <View style={styles.sectionWrapper}>
-          <View style={styles.sectionHeaderRow}>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <MaterialIcons name="volunteer-activism" size={20} color="#2E5634" />
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>Mural de Reencontros</Text>
-              </View>
-              <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
-                Histórias reais de pets que voltaram para casa
-              </Text>
+          <View style={styles.mural}>
+            <View style={styles.cartaz}>
+              <View style={[styles.fita, styles.fitaA]} />
+              <View style={[styles.fita, styles.fitaB]} />
+              <Image source={SHOTS.cartaz} style={styles.cartazImg} resizeMode="cover" />
             </View>
-
-            <TouchableOpacity
-              onPress={handleGoToMural}
-              style={[styles.seeAllBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: colors.cardBorder }]}
-              activeOpacity={0.8}
-            >
-              <Text style={[styles.seeAllBtnText, { color: colors.primary }]}>Ver Todos</Text>
-              <MaterialIcons name="chevron-right" size={16} color={colors.primary} />
-            </TouchableOpacity>
+            <PhoneShot source={SHOTS.mapa} width={118} style={styles.heroPhone} />
           </View>
 
-          {loadingStories ? (
-            <View style={[styles.loadingBox, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 8 }}>Carregando histórias...</Text>
-            </View>
-          ) : displayedStories.length === 0 ? (
-            <View style={[styles.emptyMuralBox, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
-              <MaterialIcons name="pets" size={36} color="#2E5634" style={{ marginBottom: 6 }} />
-              <Text style={[styles.emptyMuralTitle, { color: colors.text }]}>Participe do nosso Mural!</Text>
-              <Text style={[styles.emptyMuralSubtitle, { color: colors.textSecondary }]}>
-                Quando encontrar seu pet através do WeFIND, compartilhe seu relato para inspirar a comunidade.
-              </Text>
+          {!user ? (
+            <View style={styles.heroActions}>
+              <TouchableOpacity
+                style={styles.btnFita}
+                onPress={() => navigation.navigate('Register')}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.btnFitaText}>Criar conta grátis</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.btnContorno} onPress={handleGoToMap} activeOpacity={0.85}>
+                <Text style={styles.btnContornoText}>Ver o mapa</Text>
+              </TouchableOpacity>
             </View>
           ) : (
-            <View style={styles.storiesContainer}>
-              {displayedStories.map((story) => (
-                <TouchableOpacity
-                  key={String(story.id)}
-                  style={[styles.storyCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-                  activeOpacity={0.88}
-                  onPress={handleGoToMural}
-                >
-                  <View style={styles.storyTopRow}>
-                    <View style={styles.storyAvatarWrapper}>
-                      {story.photoUrl ? (
-                        <OptimizedImage uri={story.photoUrl} style={styles.storyAvatar} resizeMode="cover" />
-                      ) : (
-                        <View style={[styles.storyAvatarPlaceholder, { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.2)' : '#DCFCE7' }]}>
-                          <MaterialIcons name="pets" size={24} color="#16A34A" />
-                        </View>
-                      )}
-                    </View>
-
-                    <View style={styles.storyHeaderInfo}>
-                      <View style={styles.storyBadgeHappy}>
-                        <Text style={styles.storyBadgeHappyText}>REENCONTRADO 🎉</Text>
-                      </View>
-                      <Text style={[styles.storyPetName, { color: colors.text }]} numberOfLines={1}>
-                        {story.petName}
-                      </Text>
-                      <Text style={[styles.storyAuthorLocation, { color: colors.textMuted }]} numberOfLines={1}>
-                        Por {story.author} • {story.location}
-                      </Text>
-                    </View>
-
-                    <View style={styles.storyRatingStars}>
-                      {[1, 2, 3, 4, 5].map((st) => (
-                        <MaterialIcons
-                          key={st}
-                          name={st <= story.rating ? 'star' : 'star-border'}
-                          size={13}
-                          color="#F59E0B"
-                        />
-                      ))}
-                    </View>
-                  </View>
-
-                  {story.testimonial ? (
-                    <Text style={[styles.storyQuote, { color: isDark ? '#CBD5E1' : '#334155' }]} numberOfLines={3}>
-                      "{story.testimonial}"
-                    </Text>
-                  ) : null}
-                </TouchableOpacity>
-              ))}
-            </View>
+            <TouchableOpacity style={[styles.btnFita, { alignSelf: 'flex-start' }]} onPress={handleGoToMap} activeOpacity={0.85}>
+              <Text style={styles.btnFitaText}>Ver o mapa</Text>
+            </TouchableOpacity>
           )}
-
-          {/* CTA para Enviar História no Mural (Cai direto no envio) */}
-          <TouchableOpacity
-            onPress={handleSendStoryDirect}
-            style={[styles.muralBannerCTA, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: '#10B981' }]}
-            activeOpacity={0.85}
-          >
-            <View style={{ flex: 1, marginRight: 10 }}>
-              <Text style={[styles.muralCTATitle, { color: isDark ? '#6EE7B7' : '#065F46' }]}>
-                Celebre o seu Reencontro
-              </Text>
-              <Text style={[styles.muralCTASubtitle, { color: isDark ? '#A7F3D0' : '#1E3E24' }]}>
-                Toque aqui para enviar fotos e depoimento direto para o Mural
-              </Text>
-            </View>
-            <MaterialIcons name="add-photo-alternate" size={24} color={isDark ? '#6EE7B7' : '#2E5634'} />
-          </TouchableOpacity>
         </View>
 
-        {/* REMOVIDO: Antiga seção 'Como funciona' */}
-
-        {/* 4. ATALHOS RÁPIDOS */}
-        <View style={styles.quickGrid}>
-          <TouchableOpacity
-            onPress={handleGoToMap}
-            style={[styles.quickTile, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-            activeOpacity={0.85}
-          >
-            <View style={[styles.quickIconCircle, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.15)' : COLORS.primaryLight }]}>
-              <MaterialIcons name="map" size={22} color={colors.primary} />
-            </View>
-            <Text style={[styles.quickTileTitle, { color: colors.text }]}>Mapa Interativo</Text>
-            <Text style={[styles.quickTileSub, { color: colors.textMuted }]}>Explorar por raio e radar GPS</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleGoToMural}
-            style={[styles.quickTile, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
-            activeOpacity={0.85}
-          >
-            <View style={[styles.quickIconCircle, { backgroundColor: '#ECFDF5' }]}>
-              <MaterialIcons name="stars" size={22} color="#2E5634" />
-            </View>
-            <Text style={[styles.quickTileTitle, { color: colors.text }]}>Reencontros</Text>
-            <Text style={[styles.quickTileSub, { color: colors.textMuted }]}>Depoimentos da comunidade</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 5. RODAPÉ DE PRIVACIDADE E TERMOS */}
-        <View style={styles.footerSection}>
-          <Text style={[styles.termsText, { color: colors.textMuted }]}>
-            WeFIND • Plataforma colaborativa para proteção animal.{'\n'}
-            <Text
-              style={[styles.link, { color: colors.primary }]}
-              onPress={() => Linking.openURL('https://wefind.app/termos')}
-            >
-              Termos de Uso
-            </Text>
-            {' '}e{' '}
-            <Text
-              style={[styles.link, { color: colors.primary }]}
-              onPress={() => Linking.openURL('https://wefind.app/privacidade')}
-            >
-              Privacidade
-            </Text>
+        {/* 2. O que a pesquisa mostrou */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>O que ouvimos de quem já procurou um animal</Text>
+          <Text style={[styles.sectionLead, { color: colors.textSecondary }]}>
+            Antes de criar o app, 20 pessoas responderam a uma pesquisa sobre como divulgam e procuram animais perdidos.
           </Text>
+          {ACHADOS.map((a, i) => (
+            <View key={i} style={[styles.achado, { borderTopColor: colors.cardBorder }]}>
+              <Text style={[styles.achadoQueixa, { color: colors.text }]}>{a.queixa}</Text>
+              <Text style={[styles.achadoResposta, { color: colors.textSecondary }]}>{a.resposta}</Text>
+            </View>
+          ))}
         </View>
+
+        {/* 3. Do sumiço ao reencontro */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Do sumiço ao reencontro</Text>
+          <Text style={[styles.sectionLead, { color: colors.textSecondary }]}>É assim que uma busca anda dentro do aplicativo.</Text>
+          {ETAPAS.map((e, i) => {
+            const invertido = i % 2 === 1;
+            return (
+              <View
+                key={e.shot}
+                style={[
+                  styles.etapa,
+                  { borderTopColor: colors.cardBorder, flexDirection: invertido ? 'row-reverse' : 'row' },
+                ]}
+              >
+                <PhoneShot source={SHOTS[e.shot]} width={shotWidth} />
+                <View style={[styles.etapaTexto, invertido ? { marginRight: 16 } : { marginLeft: 16 }]}>
+                  <View style={styles.etapaNum}>
+                    <Text style={styles.etapaNumText}>{i + 1}</Text>
+                  </View>
+                  <Text style={[styles.etapaTitulo, { color: colors.text }]}>{e.titulo}</Text>
+                  <Text style={[styles.etapaDesc, { color: colors.textSecondary }]}>{e.texto}</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+
+        {/* 4. E mais */}
+        <View style={[styles.extras, { backgroundColor: isDark ? colors.surface : colors.primaryLight, borderColor: colors.cardBorder }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text, marginBottom: 14 }]}>E mais</Text>
+          <View style={styles.extrasGrid}>
+            {EXTRAS.map((x) => (
+              <View key={x.titulo} style={styles.extraItem}>
+                <MaterialIcons name={x.icon} size={24} color={colors.primary} />
+                <Text style={[styles.extraTitulo, { color: colors.text }]}>{x.titulo}</Text>
+                <Text style={[styles.extraTexto, { color: colors.textSecondary }]}>{x.texto}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* 5. Reencontros enviados pelos usuários (aparece só quando existem) */}
+        {stories.length > 0 ? (
+          <View style={styles.section}>
+            <View style={styles.storiesHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text, flex: 1 }]}>Reencontros da comunidade</Text>
+              <TouchableOpacity onPress={handleGoToMural} activeOpacity={0.8}>
+                <Text style={[styles.linkForte, { color: colors.primary }]}>Ver todos</Text>
+              </TouchableOpacity>
+            </View>
+            {stories.slice(0, 3).map((story) => (
+              <TouchableOpacity
+                key={String(story.id)}
+                style={[styles.storyCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                activeOpacity={0.88}
+                onPress={handleGoToMural}
+              >
+                {story.photoUrl ? (
+                  <OptimizedImage uri={story.photoUrl} style={styles.storyPhoto} resizeMode="cover" />
+                ) : (
+                  <View style={[styles.storyPhoto, styles.storyPhotoVazia, { backgroundColor: colors.primaryLight }]}>
+                    <MaterialIcons name="pets" size={22} color={colors.primary} />
+                  </View>
+                )}
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.storyNome, { color: colors.text }]} numberOfLines={1}>{story.petName}</Text>
+                  {story.testimonial ? (
+                    <Text style={[styles.storyTexto, { color: colors.textSecondary }]} numberOfLines={2}>{story.testimonial}</Text>
+                  ) : null}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
+
+        {/* 6. Chamada final */}
+        {!user ? (
+          <View style={[styles.final, { backgroundColor: heroBg }]}>
+            <Text style={styles.finalTitulo}>Pronto para ajudar?</Text>
+            <Text style={styles.finalTexto}>Crie sua conta para publicar, registrar avistamentos e receber avisos de animais parecidos.</Text>
+            <View style={styles.heroActions}>
+              <TouchableOpacity style={styles.btnFita} onPress={() => navigation.navigate('Register')} activeOpacity={0.85}>
+                <Text style={styles.btnFitaText}>Criar conta</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.btnContorno} onPress={() => navigation.navigate('Login')} activeOpacity={0.85}>
+                <Text style={styles.btnContornoText}>Já tenho conta</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
+
+        <Text style={[styles.termsText, { color: colors.textMuted }]}>
+          WeFIND, plataforma colaborativa para animais perdidos e encontrados.{'\n'}
+          <Text style={[styles.link, { color: colors.primary }]} onPress={() => Linking.openURL('https://wefind.app/termos')}>
+            Termos de Uso
+          </Text>
+          {' '}e{' '}
+          <Text style={[styles.link, { color: colors.primary }]} onPress={() => Linking.openURL('https://wefind.app/privacidade')}>
+            Privacidade
+          </Text>
+        </Text>
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 36,
-  },
-  heroCard: {
-    borderRadius: 12,
-    padding: 18,
-    borderWidth: 1,
-    marginBottom: 18,  },
-  heroBadge: {
+  screen: { flex: 1 },
+  header: { paddingTop: 40, paddingBottom: 12, paddingHorizontal: 18, borderBottomWidth: 1 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
+  brandRow: { flexDirection: 'row', alignItems: 'center' },
+  brandLogo: { width: 28, height: 28, marginRight: 7 },
+  brandText: { fontWeight: '900', fontSize: 22, letterSpacing: 0.5 },
+  headerLogin: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 10,
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  headerLoginText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
+
+  scrollContent: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+
+  hero: { borderRadius: 24, padding: 22, borderWidth: 1, overflow: 'hidden' },
+  heroTitle: { color: '#FFFFFF', fontSize: 27, lineHeight: 32, fontWeight: '900', letterSpacing: -0.5 },
+  heroLead: { color: '#D3E0D4', fontSize: 14.5, lineHeight: 21, marginTop: 12 },
+  mural: { height: 270, marginTop: 20, marginBottom: 18 },
+  cartaz: {
+    position: 'absolute',
+    left: 4,
+    top: 14,
+    width: '64%',
+    backgroundColor: '#FFFFFF',
+    padding: 7,
+    transform: [{ rotate: '-4deg' }],
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+    zIndex: 2,
+  },
+  cartazImg: { width: '100%', aspectRatio: 520 / 660 },
+  fita: { position: 'absolute', top: -10, width: 62, height: 20, backgroundColor: FITA, opacity: 0.92, zIndex: 3 },
+  fitaA: { left: -16, transform: [{ rotate: '-28deg' }] },
+  fitaB: { right: -16, transform: [{ rotate: '24deg' }] },
+  heroPhone: { position: 'absolute', right: 0, top: 26, transform: [{ rotate: '5deg' }], zIndex: 1 },
+  heroActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 4 },
+  btnFita: { backgroundColor: FITA, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 13 },
+  btnFitaText: { color: MUSGO, fontWeight: '900', fontSize: 14.5 },
+  btnContorno: { borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.6)', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 12 },
+  btnContornoText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14.5 },
+
+  phone: {
+    borderWidth: 4,
+    borderColor: '#141A15',
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: '#141A15',
+  },
+  phoneImg: { width: '100%', height: '100%' },
+
+  section: { marginTop: 34 },
+  sectionTitle: { fontSize: 22, lineHeight: 27, fontWeight: '900', letterSpacing: -0.4 },
+  sectionLead: { fontSize: 14, lineHeight: 20, marginTop: 8, marginBottom: 8 },
+
+  achado: { borderTopWidth: 1, paddingVertical: 16 },
+  achadoQueixa: { fontSize: 16, lineHeight: 22, fontWeight: '800' },
+  achadoResposta: { fontSize: 14, lineHeight: 20, marginTop: 10, paddingLeft: 12, borderLeftWidth: 3, borderLeftColor: FITA },
+
+  etapa: { alignItems: 'center', borderTopWidth: 1, paddingVertical: 20 },
+  etapaTexto: { flex: 1 },
+  etapaNum: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: FITA,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 10,
   },
-  heroBadgeText: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  heroHeadline: {
-    fontSize: 18.5,
-    fontWeight: '900',
-    lineHeight: 25,
-    marginBottom: 8,
-    letterSpacing: -0.3,
-  },
-  heroDescription: {
-    fontSize: 13,
-    lineHeight: 19,
-  },
-  zigzagSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 22,
-    padding: 18,
-    borderWidth: 1,
-    marginBottom: 16,  },
-  zigzagTextContainer: {
-    flex: 1,
-    paddingRight: 16,
-  },
-  zigzagTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-    marginBottom: 8,
-    lineHeight: 22,
-    letterSpacing: -0.3,
-  },
-  zigzagDesc: {
-    fontSize: 12.5,
-    lineHeight: 18,
-  },
-  zigzagImageContainer: {
-    width: 110,
-    height: 110,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#fff', 
-  },
-  zigzagImage: {
-    width: '100%',
-    height: '100%',
-  },
-  sectionWrapper: {
-    marginBottom: 20,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 16.5,
-    fontWeight: '800',
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  seeAllBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  seeAllBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  loadingBox: {
-    padding: 24,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyMuralBox: {
-    padding: 20,
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyMuralTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  emptyMuralSubtitle: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  storiesContainer: {
-    gap: 10,
-  },
-  storyCard: {
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,  },
-  storyTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  storyAvatarWrapper: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#22C55E',
-  },
-  storyAvatar: {
-    width: 46,
-    height: 46,
-  },
-  storyAvatarPlaceholder: {
-    width: 46,
-    height: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  storyHeaderInfo: {
-    flex: 1,
-    marginLeft: 10,
-    marginRight: 6,
-  },
-  storyBadgeHappy: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#DCFCE7',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    marginBottom: 2,
-  },
-  storyBadgeHappyText: {
-    color: '#15803D',
-    fontSize: 9,
-    fontWeight: '800',
-  },
-  storyPetName: {
-    fontSize: 14.5,
-    fontWeight: '800',
-  },
-  storyAuthorLocation: {
-    fontSize: 11,
-    marginTop: 1,
-  },
-  storyRatingStars: {
-    flexDirection: 'row',
-  },
-  storyQuote: {
-    fontSize: 12.5,
-    lineHeight: 18,
-    fontStyle: 'italic',
-  },
-  muralBannerCTA: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginTop: 10,
-  },
-  muralCTATitle: {
-    fontSize: 13.5,
-    fontWeight: '800',
-    marginBottom: 2,
-  },
-  muralCTASubtitle: {
-    fontSize: 11.5,
-  },
-  stepsColumn: {
-    gap: 8,
-  },
-  stepItemCard: {
-    flexDirection: 'row',
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'flex-start',
-  },
-  stepNumberBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  stepNumberText: {
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  stepItemTitle: {
-    fontSize: 13.5,
-    fontWeight: '800',
-    marginBottom: 3,
-  },
-  stepItemDesc: {
-    fontSize: 12,
-    lineHeight: 17,
-  },
-  quickGrid: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
-  },
-  quickTile: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  quickIconCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  quickTileTitle: {
-    fontSize: 13.5,
-    fontWeight: '800',
-    marginBottom: 2,
-  },
-  quickTileSub: {
-    fontSize: 11,
-    lineHeight: 15,
-  },
-  footerSection: {
-    alignItems: 'center',
-    paddingTop: 10,
-  },
-  termsText: {
-    fontSize: 11.5,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-  link: {
-    fontWeight: '700',
-    textDecorationLine: 'underline',
-  },
+  etapaNumText: { color: MUSGO, fontWeight: '900', fontSize: 15 },
+  etapaTitulo: { fontSize: 17, lineHeight: 22, fontWeight: '900' },
+  etapaDesc: { fontSize: 13.5, lineHeight: 20, marginTop: 6 },
+
+  extras: { marginTop: 30, borderRadius: 22, padding: 20, borderWidth: 1 },
+  extrasGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 18 },
+  extraItem: { width: '47%' },
+  extraTitulo: { fontSize: 14.5, fontWeight: '800', marginTop: 6 },
+  extraTexto: { fontSize: 12.5, lineHeight: 18, marginTop: 3 },
+
+  storiesHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  linkForte: { fontWeight: '800', fontSize: 14, textDecorationLine: 'underline' },
+  storyCard: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 16, padding: 12, marginBottom: 10 },
+  storyPhoto: { width: 52, height: 52, borderRadius: 12 },
+  storyPhotoVazia: { alignItems: 'center', justifyContent: 'center' },
+  storyNome: { fontSize: 15, fontWeight: '800' },
+  storyTexto: { fontSize: 12.5, lineHeight: 18, marginTop: 2 },
+
+  final: { marginTop: 34, borderRadius: 24, padding: 22 },
+  finalTitulo: { color: '#FFFFFF', fontSize: 22, fontWeight: '900' },
+  finalTexto: { color: '#D3E0D4', fontSize: 14, lineHeight: 20, marginTop: 8, marginBottom: 16 },
+
+  termsText: { fontSize: 11.5, textAlign: 'center', lineHeight: 18, marginTop: 28 },
+  link: { fontWeight: '700', textDecorationLine: 'underline' },
 });
 
 export default SobreScreen;

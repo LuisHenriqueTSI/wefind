@@ -180,8 +180,51 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const { phone, title, message, type } = body ?? {};
-    const normalizedPhone = normalizeWhatsAppNumber(phone);
+    const { phone, userId, title, message, type } = body ?? {};
+
+    // Avisos do sistema chegam com o id do destinatário, não com o telefone.
+    // O número e a autorização são lidos aqui, no servidor, com a chave de serviço,
+    // para que o aparelho de quem dispara o aviso nunca receba o telefone de outra pessoa.
+    let targetPhone = phone;
+    if (userId) {
+      const admin = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      );
+      const { data: profile, error: profileError } = await admin
+        .from('profiles')
+        .select('whatsapp, phone, whatsapp_notifications_enabled')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (profileError) {
+        return new Response(JSON.stringify({ ok: false, reason: 'profile-error' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders(req) },
+        });
+      }
+      if (profile?.whatsapp_notifications_enabled === false) {
+        return new Response(JSON.stringify({ ok: false, reason: 'user-opted-out' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders(req) },
+        });
+      }
+      targetPhone = profile?.whatsapp || profile?.phone || null;
+      // Mesmo ajuste feito pelo app antes de chamar a função: celulares brasileiros
+      // são enviados à Evolution API sem o nono dígito.
+      const digits = normalizeWhatsAppNumber(targetPhone)?.replace(/\D/g, '') ?? '';
+      if (digits.startsWith('55') && digits.length === 13 && digits[4] === '9') {
+        targetPhone = `${digits.slice(0, 4)}${digits.slice(5)}`;
+      }
+      if (!targetPhone) {
+        return new Response(JSON.stringify({ ok: false, reason: 'missing-whatsapp' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders(req) },
+        });
+      }
+    }
+
+    const normalizedPhone = normalizeWhatsAppNumber(targetPhone);
 
     if (!normalizedPhone || !message) {
       return new Response(JSON.stringify({ ok: false, reason: 'missing-params' }), {
