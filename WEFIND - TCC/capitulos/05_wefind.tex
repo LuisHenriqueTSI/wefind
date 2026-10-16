@@ -22,12 +22,12 @@ O uso de recursos geográficos em sistemas de apoio a buscas por animais também
 A plataforma móvel reúne recursos que apoiam esse contexto. As notificações informam os usuários sobre atualizações relevantes, o acesso à câmera facilita o registro de fotografias e os recursos de localização auxiliam na marcação do ponto do avistamento. A geração de cartazes digitais com código QR viabiliza a divulgação externa impressa e em redes sociais, direcionando os interessados de volta à publicação no aplicativo.
 
 
-\subsection{Correspondência de Animais e Registro de Avistamentos}
+\subsection{Sugestão de Correspondências e Registro de Avistamentos}
 
 O WeFIND adota duas formas distintas e complementares para relacionar informações sobre animais: a correspondência automatizada entre publicações e o registro comunitário de avistamentos. Embora ambas utilizem características físicas e dados de localização, operam com propósitos e fluxos distintos.
 
 
-\subsubsection{Correspondência entre publicações}
+\subsubsection{Correspondência entre Publicações}
 
 A correspondência automática analisa duas publicações ativas cadastradas de forma independente: uma do tipo ``Perdido'' e outra do tipo ``Encontrado''. O sistema avalia a compatibilidade de atributos como espécie, porte, sexo, raça, pelagem e idade, cruzando esses dados com a distância geográfica entre os pontos registrados ou, na ausência de coordenadas, com a cidade e o bairro informados. A listagem pode apresentar sugestões a partir de 55 pontos, em um índice heurístico de 0 a 100; as notificações automáticas utilizam o limiar de 60 pontos.
 
@@ -36,7 +36,7 @@ A formulação matemática desse cálculo, a atribuição de pesos a cada atribu
 Essa funcionalidade tem como objetivo aproximar tutores e resgatistas que possam estar tratando do mesmo animal. Ela não altera o status das publicações, não confirma reencontros e não substitui a validação humana: a ferramenta atua como um mecanismo de apoio para que as partes comparem fotos e características, cabendo exclusivamente aos envolvidos a confirmação do caso.
 
 
-\subsubsection{Registro de avistamento}
+\subsubsection{Registro de Avistamentos}
 
 O registro de avistamento opera a partir do relato de uma pessoa que visualizou um animal na rua, possivelmente associado a uma busca em andamento. O sistema utiliza as coordenadas do informante para consultar publicações ativas em um raio inicial de 5 km, definido no fluxo de busca para restringir os resultados à região relevante.
 
@@ -45,7 +45,7 @@ Após a conferência dos dados e a confirmação do usuário de que o animal vis
 Dessa forma, a correspondência automática atua comparando dois anúncios distintos, enquanto o avistamento acrescenta novos relatos a uma busca já acompanhada. Em ambos os fluxos, o sistema apenas organiza as informações, mantendo a autonomia de decisão com os usuários.
 
 
-\subsection{Classificação e Estados das Publicações}
+\subsection{Categorias e Estados das Publicações}
 
 Para assegurar clareza operacional, o WeFIND estabelece distinção formal entre as categorias de anúncio e os estados de encerramento da publicação.
 

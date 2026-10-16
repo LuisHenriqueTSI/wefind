@@ -6,7 +6,7 @@ Para apoiar a comunicação dessas decisões, a ISO/IEC/IEEE 42010:2022 estabele
 
 Essa perspectiva permite apresentar não apenas quais tecnologias foram escolhidas, mas também como os elementos implementados se distribuem e se relacionam.
 
-\subsection{Arquitetura e tecnologias da plataforma}
+\subsection{Arquitetura e Tecnologias do Aplicativo}
 
 Para situar os componentes e as integrações utilizados na aplicação, a Figura~\ref{fig:arquitetura_wefind} apresenta uma visão geral da arquitetura do WeFIND.
 
@@ -54,7 +54,7 @@ Para apoiar o desenvolvimento, utilizaram-se Node.js, npm e Visual Studio Code n
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-\subsection{Serviços em nuvem, segurança e mensageria}
+\subsection{Serviços em Nuvem, Segurança e Mensageria}
 
 O backend utiliza a plataforma Supabase (Supabase, 2026) e a biblioteca cliente \textit{@supabase/supabase-js} 2.87.3. O Supabase reúne os serviços de autenticação, banco de dados PostgreSQL, armazenamento de arquivos e atualização em tempo real empregados pelo aplicativo; a versão dos serviços gerenciados é administrada pela plataforma. Essa composição foi escolhida para atender às necessidades do projeto sem desenvolver e manter todos esses componentes separadamente.
 
@@ -74,7 +74,7 @@ Backups, restauração, expiração global de sessões e disponibilidade depende
 
 Para a comunicação com o WhatsApp, utilizou-se a Evolution API (Evolution API, 2026), hospedada no Render (Render, 2026). No ambiente utilizado, a integração por requisições HTTP REST apoiou o envio de códigos de recuperação de senha e de avisos de avistamento.
 
-\subsection{Persistência e ciclo de vida das publicações}
+\subsection{Banco de Dados e Ciclo de Vida das Publicações}
 
 A persistência estruturada utiliza o PostgreSQL. A Figura~\ref{fig:modelo_logico_banco} apresenta o modelo lógico relacional adotado no projeto e os relacionamentos entre as entidades representadas.
 
@@ -100,7 +100,7 @@ As publicações têm vigência ativa de 30 dias, contados a partir do cadastro 
 
 Após o período de carência, a publicação pode ser removida permanentemente pela rotina de limpeza acionada durante o carregamento do mural, com intervalo mínimo de uma hora entre verificações na mesma execução do aplicativo. No fluxo de limpeza local, são considerados somente os anúncios do usuário autenticado, e a exclusão também remove os registros das fotos relacionadas e os arquivos correspondentes no Supabase Storage. Portanto, o sistema não executa uma varredura global: a remoção definitiva das publicações de cada conta depende da execução da rotina no contexto dessa conta.
 
-\subsection{Correspondência automatizada entre publicações}
+\subsection{Algoritmo Heurístico de Correspondência}
 
 O WeFIND compara publicações não resolvidas de animais perdidos e encontrados para sugerir possíveis correspondências. Antes de calcular a pontuação, a rotina descarta pares com espécies incompatíveis, sexo informado como oposto ou porte classificado nos extremos pequeno e grande/gigante. Para os demais pares, soma bônus e penalidades definidos para atributos do animal e proximidade geográfica, calculada pela fórmula de Haversine quando há coordenadas. O resultado é um índice heurístico entre 0 e 100, limitado nessa faixa e arredondado; não representa uma probabilidade estatística de reencontro. O \hyperlink{quadro:matching}{Quadro~4} resume as regras implementadas.
 
