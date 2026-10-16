@@ -507,12 +507,8 @@ export const sendPhoneChangeVerificationCode = async (newWhatsapp, email) => {
     }
 
     // Dispara via Evolution API
-    const { sendWhatsAppMessage } = require('./whatsappNotifications');
-    await sendWhatsAppMessage({
-      phone: payloadWhatsapp,
-      title: 'Código de Confirmação WeFIND',
-      text: `Seu código para confirmar a alteração do seu WhatsApp é:\n\n*${code}*\n\nInforme este código no aplicativo para atualizar seu número com segurança.`,
-    });
+    const { sendWhatsAppVerificationCode } = require('./whatsappNotifications');
+    await sendWhatsAppVerificationCode({ phone: payloadWhatsapp, code });
 
     return {
       success: true,

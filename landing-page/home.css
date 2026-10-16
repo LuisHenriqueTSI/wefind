@@ -159,3 +159,17 @@ code{font-size:.9em;background:var(--nevoa);padding:1px 6px;border-radius:5px}
   html{scroll-behavior:auto}
   .cartaz{animation:none}
 }
+
+/* páginas públicas e legais */
+.publico h1{max-width:18ch}
+.selo{display:inline-block;margin-bottom:18px;background:var(--fita);color:var(--musgo);font-weight:700;font-size:.9rem;padding:6px 12px;border-radius:999px}
+.publico .hero-acoes{margin-top:30px}
+.guia-passos-3{grid-template-columns:repeat(3,1fr)}
+.guia-passos a{color:var(--mata);font-weight:700}
+.nota-privacidade{margin-top:56px;padding:18px 20px;border-left:4px solid var(--mata);background:var(--nevoa);color:var(--cinza);max-width:70ch;border-radius:0 10px 10px 0}
+.texto-legal{max-width:760px}
+.texto-legal h2{font-size:1.5rem;margin-top:40px;color:var(--musgo);max-width:none}
+.texto-legal p{margin-top:12px;color:var(--tinta);max-width:68ch}
+.texto-legal a{color:var(--mata);font-weight:700}
+.rodape p a{color:#fff}
+@media (max-width:860px){.guia-passos-3{grid-template-columns:1fr}}

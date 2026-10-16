@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { updatePassword } from '../services/supabaseAuth';
 import { WeFindText } from '../components/WeFindBrand';
+import { TERMS_URL, PRIVACY_URL } from '../constants/links';
 
 const preferenceKeys = {
   notifications: '@recover/preferences/notifications',
@@ -353,7 +354,7 @@ const ConfigScreen = ({ navigation }) => {
           iconColor="#64748B"
           iconBg={isDark ? '#1E293B' : '#F1F5F9'}
           title="Termos de uso"
-          onPress={() => Linking.openURL('https://wefind.app/termos')}
+          onPress={() => Linking.openURL(TERMS_URL)}
         />
         <View style={[styles.divider, { backgroundColor: colors.divider }]} />
         <SettingRow
@@ -361,7 +362,7 @@ const ConfigScreen = ({ navigation }) => {
           iconColor="#64748B"
           iconBg={isDark ? '#1E293B' : '#F1F5F9'}
           title="Política de privacidade"
-          onPress={() => Linking.openURL('https://wefind.app/privacidade')}
+          onPress={() => Linking.openURL(PRIVACY_URL)}
         />
       </View>
 
@@ -500,7 +501,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     marginBottom: 20,
-    borderWidth: 1,  },
+    borderWidth: 1,  },
   row: { minHeight: 64, flexDirection: 'row', alignItems: 'center' },
   rowIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   rowCopy: { flex: 1, paddingVertical: 10 },
@@ -524,7 +525,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 12,
     padding: 22,
-    borderWidth: 1,  },
+    borderWidth: 1,  },
   modalTitle: { fontSize: 19, fontWeight: '800' },
   modalDescription: { fontSize: 13, lineHeight: 18, marginTop: 4, marginBottom: 16 },
   passwordInput: { height: 48, borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, fontSize: 15 },

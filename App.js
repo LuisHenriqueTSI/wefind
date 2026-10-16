@@ -60,7 +60,7 @@ const initializeClarity = () => {
 };
 
 const linking = {
-  prefixes: [prefix, 'wefind://', 'https://wefind.app'],
+  prefixes: [prefix, 'wefind://', 'https://luishenriquetsi.github.io/wefind'],
   config: {
     screens: {
       ItemDetail: 'item/:itemId',

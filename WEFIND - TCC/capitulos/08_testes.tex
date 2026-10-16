@@ -1,11 +1,13 @@
 \section{TESTES E AVALIAÇÃO}
 \setcounter{quadro}{4}
 
-Um aplicativo que funciona no aparelho do desenvolvedor ainda precisa ser examinado por outros ângulos: se cumpre os fluxos previstos, se pessoas que nunca o usaram conseguem operá-lo e se apresenta pontos frágeis de segurança. No WeFIND, essas três perspectivas correspondem às verificações funcionais manuais, à avaliação de usabilidade com tutores de animais e à análise estática do APK com o MobSF. Os testes ajudam a revelar falhas antes que o produto chegue aos usuários (Pressman; Maxim, 2021), mas não demonstram a ausência de defeitos; por isso, cada atividade é apresentada com seus procedimentos, resultados e limites.
+Um aplicativo que funciona no aparelho do desenvolvedor ainda precisa ser examinado por outros ângulos: se cumpre os fluxos previstos, se as sugestões automáticas acertam, se pessoas que nunca o usaram conseguem operá-lo e se apresenta pontos frágeis de segurança. No WeFIND, essas perspectivas correspondem às verificações funcionais manuais, ao teste do mecanismo de correspondência, à avaliação de usabilidade com tutores de animais e à análise estática do APK com o MobSF. Os testes ajudam a revelar falhas antes que o produto chegue aos usuários (Pressman; Maxim, 2021), mas não demonstram a ausência de defeitos; por isso, cada atividade é apresentada com seus procedimentos, resultados e limites.
 
 \subsection{Verificação Funcional Manual}
 
-Antes da avaliação com participantes, o autor realizou verificações manuais dos fluxos funcionais descritos no Capítulo 4, incluindo acesso à conta, consulta e publicação de anúncios, busca no mapa, filtros, registro de avistamentos, mensagens, avisos e moderação. As verificações ocorreram entre 10 e 25 de setembro de 2026, em um aparelho Xiaomi Redmi Note 13 com Android 15 (versão/build informada: AQ3A.240829.003). Durante os fluxos percorridos, não foram observados erros que impedissem a conclusão das operações. O fluxo de comprovação de tutela (RF18) também foi verificado manualmente, desde o envio da solicitação até a análise pelo autor da publicação e a liberação do endereço após a aprovação, sem erros observados. Também foram verificados o cadastro de animais de estimação com a geração da carteirinha digital e a conversão em publicação de animal perdido (RF19), além da disponibilização de animais para adoção (RF20), igualmente sem erros observados. A geração e o compartilhamento do cartaz (RF15) também foram incluídos na terceira tarefa do roteiro aplicado aos participantes; como o questionário avaliou a conclusão do conjunto de tarefas, não houve registro isolado do resultado dessa funcionalidade.
+Antes da avaliação com participantes, o autor realizou verificações manuais dos fluxos funcionais descritos no Capítulo 4, incluindo acesso à conta, consulta e publicação de anúncios, busca no mapa, filtros, registro de avistamentos, mensagens, avisos e moderação. As verificações ocorreram entre 10 e 25 de setembro de 2026, em um aparelho Xiaomi Redmi Note 13 com Android 15 (versão/build informada: AQ3A.240829.003). Durante os fluxos percorridos, não foram observados erros que impedissem a conclusão das operações. O fluxo de comprovação de tutela (RF18) também foi verificado manualmente, desde o envio da solicitação até a análise pelo autor da publicação e a liberação do endereço após a aprovação, sem erros observados. Também foram verificados o cadastro de animais de estimação com a geração da carteirinha digital e a conversão em publicação de animal perdido (RF19), além da disponibilização de animais para adoção (RF20), igualmente sem erros observados. A autorização do autor para exibir o WhatsApp no cartaz também foi verificada: com a opção ligada, o número apareceu no cartaz gerado por outra conta e, com a opção desligada, deixou de aparecer.
+
+A avaliação com participantes, descrita na Seção~8.4, foi feita em setembro de 2026, com a versão do aplicativo disponível naquele mês. As funções incluídas depois dela, como Meus Pets e a carteirinha digital (RF19), a adoção (RF20), a ordenação do mural por proximidade, as regras de privacidade da Seção~5.6, a autorização do WhatsApp no cartaz e a nova central de notificações, foram verificadas apenas pelo autor, em outubro de 2026, e não fizeram parte das tarefas avaliadas pelos participantes. A geração e o compartilhamento do cartaz (RF15) também foram incluídos na terceira tarefa do roteiro aplicado aos participantes; como o questionário avaliou a conclusão do conjunto de tarefas, não houve registro isolado do resultado dessa funcionalidade.
 
 Além das verificações funcionais, foi realizada uma inspeção estática manual do código e das migrações, na qual foram identificadas práticas relacionadas à proteção da comunicação e dos dados, à autenticação e ao controle de acesso. O detalhamento dos controles observados está no Apêndice E.
 
@@ -45,6 +47,47 @@ No manifesto, o MobSF contabilizou um alerta de severidade alta e sete avisos. O
 
 Na análise de código, foram registrados zero alertas altos, sete avisos e três itens classificados como informativos. Os avisos incluem padrões que a ferramenta associa, por exemplo, a possíveis segredos embutidos, uso de MD5, armazenamento externo, consultas SQL e geração de valores aleatórios. Como a análise também abrange bibliotecas incluídas no pacote, esses avisos requerem verificação manual para determinar se se aplicam ao código do WeFIND.
 
+\subsection{Teste do Mecanismo de Correspondência}
+
+O mecanismo de correspondência (RF17) foi testado separadamente, porque a avaliação com participantes não permite saber se as sugestões estão certas. Em 16 de outubro de 2026, a função de pontuação do aplicativo foi executada fora do aparelho sobre 20 pares de anúncios fictícios, montados com as mesmas opções de espécie, sexo, porte, idade e cor do formulário de cadastro e com coordenadas em Pelotas. Dez pares descrevem o mesmo animal, anunciado como perdido pelo tutor e como encontrado por outra pessoa, com as diferenças que costumam aparecer entre as duas descrições, como um campo não informado ou um porte estimado de forma diferente. Os outros dez descrevem animais diferentes, mas parecidos. O \hyperref[quadro:teste_correspondencia]{Quadro 5} apresenta a pontuação obtida em cada par.
+
+\begin{table}[H]
+    \centering
+    \phantomsection\hypertarget{quadro:teste_correspondencia}{}\label{quadro:teste_correspondencia}
+    \small
+    \renewcommand{\arraystretch}{1.15}
+    \begin{tabular}{|c|l|p{8.2cm}|c|}
+        \hline
+        \multicolumn{4}{|c|}{Quadro 5: Pontuação do mecanismo de correspondência nos pares de teste} \\ \hline
+        Par & Situação & Diferença entre os anúncios e distância & Pontuação \\ \hline
+        V1 & Mesmo animal & Descrições iguais; 0,6 km & 85\% \\ \hline
+        V2 & Mesmo animal & Quem encontrou não informou o sexo nem a raça (Poodle); 1,4 km & 69\% \\ \hline
+        V3 & Mesmo animal & Gato preto; sexo e idade não informados por quem encontrou; 0,3 km & 73\% \\ \hline
+        V4 & Mesmo animal & Cor Dourado × Amarelo; raça Labrador × sem raça definida; 2,1 km & 39\% \\ \hline
+        V5 & Mesmo animal & Descrições iguais; 3,2 km & 88\% \\ \hline
+        V6 & Mesmo animal & Cor Laranja com Branco × Laranja; 0,9 km & 85\% \\ \hline
+        V7 & Mesmo animal & Porte Médio × Grande; idade Idoso × Adulto; 1,8 km & 66\% \\ \hline
+        V8 & Mesmo animal & Raça Shih Tzu × Shih-tzu; cor Branco com Dourado × Branco com Caramelo; 2,6 km & 52\% \\ \hline
+        V9 & Mesmo animal & Descrições iguais; 6,5 km & 75\% \\ \hline
+        V10 & Mesmo animal & Porte Pequeno × Médio; cor Cinza × Cinza com Branco; 0,5 km & 76\% \\ \hline
+        D1 & Animais diferentes & Dois cães caramelo sem raça definida, com descrições iguais; 2,8 km & 80\% \\ \hline
+        D2 & Animais diferentes & Sexos opostos; 1,0 km & 0\% \\ \hline
+        D3 & Animais diferentes & Gato × cachorro; 0,4 km & 0\% \\ \hline
+        D4 & Animais diferentes & Porte Pequeno × Grande; 1,5 km & 0\% \\ \hline
+        D5 & Animais diferentes & Idade Filhote × Idoso, demais dados iguais; 1,1 km & 65\% \\ \hline
+        D6 & Animais diferentes & Cor Caramelo × Marrom; 0,7 km & 41\% \\ \hline
+        D7 & Animais diferentes & Duas gatas pretas e brancas, sexo não informado em uma; 4,0 km & 76\% \\ \hline
+        D8 & Animais diferentes & Raça Pastor Alemão × Rottweiler, mesma cor; 2,0 km & 60\% \\ \hline
+        D9 & Animais diferentes & Descrições iguais; 25 km & 55\% \\ \hline
+        D10 & Animais diferentes & Idade Adulto × Filhote; cor Caramelo com Branco × Caramelo; 3,0 km & 75\% \\ \hline
+    \end{tabular}
+    \fonte{Autoria própria (2026)}
+\end{table}
+
+O aplicativo exibe como sugestão os pares com pontuação a partir de 55\% e envia aviso a partir de 60\%. No limite de 55\%, oito dos dez pares do mesmo animal foram sugeridos, mas seis dos dez pares de animais diferentes também foram, o que resulta em 8 sugestões corretas entre 14 (57\%). No limite de 60\%, usado nos avisos, os acertos continuam oito e as sugestões erradas caem para cinco, ou 8 corretas entre 13 (62\%).
+
+As duas correspondências perdidas (V4 e V8) aconteceram porque o algoritmo trata como diferentes palavras que descrevem a mesma coisa: as cores Dourado, Amarelo e Caramelo e a raça escrita com e sem hífen. Nesses casos, a diferença de cor ainda aplica uma penalidade. Entre as sugestões erradas, três mostram critérios que pesam pouco: a diferença entre filhote e idoso (D5), a distância de 25 km (D9) e duas raças definidas diferentes (D8) reduzem a pontuação, mas não o bastante para afastar o par. Os outros dois casos (D1 e D7) são animais diferentes descritos de forma idêntica, que nenhum critério baseado apenas nos campos do cadastro consegue separar; para eles, só a comparação das fotografias ajudaria. O resultado confirma que a pontuação deve ser lida como sugestão a ser conferida pelas pessoas, como prevê o RF17, e aponta os ajustes descritos no Capítulo 9.
+
 \subsection{Avaliação de Usabilidade}
 
 Para avaliar a experiência de uso do WeFIND, foi realizado um estudo com 12 tutores de animais, que percorreram cinco tarefas no aplicativo e, em seguida, responderam a um questionário com questões abertas e itens baseados na Escala de Usabilidade do Sistema (SUS). A seguir, são descritos os critérios considerados, o instrumento, os procedimentos adotados e os resultados obtidos.
@@ -81,7 +124,7 @@ Para o processamento dos dados quantitativos de usabilidade, as dez afirmações
 
 Os resultados são apresentados a seguir em quatro partes: a conclusão das tarefas, os escores da SUS, as respostas abertas e os relatos sobre a fluidez da navegação.
 
-Todos os 12 participantes confirmaram ser tutores de animais domésticos, perfil definido para a avaliação. Em relação à execução prática do roteiro, todos os 12 voluntários selecionaram a opção ``Sim, concluí todas as 5 tarefas com facilidade''. O \hyperref[quadro:conclusao_tarefas]{Quadro 5} apresenta a distribuição consolidada das respostas obtidas nessa etapa.
+Todos os 12 participantes confirmaram ser tutores de animais domésticos, perfil definido para a avaliação. Em relação à execução prática do roteiro, todos os 12 voluntários selecionaram a opção ``Sim, concluí todas as 5 tarefas com facilidade''. O \hyperref[quadro:conclusao_tarefas]{Quadro 6} apresenta a distribuição consolidada das respostas obtidas nessa etapa.
 
 \begin{table}[H]
     \centering
@@ -90,7 +133,7 @@ Todos os 12 participantes confirmaram ser tutores de animais domésticos, perfil
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|p{8.4cm}|r|r|}
         \hline
-        \multicolumn{3}{|c|}{Quadro 5: Autopercepção dos participantes sobre a conclusão das tarefas} \\ \hline
+        \multicolumn{3}{|c|}{Quadro 6: Autopercepção dos participantes sobre a conclusão das tarefas} \\ \hline
         Resposta & Participantes & Percentual \\ \hline
         Concluíram todas as cinco tarefas com facilidade & 12 & 100\% \\ \hline
         Concluíram todas, mas tiveram dúvida em alguma etapa & 0 & 0\% \\ \hline
@@ -101,9 +144,9 @@ Todos os 12 participantes confirmaram ser tutores de animais domésticos, perfil
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{table}
 
-O fato de todos indicarem a conclusão das tarefas com facilidade mostra que os participantes perceberam os fluxos de navegação do WeFIND como claros e diretos.
+Como a conclusão foi informada pelos próprios participantes, esse resultado indica uma percepção positiva dos fluxos, mas não substitui a observação das tarefas. As dúvidas relatadas nas respostas abertas, apresentadas adiante, mostram que alguns pontos da interface ainda geraram hesitação.
 
-Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo SUS, o cálculo individual das respostas aos dez itens resultou em escores elevados. A média aritmética geral obtida pelo WeFIND atingiu a marca de 93,33 pontos, com pontuações individuais situadas entre 85,0 e 100,0 pontos. O \hyperref[quadro:escores_sus]{Quadro 6} apresenta a distribuição dos escores anonimizados obtidos para cada respondente (P1 a P12).
+Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo SUS, o cálculo individual das respostas aos dez itens resultou em escores elevados. A média geral foi de 93,33 pontos, com pontuações individuais entre 85,0 e 100,0 pontos. O \hyperref[quadro:escores_sus]{Quadro 7} apresenta a distribuição dos escores anonimizados obtidos para cada respondente (P1 a P12).
 
 \begin{table}[H]
     \centering
@@ -112,7 +155,7 @@ Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo S
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|c|r|c|r|c|r|}
         \hline
-        \multicolumn{6}{|c|}{Quadro 6: Escores individuais da Escala de Usabilidade do Sistema} \\ \hline
+        \multicolumn{6}{|c|}{Quadro 7: Escores individuais da Escala de Usabilidade do Sistema} \\ \hline
         Participante & Escore &
         Participante & Escore &
         Participante & Escore \\ \hline
@@ -125,9 +168,9 @@ Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo S
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{table}
 
-Sauro e Lewis (2016) indicam que a média de referência dos escores SUS é de aproximadamente 68 pontos e propõem uma escala de notas ajustada pela distribuição dos resultados, na qual escores entre 84,1 e 100 correspondem ao grau A+, a faixa mais alta da escala. Com média de 93,33 pontos e nenhum escore individual abaixo de 85, o WeFIND se situa nessa faixa, o que indica alta satisfação dos participantes com a facilidade de uso do aplicativo.
+Sauro e Lewis (2016) indicam que a média de referência dos escores SUS é de aproximadamente 68 pontos e propõem uma escala de notas ajustada pela distribuição dos resultados, na qual escores entre 84,1 e 100 correspondem ao grau A+, a faixa mais alta da escala. Com média de 93,33 pontos e nenhum escore individual abaixo de 85, o WeFIND se situa nessa faixa, o que indica alta satisfação dos participantes com a facilidade de uso do aplicativo. Por se tratar de uma amostra pequena e voluntária, esse resultado deve ser lido como um indício favorável, e não como uma medida geral da usabilidade do WeFIND.
 
-Para identificar as dimensões específicas da experiência que mais se destacaram, calcularam-se as médias aritméticas das notas brutas atribuídas a cada uma das dez afirmações do questionário, em escala de 1,00 a 5,00 pontos. O \hyperref[quadro:medias_itens_sus]{Quadro 7} sintetiza as médias apuradas. Para as afirmações de conotação negativa (itens pares), médias próximas a 1,00 representam baixa concordância com problemas operacionais, sinalizando um comportamento desejável da interface.
+Para identificar as dimensões específicas da experiência que mais se destacaram, calcularam-se as médias aritméticas das notas brutas atribuídas a cada uma das dez afirmações do questionário, em escala de 1,00 a 5,00 pontos. O \hyperref[quadro:medias_itens_sus]{Quadro 8} sintetiza as médias apuradas. Para as afirmações de conotação negativa (itens pares), médias próximas a 1,00 representam baixa concordância com problemas operacionais, sinalizando um comportamento desejável da interface.
 
 \begin{table}[H]
     \centering
@@ -136,7 +179,7 @@ Para identificar as dimensões específicas da experiência que mais se destacar
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|c|p{9.0cm}|r|}
         \hline
-        \multicolumn{3}{|c|}{Quadro 7: Média das respostas por afirmação do questionário} \\ \hline
+        \multicolumn{3}{|c|}{Quadro 8: Média das respostas por afirmação do questionário} \\ \hline
         Item & Aspecto avaliado & Média \\ \hline
         1 & Intenção de utilizar o sistema com frequência & 4,50 \\ \hline
         2 & Complexidade desnecessária (negativo) & 1,50 \\ \hline
@@ -152,9 +195,9 @@ Para identificar as dimensões específicas da experiência que mais se destacar
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{table}
 
-Os resultados do \hyperref[quadro:medias_itens_sus]{Quadro 7} são favoráveis em todos os itens. O item 7 (facilidade de aprendizado) alcançou a nota máxima unânime de 5,00 pontos, sugerindo que os participantes conseguiram operar os recursos básicos da aplicação sem perceber necessidade de treinamento prévio. A facilidade geral de uso (item 3) registrou média de 4,92, acompanhada por notas elevadas na integração funcional (4,83) e no sentimento de segurança e confiança durante o manuseio (4,83). Por sua vez, as proposições negativas apresentaram médias baixas: a necessidade de suporte técnico para operar o aplicativo (item 4) e a sensação de embaraço ou dificuldade (item 8) registraram média mínima de 1,00 ponto.
+Os resultados do \hyperref[quadro:medias_itens_sus]{Quadro 8} são favoráveis em todos os itens. O item 7 (facilidade de aprendizado) alcançou a nota máxima unânime de 5,00 pontos, sugerindo que os participantes conseguiram operar os recursos básicos da aplicação sem perceber necessidade de treinamento prévio. A facilidade geral de uso (item 3) registrou média de 4,92, acompanhada por notas elevadas na integração funcional (4,83) e na confiança durante o uso (4,83). Por sua vez, as proposições negativas apresentaram médias baixas: a necessidade de suporte técnico para operar o aplicativo (item 4) e a sensação de embaraço ou dificuldade (item 8) registraram média mínima de 1,00 ponto.
 
-A análise das questões abertas complementou as métricas numéricas, trazendo relatos espontâneos sobre pontos fortes e aspectos a aperfeiçoar. Como principais pontos positivos, os participantes ressaltaram a eficácia dos recursos de geolocalização e o mapa interativo, elogiando a seleção intuitiva de pontos no mapa, a visualização dos animais registrados nas imediações e a possibilidade de indicar com precisão visual onde um animal foi avistado. Foram destacados também o formulário guiado com seletores predefinidos para características físicas, a inclusão ágil de imagens da galeria, a facilidade dos filtros de busca e a integração coerente entre publicações, rotas cartográficas e o canal privativo de mensagens.
+A análise das questões abertas complementou as métricas numéricas, trazendo relatos espontâneos sobre pontos fortes e aspectos a aperfeiçoar. Como principais pontos positivos, os participantes ressaltaram a eficácia dos recursos de geolocalização e o mapa interativo, elogiando a seleção intuitiva de pontos no mapa, a visualização dos animais registrados nas imediações e a possibilidade de indicar com precisão visual onde um animal foi avistado. Foram destacados também o formulário guiado com seletores predefinidos para características físicas, a inclusão ágil de imagens da galeria, a facilidade dos filtros de busca e a integração entre publicações, rotas e mensagens privadas.
 
 Quanto às dúvidas e dificuldades, 7 dos 12 respondentes declararam não ter enfrentado qualquer obstáculo durante as tarefas (uma resposta permaneceu em branco). Quatro participantes apontaram dúvidas pontuais: dificuldade em identificar de imediato onde acessar a ficha detalhada de um animal anunciado, questionamento sobre a diferença entre as modalidades de registro (animal perdido versus animal avistado/encontrado), dúvida sobre qual o passo inicial ideal ao abrir a aplicação pela primeira vez e acesso ao histórico de registros efetuados anteriormente.
 
@@ -164,10 +207,10 @@ Dentre as sugestões práticas mencionadas, destacaram-se: aumentar o destaque v
 
 Como percepção qualitativa de uso, os participantes relataram fluidez durante a navegação entre as abas e ausência de travamentos ou encerramentos inesperados.
 
-Em síntese, os fluxos principais funcionaram sem erros nas verificações realizadas, a análise estática indicou os pontos de configuração a revisar e a avaliação de usabilidade mostrou alta satisfação dos participantes, com média SUS de 93,33, além de sugestões concretas para a evolução da interface.
+Em síntese, os fluxos principais funcionaram sem erros nas verificações realizadas, a análise estática indicou os pontos de configuração a revisar o teste da correspondência mostrou acertos na maior parte dos pares do mesmo animal, mas também sugestões erradas, e a avaliação de usabilidade indicou alta satisfação dos participantes, com média SUS de 93,33, além de sugestões concretas para a evolução da interface.
 
 \subsection{Limitações da Avaliação}
 
-Os resultados deste capítulo devem ser lidos considerando algumas condições do estudo. A verificação funcional foi realizada pelo próprio autor, sem roteiro formal ou automação de testes. A análise de segurança foi estática, sem execução do aplicativo, testes de invasão ou avaliação da infraestrutura hospedada.
+Os resultados deste capítulo devem ser lidos considerando algumas condições do estudo. A verificação funcional foi realizada pelo próprio autor, sem roteiro formal ou automação de testes. A análise de segurança foi estática, sem execução do aplicativo, testes de invasão ou avaliação da infraestrutura hospedada. O teste da correspondência usou pares fictícios, montados pelo autor, e não publicações reais; por isso, os percentuais obtidos descrevem o comportamento do algoritmo nesses casos, e não a taxa de acerto esperada no uso do aplicativo.
 
 Na avaliação de usabilidade, a amostra de 12 voluntários foi não probabilística, recrutada em um grupo de rede social, e a conclusão das tarefas foi informada pelos próprios participantes em uma pergunta única, sem acompanhamento do pesquisador ou medição por tarefa. A versão em português dos itens da SUS seguiu a redação divulgada por Teixeira (2015), que não corresponde a um estudo de validação da tradução. Também não foram realizadas medições objetivas de desempenho, como tempo de resposta ou testes de carga. Essas condições não invalidam os resultados obtidos, mas indicam os próximos passos para aprofundar a avaliação, apresentados no Capítulo 9.

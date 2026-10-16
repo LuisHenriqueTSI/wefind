@@ -25,6 +25,7 @@ import {
   isResidentialAddressPrivate,
   removeHouseNumberFromStreet,
 } from '../utils/locationPrivacy';
+import { publicationUrl } from '../constants/links';
 
 /**
  * Modal Completo de Divulgação:
@@ -36,7 +37,7 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
   const flyerRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState('a4'); // 'a4' | 'stories' | 'feed'
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   // Privacidade por padrão: o telefone fica fora do cartaz até o autor autorizar.
   // A autorização fica gravada na publicação e vale para quem compartilhar depois.
   const [phoneAllowed, setPhoneAllowed] = useState(itemsService.isFlyerPhoneAllowed(item));
@@ -45,6 +46,28 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
   useEffect(() => {
     setPhoneAllowed(itemsService.isFlyerPhoneAllowed(item));
   }, [item?.id, item?.extra_fields?.share_phone_on_flyer]);
+
+  // O número não vem mais junto com o mural: é pedido ao banco só quando o
+  // autor autorizou mostrá-lo no cartaz.
+  const [contactPhone, setContactPhone] = useState(null);
+  useEffect(() => {
+    let active = true;
+    if (!item?.id || !phoneAllowed) {
+      setContactPhone(null);
+      return undefined;
+    }
+    const ownPhone = user?.id && item.owner_id === user.id
+      ? (userProfile?.whatsapp || userProfile?.phone || null)
+      : null;
+    if (ownPhone) {
+      setContactPhone(ownPhone);
+      return undefined;
+    }
+    itemsService.getFlyerContact(item.id).then((phone) => {
+      if (active) setContactPhone(phone);
+    });
+    return () => { active = false; };
+  }, [item?.id, phoneAllowed, user?.id, userProfile?.whatsapp, userProfile?.phone]);
 
   if (!item) return null;
 
@@ -96,7 +119,7 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
     const rawDate = String(item.date || '');
     const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? new Date(`${rawDate}T12:00:00`) : new Date(rawDate);
     const formattedDate = item.date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('pt-BR') : 'Não informada';
-    const phone = item.profiles?.whatsapp || item.profiles?.phone || item.contact_phone || '';
+    const phone = contactPhone || '';
     const phoneInfo = includePhone && phone ? `\n📞 Contato direto: ${phone}` : '\n💬 Contato pelo chat do WeFIND';
     
     const details = [
@@ -108,7 +131,7 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
 
     const detailsLine = details ? `\n${details}\n` : '';
     const headerTitle = isAdoption ? 'ADOÇÃO RESPONSÁVEL' : 'AJUDE A ENCONTRAR';
-    const linkInfo = `\n🔗 Link no WeFIND: https://wefind.app/pet/${item.id}`;
+    const linkInfo = `\n🔗 Link no WeFIND: ${publicationUrl(item.id)}`;
 
     return `🐾 *WeFIND - ${headerTitle}*\n\n${status}: *${item.title || 'Animal'}*${detailsLine}\n${locationLabel}: ${location}\n📅 Data: ${formattedDate}${phoneInfo}${linkInfo}\n\n"${item.description || ''}"\n\n📢 *Por favor, ajude compartilhando com seus contatos!*`;
   };
@@ -261,6 +284,7 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
                 imageUrl={imageUrl}
                 format={selectedFormat}
                 showPhone={includePhone}
+                contactPhone={contactPhone}
               />
             </View>
           </ScrollView>

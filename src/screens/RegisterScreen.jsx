@@ -21,6 +21,7 @@ import COLORS from '../constants/theme';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { WeFindText } from '../components/WeFindBrand';
+import { TERMS_URL, PRIVACY_URL } from '../constants/links';
 
 const formatBrazilianPhone = (value = '') => {
   const digits = String(value || '').replace(/\D/g, '').slice(0, 11);
@@ -397,7 +398,7 @@ const RegisterScreen = ({ navigation, route }) => {
               {termsAccepted ? <MaterialIcons name="check" size={15} color="#FFFFFF" /> : null}
             </View>
             <Text style={[styles.consentText, { color: colors.textSecondary }]}>
-              Li e aceito os <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL('https://wefind.app/termos')}>Termos de Uso</Text> *
+              Li e aceito os <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL(TERMS_URL)}>Termos de Uso</Text> *
             </Text>
           </TouchableOpacity>
           {errors.termsAccepted && <Text style={styles.consentError}>{errors.termsAccepted}</Text>}
@@ -411,7 +412,7 @@ const RegisterScreen = ({ navigation, route }) => {
               {privacyAccepted ? <MaterialIcons name="check" size={15} color="#FFFFFF" /> : null}
             </View>
             <Text style={[styles.consentText, { color: colors.textSecondary }]}>
-              Li e aceito a <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL('https://wefind.app/privacidade')}>Política de Privacidade</Text> *
+              Li e aceito a <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL(PRIVACY_URL)}>Política de Privacidade</Text> *
             </Text>
           </TouchableOpacity>
           {errors.privacyAccepted && <Text style={styles.consentError}>{errors.privacyAccepted}</Text>}
@@ -466,7 +467,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     borderWidth: 1.5,
-    padding: 8,  },
+    padding: 8,  },
   logoImage: {
     width: '100%',
     height: '100%',
@@ -494,7 +495,7 @@ const styles = StyleSheet.create({
     maxWidth: 390,
     borderRadius: 20,
     paddingVertical: 14,
-    paddingHorizontal: 16,    borderWidth: 1,
+    paddingHorizontal: 16,    borderWidth: 1,
   },
   input: {
     marginBottom: 8,
@@ -605,7 +606,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 13,
     paddingVertical: 11,
-    marginTop: 4,  },
+    marginTop: 4,  },
   registerButtonText: {
     fontWeight: '800',
     fontSize: 14.5,

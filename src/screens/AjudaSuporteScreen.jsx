@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { SUPPORT_EMAIL } from '../constants/links';
 
 const faqs = [
   {
@@ -73,7 +74,7 @@ const AjudaSuporteScreen = () => {
       <View style={styles.contactRow}>
         <TouchableOpacity
           style={[styles.contactCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
-          onPress={() => openContact('mailto:suporte@wefindapp.com')}
+          onPress={() => openContact(`mailto:${SUPPORT_EMAIL}`)}
           activeOpacity={0.8}
         >
           <View style={[styles.contactIcon, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.15)' : colors.primaryLight }]}>
@@ -81,27 +82,14 @@ const AjudaSuporteScreen = () => {
           </View>
           <Text style={[styles.contactTitle, { color: colors.text }]}>E-mail</Text>
           <Text style={[styles.contactText, { color: colors.textSecondary }]}>
-            suporte@wefindapp.com
+            {SUPPORT_EMAIL}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.contactCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
-          onPress={() => openContact('https://wa.me/5548999999999')}
-          activeOpacity={0.8}
-        >
-          <View style={[styles.contactIcon, { backgroundColor: isDark ? 'rgba(34, 197, 94, 0.15)' : '#DCFCE7' }]}>
-            <MaterialIcons name="chat" size={24} color="#16A34A" />
-          </View>
-          <Text style={[styles.contactTitle, { color: colors.text }]}>WhatsApp</Text>
-          <Text style={[styles.contactText, { color: colors.textSecondary }]}>
-            Atendimento Rápido
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <Text style={[styles.note, { color: colors.textMuted }]}>
-        Nossa equipe de suporte responde normalmente em até 1 dia útil.
+        O WeFIND é mantido pelo autor do projeto. A resposta pode levar alguns dias.
       </Text>
     </ScrollView>
   );
@@ -115,7 +103,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    marginBottom: 24,  },
+    marginBottom: 24,  },
   faqRow: { minHeight: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 12 },
   faqIconCircle: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   question: { fontSize: 14.5, fontWeight: '700', flex: 1, lineHeight: 20 },
@@ -127,7 +115,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 16,
     flex: 1,
-    minHeight: 130,  },
+    minHeight: 130,  },
   contactIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   contactTitle: { fontWeight: '800', fontSize: 15 },
   contactText: { fontSize: 12, marginTop: 4, lineHeight: 16 },

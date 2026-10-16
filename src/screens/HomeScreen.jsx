@@ -669,7 +669,6 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
             <Text style={{ fontSize: 11.5, color: isDark ? '#4ADE80' : '#166534', fontWeight: '700', marginLeft: 4 }}>
               {item.status === 'lost' ? 'Tutor:' : 'Responsável:'}{' '}
               <Text style={{ fontWeight: '600' }}>{item.extra_fields.third_party_owner.name}</Text>
-              {item.extra_fields.third_party_owner.phone ? ` • 📞 ${item.extra_fields.third_party_owner.phone}` : ''}
             </Text>
           </View>
         ) : null}
@@ -1192,7 +1191,7 @@ const HomeScreen = ({ navigation, route }) => {
         allItems = await itemsService.listItemsWithPhotosAndOwner(baseFilters);
         allItems = (allItems || []).map(item => ({
           ...item,
-          owner_name: item.profiles?.name || item.profiles?.email || item.owner_name || 'Usuário',
+          owner_name: item.profiles?.name || item.owner_name || 'Usuário',
           item_photos: item.item_photos || [],
         }));
       }

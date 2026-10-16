@@ -13,6 +13,7 @@ import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import COLORS from '../constants/theme';
+import { petCardUrl } from '../constants/links';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -31,7 +32,7 @@ const PetRgCard = ({ pet, userProfile, onClose }) => {
   const tutorCity = userProfile?.city || pet.city || 'Pelotas';
   const tutorState = userProfile?.state || pet.state || 'RS';
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(`https://wefind.app/rg/${pet.id || 'pet'}`)}&color=2E5634&bgcolor=FFFFFF&margin=1`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(petCardUrl(pet.id || 'pet'))}&color=2E5634&bgcolor=FFFFFF&margin=1`;
 
   const handleShareRg = async () => {
     if (sharing) return;

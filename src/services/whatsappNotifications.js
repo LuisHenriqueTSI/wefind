@@ -36,7 +36,9 @@ function normalizeWhatsAppNumber(phone) {
   return `+${digitsOnly}`;
 }
 
-export async function sendWhatsAppMessage({ phone, title, message, text }) {
+// Envia o código de confirmação de troca de WhatsApp. O texto da mensagem é
+// montado pela função no servidor; o app manda apenas o número e o código.
+export async function sendWhatsAppVerificationCode({ phone, code }) {
   const normalizedPhone = normalizeWhatsAppNumber(phone);
   if (!normalizedPhone) return { sent: false, reason: 'invalid-phone' };
 
@@ -45,14 +47,11 @@ export async function sendWhatsAppMessage({ phone, title, message, text }) {
     rawDigits = `${rawDigits.slice(0, 4)}${rawDigits.slice(5)}`;
   }
 
-  const content = message || text || '';
-  const messageText = title ? `*${title}*\n\n${content}` : content;
-
   const { data, error } = await supabase.functions.invoke('notify-whatsapp', {
     body: {
       phone: rawDigits,
-      title,
-      message: messageText,
+      type: 'verification-code',
+      code: String(code),
     },
   });
   if (error) {

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Publicação de animal perdido ou encontrado no WeFIND.">
+    <meta name="theme-color" content="#2E5634">
+    <title>Publicação no WeFIND</title>
+    <link rel="icon" href="assets/favicon.png" type="image/png">
+    <link rel="preload" href="assets/fonts/BricolageGrotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="home.css">
+  </head>
+  <body>
+    <header class="topo">
+      <nav class="topo-nav wrap" aria-label="Navegação principal">
+        <a class="marca" href="index.html">
+          <img src="assets/logo.png" alt="" width="40" height="40">
+          <span>WeFIND</span>
+        </a>
+        <a class="topo-link" href="index.html#como-funciona">Como funciona</a>
+        <a class="topo-link" href="instrucoes.html">Instalar</a>
+        <a class="botao botao-pequeno" href="https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.3/WeFIND_v2.3.apk" download>Baixar APK</a>
+      </nav>
+    </header>
+
+    <main class="guia wrap publico">
+      <p class="selo">Publicação no WeFIND</p>
+      <h1>Você chegou pelo cartaz de um animal.</h1>
+      <p class="guia-lead">No aplicativo, você vê as fotos, o local aproximado e os avistamentos dessa publicação, e pode falar com o responsável pelo chat, sem precisar trocar telefone.</p>
+      <div class="hero-acoes">
+        <a class="botao" id="abrir-app" href="wefind://home">Abrir no aplicativo</a>
+        <a class="link-forte" href="https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.3/WeFIND_v2.3.apk" download>Ainda não tenho o WeFIND</a>
+      </div>
+      <p class="hero-nota" id="codigo"></p>
+
+      <section class="guia-bloco" aria-labelledby="viu-titulo">
+        <h2 id="viu-titulo">Viu esse animal?</h2>
+        <ol class="guia-passos guia-passos-3">
+          <li><h3>Instale o app</h3><p>O WeFIND é gratuito e funciona no Android. Veja o <a href="instrucoes.html">passo a passo da instalação</a>.</p></li>
+          <li><h3>Abra a publicação</h3><p>Escaneie de novo o código QR do cartaz ou toque em “Abrir no aplicativo” nesta página.</p></li>
+          <li><h3>Avise o responsável</h3><p>Registre um avistamento com o local e o horário, ou mande uma mensagem pelo chat. O responsável é avisado na hora.</p></li>
+        </ol>
+      </section>
+
+      <p class="nota-privacidade">Para proteger quem publicou, esta página não mostra endereço nem telefone. O telefone só aparece no cartaz quando o próprio responsável autoriza.</p>
+    </main>
+
+    <footer class="rodape">
+      <div class="wrap rodape-grade">
+        <a class="marca" href="index.html"><img src="assets/logo.png" alt="" width="32" height="32"><span>WeFIND</span></a>
+        <p>Desenvolvido por Luis Henrique Fonseca Victoria como Trabalho de Conclusão do Curso Superior de Tecnologia em Sistemas para Internet, IFSul Câmpus Pelotas. <a href="termos.html">Termos de uso</a> · <a href="privacidade.html">Privacidade</a></p>
+        <small>© <span id="year"></span> WeFIND</small>
+      </div>
+    </footer>
+    <script src="script.js"></script>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var id = params.get('id') || '';
+        if (/^[0-9a-f-]{8,64}$/i.test(id)) {
+          document.getElementById('abrir-app').href = 'wefind://item/' + id;
+          document.getElementById('codigo').textContent = 'Código da publicação: ' + id.slice(0, 8);
+        }
+      })();
+    </script>
+  </body>
+</html>

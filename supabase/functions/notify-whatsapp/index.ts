@@ -180,7 +180,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const { phone, userId, title, message, type } = body ?? {};
+    const { phone, userId, title, message, type, code } = body ?? {};
 
     // Avisos do sistema chegam com o id do destinatário, não com o telefone.
     // O número e a autorização são lidos aqui, no servidor, com a chave de serviço,
@@ -224,16 +224,32 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // Sem userId, o número vem do próprio app e só é aceito para o código de
+    // confirmação de troca de WhatsApp. O texto é montado aqui, no servidor, para
+    // que a função não possa ser usada para mandar mensagens livres a qualquer número.
+    let outgoingTitle = title;
+    let outgoingMessage = message;
+    if (!userId) {
+      if (type !== 'verification-code' || !/^\d{6}$/.test(String(code ?? ''))) {
+        return new Response(JSON.stringify({ ok: false, reason: 'phone-path-restricted' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders(req) },
+        });
+      }
+      outgoingTitle = 'Código de Confirmação WeFIND';
+      outgoingMessage = `Seu código para confirmar a alteração do seu WhatsApp é:\n\n*${code}*\n\nInforme este código no aplicativo para atualizar seu número com segurança.`;
+    }
+
     const normalizedPhone = normalizeWhatsAppNumber(targetPhone);
 
-    if (!normalizedPhone || !message) {
+    if (!normalizedPhone || !outgoingMessage) {
       return new Response(JSON.stringify({ ok: false, reason: 'missing-params' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders(req) },
       });
     }
 
-    const text = `${title ? `*${title}*\n\n` : ''}${message}`;
+    const text = `${outgoingTitle ? `*${outgoingTitle}*\n\n` : ''}${outgoingMessage}`;
 
     // 1. Tenta enviar via Evolution API (100% gratuito e sem restrição Sandbox)
     if (EVOLUTION_API_URL && EVOLUTION_API_KEY) {

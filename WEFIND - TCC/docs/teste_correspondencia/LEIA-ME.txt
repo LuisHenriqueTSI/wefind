@@ -1,0 +1,8 @@
+Teste do mecanismo de correspondência (Seção 8.3 do TCC)
+
+teste_correspondencia.mjs: os 20 pares fictícios e a chamada da função calculatePetMatchScore,
+copiada de src/services/petMatching.js do aplicativo (versão de 16/10/2026).
+resultado.txt: pontuação de cada par e totais nos limites de 55% e 60%.
+
+Para rodar de novo: empacotar com esbuild junto com src/services/petMatching.js e sightings.js,
+trocando os imports de Supabase, AsyncStorage e expo-file-system por arquivos vazios.

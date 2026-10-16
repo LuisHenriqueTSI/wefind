@@ -17,6 +17,7 @@ import OptimizedImage from '../components/OptimizedImage';
 import LoginPillButton from '../components/LoginPillButton';
 import COLORS from '../constants/theme';
 import { APP_FEATURES } from '../constants/features';
+import { TERMS_URL, PRIVACY_URL } from '../constants/links';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -262,11 +263,11 @@ const SobreScreen = ({ navigation }) => {
 
         <Text style={[styles.termsText, { color: colors.textMuted }]}>
           WeFIND, plataforma colaborativa para animais perdidos e encontrados.{'\n'}
-          <Text style={[styles.link, { color: colors.primary }]} onPress={() => Linking.openURL('https://wefind.app/termos')}>
+          <Text style={[styles.link, { color: colors.primary }]} onPress={() => Linking.openURL(TERMS_URL)}>
             Termos de Uso
           </Text>
           {' '}e{' '}
-          <Text style={[styles.link, { color: colors.primary }]} onPress={() => Linking.openURL('https://wefind.app/privacidade')}>
+          <Text style={[styles.link, { color: colors.primary }]} onPress={() => Linking.openURL(PRIVACY_URL)}>
             Privacidade
           </Text>
         </Text>

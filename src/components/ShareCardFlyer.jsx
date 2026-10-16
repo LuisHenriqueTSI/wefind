@@ -9,6 +9,7 @@ import {
   removeHouseNumberFromStreet,
   shouldHideHouseNumber,
 } from '../utils/locationPrivacy';
+import { publicationUrl } from '../constants/links';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -19,7 +20,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
  * - 'stories': Formato 9:16 Vertical para Instagram Stories e WhatsApp Status
  * - 'feed': Formato 1:1 Quadrado para Feed do Instagram/Facebook e Grupos
  */
-const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPhone = false }, ref) => {
+const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPhone = false, contactPhone = null }, ref) => {
   if (!item) return null;
 
   const isAdoption = Boolean(
@@ -113,14 +114,7 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
 
   const rawPhone = (isThirdParty && thirdParty.phone)
     ? thirdParty.phone
-    : (
-        item.profiles?.whatsapp ||
-        item.profiles?.phone ||
-        item.contact_phone ||
-        item.phone ||
-        item.extra_fields?.contact_phone ||
-        null
-      );
+    : (contactPhone || null);
 
   // O telefone só entra no cartaz quando o autor da publicação escolhe mostrá-lo
   const formattedPhone = showPhone ? formatPhoneWithNine(rawPhone) : null;
@@ -130,7 +124,7 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
   const ownerLabel = isAdoption ? 'Responsável' : (isLost ? 'Tutor' : 'Encontrado por');
 
   // URL do QR Code Dinâmico
-  const petLink = `https://wefind.app/pet/${item.id}`;
+  const petLink = publicationUrl(item.id);
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(petLink)}&color=2E5634&bgcolor=FFFFFF&margin=1`;
 
   // ==========================================
@@ -201,7 +195,7 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
           {/* Rodapé social, sem QR Code */}
           <View style={styles.storiesFooter}>
             <MaterialIcons name="share" size={18} color={statusColor} />
-            <Text style={styles.storiesFooterText}>Ajude compartilhando • wefind.app</Text>
+            <Text style={styles.storiesFooterText}>Ajude compartilhando • Baixe o WeFIND</Text>
           </View>
         </View>
       </View>
@@ -262,7 +256,7 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
           {/* Rodapé Feed sem QR Code */}
           <View style={styles.feedFooter}>
             <MaterialIcons name="share" size={16} color="#2E5634" />
-            <Text style={styles.feedFooterQrText}>Ajude compartilhando • wefind.app</Text>
+            <Text style={styles.feedFooterQrText}>Ajude compartilhando • Baixe o WeFIND</Text>
           </View>
         </View>
       </View>
