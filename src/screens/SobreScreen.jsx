@@ -16,6 +16,7 @@ import * as storiesService from '../services/stories';
 import OptimizedImage from '../components/OptimizedImage';
 import LoginPillButton from '../components/LoginPillButton';
 import COLORS from '../constants/theme';
+import { APP_FEATURES } from '../constants/features';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -64,7 +65,7 @@ const ETAPAS = [
 
 const EXTRAS = [
   { icon: 'qr-code-2', titulo: 'Cartaz com QR code', texto: 'Imagem pronta para imprimir ou postar, nos formatos A4, stories e feed.' },
-  { icon: 'tune', titulo: 'Filtros e raio de busca', texto: 'Veja só cães ou gatos, perdidos ou encontrados, na distância que escolher.' },
+  { icon: 'near-me', titulo: 'Mais perto primeiro', texto: 'O mural mostra primeiro os animais perto de você. Nos filtros, escolha o raio e a ordem.' },
   { icon: 'notifications-active', titulo: 'Avisos no app e no WhatsApp', texto: 'Avistamentos, mensagens, possíveis correspondências e lembretes de renovação.' },
   { icon: 'flag', titulo: 'Denúncias e moderação', texto: 'Conteúdo suspeito pode ser denunciado e é analisado pela administração.' },
 ];
@@ -82,6 +83,8 @@ const SobreScreen = ({ navigation }) => {
   const [stories, setStories] = useState([]);
 
   useEffect(() => {
+    if (!APP_FEATURES.successStories) return undefined;
+
     let isMounted = true;
     storiesService
       .listSuccessStories()
@@ -200,7 +203,7 @@ const SobreScreen = ({ navigation }) => {
         </View>
 
         {/* 4. Reencontros enviados pelos usuários (aparece só quando existem) */}
-        {stories.length > 0 ? (
+        {APP_FEATURES.successStories && stories.length > 0 ? (
           <View style={styles.section}>
             <View style={styles.storiesHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text, flex: 1 }]}>Reencontros da comunidade</Text>

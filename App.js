@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme, createNavigationContainerRef } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
@@ -122,6 +122,13 @@ function MainAppContainer() {
     },
   };
 
+  const appContent = (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <RootNavigator />
+    </>
+  );
+
   return (
     <NavigationContainer
       ref={navigationRef}
@@ -130,8 +137,30 @@ function MainAppContainer() {
       onReady={trackCurrentScreen}
       onStateChange={trackCurrentScreen}
     >
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      <RootNavigator />
+      <View
+        style={[
+          styles.viewport,
+          Platform.OS === 'web' && {
+            alignItems: 'center',
+            backgroundColor: isDark ? '#050A07' : '#E8ECE8',
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.appFrame,
+            Platform.OS === 'web' && {
+              maxWidth: 480,
+              backgroundColor: colors.background,
+              borderLeftWidth: 1,
+              borderRightWidth: 1,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+        >
+          {appContent}
+        </View>
+      </View>
     </NavigationContainer>
   );
 }
@@ -152,3 +181,8 @@ export default function App() {
     </ThemeProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  viewport: { flex: 1, width: '100%' },
+  appFrame: { flex: 1, width: '100%' },
+});

@@ -273,7 +273,7 @@ Para garantir a integridade física e a privacidade dos membros da comunidade:
    - O objetivo é mobilizar a comunidade para o resgate imediato de animais em situação de vulnerabilidade e deslocamento.
 2. **Animais Acolhidos em Lar Temporário (`found_custody === 'with_me'`):**
    - O endereço residencial do voluntário **não é plotado no mapa público**.
-   - A entrega é realizada de forma segura mediante o fluxo formal de comprovação de tutela e chat autenticado com liberação do ponto de encontro.
+   - O responsável pode exigir comprovação de tutela antes de liberar o chat (opção ativada por padrão) ou permitir a conversa sem comprovantes. Em ambos os casos, o endereço exato continua protegido até ser compartilhado pelo responsável.
 
 ---
 
@@ -332,7 +332,7 @@ Um dos pilares acadêmicos e operacionais mais críticos do **WeFIND** é a prot
 3. **Diferenciação Contextual de Localização por Tipo de Publicação:**
    - **Animal Perdido (`status === 'lost'`):** O público visualiza apenas o bairro e referências gerais (*ex: "Região do Centro • Proximidades da Praça Tochetto"*).
    - **Animal Visto na Rua (`found_custody === 'spotted'`):** O endereço do logradouro público fica visível (*ex: "Av. Brasil, 450 - Centro"*), permitindo que a comunidade e o tutor tracem rotas de resgate imediatas.
-   - **Animal Acolhido (`found_custody === 'with_me'`):** O endereço do lar temporário permanece sob sigilo absoluto; o tutor só obtém contato após passar pela triagem no chat interno com comprovação de posse (características particulares, cicatrizes e validação por fotos).
+   - **Animal Acolhido (`found_custody === 'with_me'`):** O endereço do lar temporário permanece sob sigilo absoluto. O responsável pode exigir comprovação de posse antes de iniciar o chat (ativada por padrão) ou aceitar conversa sem comprovantes; o endereço exato só é liberado por aprovação ou compartilhamento do responsável.
 
 ---
 

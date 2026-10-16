@@ -8,7 +8,7 @@ A probabilidade de recuperação com vida está diretamente associada à agilida
     \centering
     \caption{Percentual acumulado de gatos perdidos encontrados vivos em função dos dias decorridos: (a) primeiro ano e (b) primeiros trinta dias}
     \label{fig:curva_recuperacao_tempo}
-    \includegraphics[width=0.44\textwidth]{imagens/01_pesquisa/figura01_curva_recuperacao_tempo.png}
+    \includegraphics[height=9.2cm,keepaspectratio]{imagens/01_pesquisa/figura01_curva_recuperacao_tempo.png}
     \fonte{Adaptado de Huang et al. (2018, p. 9)}
 \end{figure}
 
@@ -18,7 +18,7 @@ Além do tempo de resposta, o sucesso da recuperação relaciona-se diretamente 
 
 Entre as formas de divulgar a perda de um animal estão o contato com vizinhos e clínicas veterinárias, a distribuição de cartazes e as publicações em redes sociais e grupos de mensagens. Na pesquisa de campo deste trabalho, os participantes também indicaram o uso desses diferentes canais, conforme detalhado no Capítulo 3.
 
-Quando o caso é divulgado em diferentes canais, as informações e atualizações podem ficar distribuídas entre páginas, grupos e conversas. Por exemplo, uma atualização sobre o telefone de contato ou sobre um novo local onde o animal foi visto pode aparecer em apenas um canal. Essa possibilidade pode dificultar o acompanhamento da busca e evidencia a importância de manter as informações organizadas. Essa questão também foi investigada na pesquisa de campo apresentada no Capítulo 3.
+Quando o caso é divulgado em diferentes canais, as informações e atualizações podem ficar distribuídas entre páginas, grupos e conversas. Por exemplo, uma atualização sobre o telefone de contato ou sobre um novo local onde o animal foi visto pode aparecer em apenas um canal. Essa dispersão dificulta o acompanhamento da busca e mostra a importância de manter as informações organizadas.
 
 Apesar dessas dificuldades, a divulgação permite que outras pessoas participem da busca. Um morador pode reconhecer o animal pela foto e informar onde o viu; outra pessoa pode acrescentar um novo relato mais tarde, em outro ponto da região. Quando reunidas, as descrições, os horários e os locais ajudam a compor um histórico mais claro da procura.
 
@@ -26,4 +26,4 @@ Essa dinâmica se relaciona aos sistemas colaborativos, que apoiam a interação
 
 No contexto brasileiro, soluções computacionais para apoiar essas buscas também têm sido propostas. Souza et al. (2022), por exemplo, apresentam o FugaPet-Rotas, um algoritmo que recomenda rotas para orientar a procura por animais desaparecidos. Na busca exploratória realizada para este trabalho (Capítulo 3), não foram identificados, entre as fontes consultadas, estudos que reunissem em um mesmo aplicativo a organização geográfica das publicações, o registro de avistamentos vinculados a cada caso e a comunicação privada entre os participantes; essa constatação, contudo, limita-se às bases e aos termos pesquisados.
 
-O Capítulo 3 apresenta a pesquisa de campo e a análise de sistemas similares utilizadas para identificar as necessidades relacionadas à divulgação e ao acompanhamento das buscas.
+Outro elemento importante nesse contexto é a localização. Sistemas georreferenciados associam cada informação a coordenadas de latitude e longitude, o que permite exibir os casos em um mapa e calcular a distância entre eles. Como a Terra tem forma aproximadamente esférica, essa distância costuma ser estimada pela fórmula de Haversine, que calcula o menor caminho entre dois pontos sobre a superfície de uma esfera a partir de suas coordenadas (Sinnott, 1984). Combinada à comparação de características descritivas, como espécie, porte e cor, a distância permite estimar a semelhança entre dois registros por meio de regras de pontuação. Essa abordagem é chamada de heurística porque cada critério contribui com um peso definido previamente, sem a pretensão de calcular uma probabilidade. Esses conceitos fundamentam o mecanismo de correspondência entre anúncios descrito nos Capítulos 5 e 6.

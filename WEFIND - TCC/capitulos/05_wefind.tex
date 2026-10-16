@@ -1,16 +1,14 @@
 \section{SOLUÇÃO DESENVOLVIDA: WeFIND}
 
-A concepção do WeFIND foi motivada por uma experiência vivenciada pelo autor durante a busca por um animal doméstico desaparecido no círculo familiar. Na ocasião, o acompanhamento da busca dependia de publicações distribuídas em redes sociais e grupos de mensagens, o que dificultava localizar as informações, identificar animais anunciados nas proximidades e acompanhar as atualizações. Essa experiência evidenciou, em uma situação concreta, a necessidade de uma ferramenta capaz de reunir as informações e organizar a colaboração entre as pessoas envolvidas.
+Com os requisitos definidos, o WeFIND foi organizado para centralizar as informações sobre animais perdidos e encontrados e estruturar a participação da comunidade em torno de cada caso. Suas funcionalidades centrais se agrupam em quatro eixos:
 
-A partir dessa motivação, a plataforma WeFIND foi desenvolvida para centralizar informações sobre animais perdidos e encontrados, organizando a participação dos usuários em um ambiente específico para esse fim. Em resposta às dificuldades observadas, a solução reúne recursos de publicação, busca geográfica, comunicação e colaboração comunitária. A experiência pessoal, portanto, constitui a motivação inicial do projeto, enquanto as funcionalidades apresentadas a seguir resultam da análise do problema e dos requisitos definidos ao longo do desenvolvimento.
+O primeiro eixo é a busca por localização: o mapa interativo e o mural de publicações são organizados por proximidade, e o usuário pode definir o raio de busca.
 
-Para estruturar a solução desenvolvida e contemplar os requisitos levantados, as funcionalidades centrais foram agrupadas em três eixos:
+O segundo eixo é o registro colaborativo de avistamentos: os usuários relatam animais vistos na rua, com fotografia e localização, formando uma linha do tempo vinculada à publicação correspondente.
 
-O primeiro eixo compreende a busca espacial georreferenciada, organizando o mapa interativo e o mural de publicações por proximidade territorial e permitindo a delimitação de raios de busca.
+O terceiro eixo reúne comunicação, privacidade e divulgação: o sistema oferece mensagens privadas entre os participantes e permite compartilhar cartazes de busca, sem expor publicamente o telefone do usuário.
 
-O segundo eixo estabelece o registro colaborativo de avistamentos. Por meio desse recurso, os usuários relatam animais observados em vias públicas com fotografias e coordenadas, construindo uma linha do tempo vinculada à publicação correspondente.
-
-O terceiro eixo reúne comunicação, privacidade e divulgação. O sistema oferece um canal de mensagens privado entre os participantes e permite compartilhar cartazes de busca, apoiando a circulação das informações sem expor publicamente o telefone do usuário.
+O quarto eixo reúne os recursos de apoio ao reencontro: a sugestão heurística de correspondência entre anúncios de animais perdidos e encontrados e a comprovação de tutela, que protege a devolução do animal.
 
 
 \subsection{Escolha da Plataforma Móvel}
@@ -19,7 +17,15 @@ A decisão de desenvolver o WeFIND como um aplicativo para celular fundamentou-s
 
 O uso de recursos geográficos em sistemas de apoio a buscas por animais também é abordado no contexto brasileiro por Souza et al. (2022), que apresentam um algoritmo de recomendação de rotas para orientar a procura por animais desaparecidos. O WeFIND tem um escopo diferente: organiza publicações e relatos de avistamento por localização, sem recomendar o percurso do animal nem afirmar onde ele se encontra. A opção por uma aplicação móvel permite que o usuário consulte publicações e registre informações durante a própria busca, na rua.
 
-A plataforma móvel reúne recursos que apoiam esse contexto. As notificações informam os usuários sobre atualizações relevantes, o acesso à câmera facilita o registro de fotografias e os recursos de localização auxiliam na marcação do ponto do avistamento. A geração de cartazes digitais com código QR viabiliza a divulgação externa impressa e em redes sociais, direcionando os interessados de volta à publicação no aplicativo.
+Além disso, as notificações informam os usuários sobre atualizações relevantes, o acesso à câmera facilita o registro de fotografias e os recursos de localização auxiliam na marcação do ponto do avistamento. A geração de cartazes digitais com código QR permite a divulgação impressa e em redes sociais, direcionando os interessados de volta à publicação no aplicativo.
+
+\subsection{Mural Organizado por Proximidade}
+
+No mural, as publicações aparecem por padrão das mais próximas para as mais distantes do usuário. A referência é a localização salva no perfil: as coordenadas informadas pelo usuário ou, quando elas não existem, as coordenadas obtidas a partir da cidade e do estado cadastrados. Para cada publicação com coordenadas, o aplicativo calcula a distância até essa referência pela fórmula de Haversine (Sinnott, 1984), a mesma usada na correspondência entre publicações, e exibe o valor no próprio cartão do anúncio. Publicações à mesma distância são ordenadas pela data de cadastro, da mais recente para a mais antiga, e as que não têm coordenadas aparecem depois das demais.
+
+A lista também respeita o raio de busca definido pelo usuário, de 25~km por padrão: ficam no mural as publicações dentro desse raio e, entre as que não têm coordenadas, as da mesma cidade e estado. Nos filtros avançados, a ordenação pode ser trocada para as publicações mais recentes ou mais antigas. Para visitantes sem conta, que não têm uma localização salva, o mural mostra as publicações de todo o país, da mais recente para a mais antiga.
+
+A escolha considera o achado de Huang et al. (2018), discutido no Capítulo~2, de que a maior parte dos gatos perdidos foi localizada perto do ponto de desaparecimento. Colocar primeiro os casos próximos destaca aqueles em que o usuário pode ajudar diretamente, por estar na mesma região.
 
 
 \subsection{Sugestão de Correspondências e Registro de Avistamentos}
@@ -31,7 +37,9 @@ O WeFIND adota duas formas distintas e complementares para relacionar informaç�
 
 A correspondência automática analisa duas publicações ativas cadastradas de forma independente: uma do tipo ``Perdido'' e outra do tipo ``Encontrado''. O sistema avalia a compatibilidade de atributos como espécie, porte, sexo, raça, pelagem e idade, cruzando esses dados com a distância geográfica entre os pontos registrados ou, na ausência de coordenadas, com a cidade e o bairro informados. A listagem pode apresentar sugestões a partir de 55 pontos, em um índice heurístico de 0 a 100; as notificações automáticas utilizam o limiar de 60 pontos.
 
-A formulação matemática desse cálculo, a atribuição de pesos a cada atributo morfológico e a aplicação da fórmula de Haversine para a distância geográfica são detalhadas na seção do Capítulo~6 dedicada ao motor de correspondência e no Quadro~4. As interfaces do usuário e as notificações resultantes desse cruzamento são ilustradas nas telas do fluxo de localização e correspondência apresentadas no Capítulo~7.
+A comparação é executada automaticamente quando uma nova publicação de animal perdido ou encontrado é cadastrada. O sistema busca as publicações ativas do tipo oposto e, para as até três sugestões com pontuação a partir de 60, avisa os dois lados. Quem acabou de publicar vê os animais compatíveis em uma janela logo após o cadastro, e a sugestão também fica registrada na sua central de notificações. Já o autor da publicação existente recebe o aviso na central de notificações, uma notificação \textit{push} no celular e, se tiver autorizado, uma mensagem no WhatsApp. Essa autorização é solicitada no cadastro da conta e pode ser alterada a qualquer momento nas configurações do aplicativo. Ao abrir o aviso, o usuário acessa a comparação entre os anúncios.
+
+A formulação matemática desse cálculo, os pesos de cada característica e o uso da fórmula de Haversine para a distância geográfica são detalhados na Seção~6.4 e no Quadro~4. As interfaces do usuário e as notificações resultantes desse cruzamento são ilustradas nas telas do fluxo de localização e correspondência apresentadas no Capítulo~7.
 
 Essa funcionalidade tem como objetivo aproximar tutores e resgatistas que possam estar tratando do mesmo animal. Ela não altera o status das publicações, não confirma reencontros e não substitui a validação humana: a ferramenta atua como um mecanismo de apoio para que as partes comparem fotos e características, cabendo exclusivamente aos envolvidos a confirmação do caso.
 
@@ -47,7 +55,7 @@ Dessa forma, a correspondência automática atua comparando dois anúncios disti
 
 \subsection{Categorias e Estados das Publicações}
 
-Para assegurar clareza operacional, o WeFIND estabelece distinção formal entre as categorias de anúncio e os estados de encerramento da publicação.
+O WeFIND distingue as categorias de anúncio dos estados de encerramento da publicação.
 
 As categorias iniciais de cadastro compreendem ``Perdido'' (publicação gerada pelo tutor à procura de seu animal) e ``Encontrado'' (anúncio criado por quem localizou um animal ou o observou em via pública).
 

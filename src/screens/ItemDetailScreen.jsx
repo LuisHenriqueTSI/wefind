@@ -33,6 +33,7 @@ import ProofUploadModal from '../components/ProofUploadModal';
 import PetFallbackImage from '../components/PetFallbackImage';
 import * as sightingsService from '../services/sightings';
 import { getRenewalInfo } from '../services/itemExpiration';
+import { APP_FEATURES } from '../constants/features';
 import { createRenewalReminderNotification } from '../services/notifications';
 import * as reportsService from '../services/reports';
 import { getVerificationStatus } from '../services/proofVerification';
@@ -41,7 +42,6 @@ import PetMatchModal from '../components/PetMatchModal';
 import OptimizedImage from '../components/OptimizedImage';
 import * as Location from 'expo-location';
 import { canTraceRouteToItem, getPublicRouteTarget } from '../services/routeEligibility';
-import { APP_FEATURES } from '../constants/features';
 
 const formatItemDate = (value) => {
   if (!value) return '';
@@ -64,6 +64,7 @@ const formatStreetNumberNeighborhood = (item, isAuthorized = false) => {
   const isLost = item?.status === 'lost';
   const isFoundHome = item?.status === 'found' && item?.extra_fields?.found_custody !== 'spotted';
   const isSpotted = item?.extra_fields?.found_custody === 'spotted';
+  const requiresOwnershipProof = item?.extra_fields?.requires_ownership_proof !== false;
   const details = item?.extra_fields?.location_details;
   const district = (details?.district || item?.neighborhood || '').trim();
 
@@ -287,6 +288,8 @@ const ItemDetailScreen = ({ route, navigation }) => {
   };
 
   const promptHappyStory = (petName) => {
+    if (!APP_FEATURES.successStories) return;
+
     setTimeout(() => {
       Alert.alert(
         '🎉 Que notícia incrível!',
@@ -1384,7 +1387,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
           ) : null}
 
           {/* Avisos de Proteção de Endereço e Comprovação de Tutor para Animais Acolhidos */}
-          {item.status === 'found' && item.extra_fields?.found_custody !== 'spotted' && (
+          {item.status === 'found' && item.extra_fields?.found_custody !== 'spotted' && !isAdoption && (
             <View style={{ marginBottom: 12 }}>
               {verificationState?.status === 'approved' && !isOwner && !isAdmin && (
                 <View style={{
@@ -1409,7 +1412,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 </View>
               )}
 
-              {verificationState?.status === 'pending' && !isOwner && !isAdmin && (
+              {requiresOwnershipProof && verificationState?.status === 'pending' && !isOwner && !isAdmin && (
                 <View style={{
                   flexDirection: 'row',
                   alignItems: 'flex-start',
@@ -1432,7 +1435,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 </View>
               )}
 
-              {verificationState?.status === 'rejected' && !isOwner && !isAdmin && (
+              {requiresOwnershipProof && verificationState?.status === 'rejected' && !isOwner && !isAdmin && (
                 <View style={{
                   flexDirection: 'column',
                   backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : '#FEF2F2',
@@ -1467,7 +1470,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 </View>
               )}
 
-              {!verificationState?.status && !isOwner && !isAdmin && (
+              {requiresOwnershipProof && !verificationState?.status && !isOwner && !isAdmin && (
                 <View style={{
                   flexDirection: 'column',
                   backgroundColor: isDark ? 'rgba(5, 150, 105, 0.12)' : '#ECFDF5',
@@ -1518,6 +1521,52 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   </TouchableOpacity>
                 </View>
               )}
+
+              {!requiresOwnershipProof &&
+                verificationState?.status !== 'approved' &&
+                !isOwner &&
+                !isAdmin && (
+                  <View style={{
+                    flexDirection: 'column',
+                    backgroundColor: isDark ? 'rgba(5, 150, 105, 0.12)' : '#ECFDF5',
+                    borderColor: isDark ? 'rgba(5, 150, 105, 0.3)' : '#A7F3D0',
+                    borderWidth: 1,
+                    borderRadius: 12,
+                    padding: 11,
+                    gap: 8,
+                  }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <MaterialIcons name="chat" size={18} color="#2E5634" />
+                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: isDark ? '#34D399' : '#065F46' }}>
+                        Comprovação não exigida para conversar
+                      </Text>
+                    </View>
+                    <Text style={{ fontSize: 11.5, color: isDark ? '#D1FAE5' : '#065F46', lineHeight: 16 }}>
+                      O responsável permite iniciar a conversa sem comprovantes. O endereço exato continua protegido; combine a devolução pelo app.
+                    </Text>
+                    <TouchableOpacity
+                      onPress={handleSendMessage}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: isDark ? 'rgba(5, 150, 105, 0.25)' : '#D1FAE5',
+                        borderColor: isDark ? '#2E5634' : '#10B981',
+                        borderWidth: 1,
+                        borderRadius: 10,
+                        paddingVertical: 9,
+                        paddingHorizontal: 12,
+                        marginTop: 2,
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <MaterialIcons name="chat-bubble-outline" size={17} color={isDark ? '#34D399' : '#065F46'} style={{ marginRight: 6 }} />
+                      <Text style={{ color: isDark ? '#34D399' : '#065F46', fontWeight: '800', fontSize: 12.5 }}>
+                        Conversar com responsável
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
             </View>
           )}
 

@@ -241,16 +241,20 @@ const PublicStack = () => {
         component={ItemDetailScreen}
         options={{ title: 'Detalhes' }}
       />
-      <Stack.Screen
-        name="RecoveredPets"
-        component={RecoveredPetsScreen}
-        options={{ title: 'Animais Reencontrados' }}
-      />
-      <Stack.Screen
-        name="MuralReencontros"
-        component={MuralReencontrosScreen}
-        options={{ title: 'Mural de Reencontros' }}
-      />
+      {APP_FEATURES.successStories && (
+        <>
+          <Stack.Screen
+            name="RecoveredPets"
+            component={RecoveredPetsScreen}
+            options={{ title: 'Animais Reencontrados' }}
+          />
+          <Stack.Screen
+            name="MuralReencontros"
+            component={MuralReencontrosScreen}
+            options={{ title: 'Mural de Reencontros' }}
+          />
+        </>
+      )}
       <Stack.Screen
         name="RegisterItem"
         component={RegisterItemScreen}
@@ -668,16 +672,20 @@ const MainStack = () => {
         component={SobreScreen}
         options={{ title: 'Sobre o WeFIND' }}
       />
-      <Stack.Screen
-        name="MuralReencontros"
-        component={MuralReencontrosScreen}
-        options={{ title: 'Mural de Reencontros' }}
-      />
-      <Stack.Screen
-        name="RecoveredPets"
-        component={RecoveredPetsScreen}
-        options={{ title: 'Animais Reencontrados' }}
-      />
+      {APP_FEATURES.successStories && (
+        <>
+          <Stack.Screen
+            name="MuralReencontros"
+            component={MuralReencontrosScreen}
+            options={{ title: 'Mural de Reencontros' }}
+          />
+          <Stack.Screen
+            name="RecoveredPets"
+            component={RecoveredPetsScreen}
+            options={{ title: 'Animais Reencontrados' }}
+          />
+        </>
+      )}
       <Stack.Screen
         name="Map"
         component={MapScreen}

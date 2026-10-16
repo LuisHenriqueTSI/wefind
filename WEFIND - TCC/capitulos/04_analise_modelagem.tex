@@ -11,7 +11,7 @@ A especificação de requisitos define formalmente as funções do aplicativo e 
 
 O escopo funcional central abrange criação e acesso à conta; atualização do perfil; consulta e gestão do ciclo de vida das publicações de animais perdidos ou encontrados; busca geográfica em lista e mapa; correspondência entre publicações; registro de avistamentos; comunicação entre participantes; notificações relacionadas à busca; geração e compartilhamento de cartazes de divulgação; comprovação de tutela antes da devolução de um animal encontrado; e denúncia e moderação básica de conteúdo.
 
-O aplicativo contém outras funcionalidades, mas elas não integram o escopo funcional central nem os resultados avaliados neste trabalho.
+Outros recursos complementares do aplicativo não integram o escopo central nem os resultados avaliados neste trabalho.
 
 
 \subsubsection{Requisitos Funcionais}
@@ -44,16 +44,16 @@ O \hyperref[quadro:funcionais]{Quadro 2} consolida os 18 requisitos funcionais c
 
 \textbf{RF01} & Criar e acessar conta & Permitir cadastro, autenticação, recuperação de senha e encerramento de sessão de usuários. \\ \hline
 \textbf{RF02} & Atualizar perfil & Permitir ao usuário consultar e atualizar seus dados básicos de perfil e contato. \\ \hline
-\textbf{RF03} & Consultar publicações & Exibir publicações ativas de animais perdidos ou encontrados em lista e apresentar seus detalhes, incluindo imagens, características e local informado. \\ \hline
+\textbf{RF03} & Consultar publicações & Exibir publicações ativas de animais perdidos ou encontrados em lista, ordenada por padrão das mais próximas para as mais distantes da localização do usuário, e apresentar seus detalhes, incluindo imagens, características e local informado. \\ \hline
 \textbf{RF04} & Publicar anúncio de animal & Permitir a usuários autenticados criar uma publicação sobre um animal perdido ou encontrado, informando características, descrição, imagens e localização selecionada ou confirmada no mapa; em publicações de animais perdidos, o autor pode indicar opcionalmente uma recompensa, com valor e descrição. \\ \hline
 \textbf{RF05} & Atualizar publicação própria & Permitir ao autor editar ou excluir sua publicação e atualizar sua situação quando o animal for reencontrado. \\ \hline
 \textbf{RF06} & Visualizar publicações no mapa & Apresentar em mapa as publicações ativas de animais perdidos ou encontrados, posicionadas conforme o local registrado. \\ \hline
-\textbf{RF07} & Pesquisar e filtrar publicações & Permitir localizar publicações por espécie, situação, características, distância e oferta de recompensa, considerando a localização informada pelo usuário. \\ \hline
+\textbf{RF07} & Pesquisar e filtrar publicações & Permitir localizar publicações por espécie, situação, características, distância e oferta de recompensa, considerando a localização informada pelo usuário, e alterar a ordenação da lista para as publicações mais próximas, mais recentes ou mais antigas. \\ \hline
 \textbf{RF08} & Traçar rota até o local informado & Apresentar uma rota até o local associado à publicação, quando houver dados de localização suficientes. \\ \hline
 \textbf{RF09} & Registrar avistamento & Permitir a usuário autenticado registrar um avistamento vinculado a uma publicação, com local, data ou horário, descrição e imagem opcional. \\ \hline
 \textbf{RF10} & Consultar e atualizar avistamentos próprios & Exibir os avistamentos associados à publicação e permitir que seu autor edite ou remova o próprio relato. \\ \hline
 \textbf{RF11} & Trocar mensagens sobre publicação & Permitir que usuários autenticados iniciem e mantenham conversa privada relacionada a uma publicação, com envio e recebimento de mensagens. \\ \hline
-\textbf{RF12} & Receber e consultar notificações & Informar o usuário sobre eventos relevantes da busca, como novos avistamentos, mensagens, possíveis correspondências, publicações próximas e lembretes de renovação, por meio da central de notificações e, quando houver permissão e suporte do dispositivo, de notificações locais ou push. \\ \hline
+\textbf{RF12} & Receber e consultar notificações & Informar o usuário sobre eventos relevantes da busca, como novos avistamentos, mensagens, possíveis correspondências, publicações próximas e lembretes de renovação, por meio da central de notificações e, quando houver permissão e suporte do dispositivo, de notificações locais ou push, e, para os usuários que autorizarem, por mensagem no WhatsApp. \\ \hline
 \textbf{RF13} & Denunciar conteúdo & Permitir ao usuário autenticado enviar denúncia sobre uma publicação ou conteúdo suspeito para análise administrativa. \\ \hline
 \textbf{RF14} & Analisar denúncias e moderar conteúdo & Permitir ao administrador consultar denúncias, analisar o conteúdo reportado e aplicar medidas de moderação disponíveis. \\ \hline
 \textbf{RF15} & Gerar e compartilhar cartaz de divulgação & Permitir gerar e compartilhar uma imagem da publicação nos formatos A4, vertical 9:16 ou quadrado 1:1. No formato A4, incluir código QR que direcione à página pública da publicação. \\ \hline
@@ -63,7 +63,7 @@ O \hyperref[quadro:funcionais]{Quadro 2} consolida os 18 requisitos funcionais c
 \end{longtable}
 }
 
-A especificação funcional do Quadro 2 prioriza as necessidades de busca e reencontro identificadas na pesquisa de campo e na análise das plataformas similares. Os 18 requisitos organizam os fluxos de consulta e publicação de anúncios, busca espacial, correspondência entre publicações, avistamentos, comunicação, divulgação por cartaz, ciclo de vida das publicações, comprovação de tutela e moderação. Assim, o quadro delimita o escopo funcional central deste trabalho.
+Assim, o Quadro 2 delimita o escopo funcional central deste trabalho, priorizando as necessidades de busca e reencontro identificadas na pesquisa de campo e na análise das plataformas similares.
 
 
 \subsubsection{Requisitos Não Funcionais}
@@ -110,7 +110,7 @@ Os critérios selecionados concentram-se em autenticação e autorização (RNF0
 
 A modelagem de software é uma etapa fundamental no desenvolvimento de qualquer sistema, pois organiza visualmente a lógica, as regras e o funcionamento da aplicação antes e durante a escrita do código. Ao criar esquemas visuais padronizados, o desenvolvedor alinha as expectativas com os requisitos e evita inconsistências que poderiam comprometer a arquitetura ou a experiência de uso (Bezerra, 2015).
 
-No desenvolvimento da aplicação proposta, utilizou-se a \textit{Unified Modeling Language} (UML) como padrão para documentar o sistema. A UML permite enxergar o aplicativo por duas perspectivas complementares: a comportamental, expressa nos diagramas de casos de uso que apresentam as ações disponibilizadas a cada perfil de usuário; e a estrutural, representada pelo diagrama de classes de domínio.
+No desenvolvimento da aplicação proposta, utilizou-se a \textit{Unified Modeling Language} (UML) como padrão para documentar o sistema. A UML permite representar o aplicativo por duas perspectivas: a comportamental, expressa nos diagramas de casos de uso que apresentam as ações disponibilizadas a cada perfil de usuário; e a estrutural, representada pelo diagrama de classes de domínio.
 
 
 \subsubsection{Diagrama de Casos de Uso}
@@ -123,20 +123,13 @@ Para representar o sistema de forma clara, elaborou-se um diagrama geral de caso
     \centering
     \caption{Diagrama de Casos de Uso Geral da Plataforma WeFIND}
     \label{fig:diagrama_casos_de_uso}
-    \vspace{0cm}
-    \includegraphics[
-        trim=12mm 75mm 12mm 17mm,
-        clip,
-        width=\textwidth
-    ]{imagens/02_modelagem/figura06_diagrama_casos_de_uso_reduzido.pdf}
-    \vspace{-4.4cm}
+    \includegraphics[width=0.94\textwidth]{imagens/02_modelagem/figura06_diagrama_casos_de_uso_v2.png}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-O diagrama apresenta três atores em uma hierarquia: o usuário autenticado especializa o usuário visitante e, por isso, herda suas funções; o administrador, por sua vez, especializa o usuário autenticado e também pode executar as ações disponíveis a esse perfil. O visitante pode consultar e pesquisar publicações, visualizar o mapa e os detalhes dos anúncios, criar uma conta e entrar no sistema. Ao se autenticar, passa a poder cadastrar publicações e manter as próprias publicações e os próprios avistamentos, além de utilizar mensagens privadas, consultar notificações e sugestões de correspondência, gerar cartazes, denunciar publicações e manter seu perfil. O administrador também pode moderar conteúdo e analisar denúncias.
+O diagrama apresenta três atores em uma hierarquia: o usuário autenticado especializa o usuário visitante e, por isso, herda suas funções; o administrador, por sua vez, especializa o usuário autenticado e também pode executar as ações disponíveis a esse perfil. O visitante pode consultar, pesquisar e filtrar publicações, visualizar o mapa e os detalhes dos anúncios, realizar o cadastro e efetuar login. Ao se autenticar, passa a poder manter seu perfil, cadastrar publicações, manter as próprias publicações e os próprios avistamentos, registrar avistamentos, enviar mensagens, consultar notificações e sugestões de correspondência e denunciar publicações. Também pode solicitar a comprovação de tutela de um animal encontrado e, quando for o autor da publicação, analisar as solicitações recebidas. O administrador, além dessas funções, mantém a moderação e analisa as denúncias.
 
-As relações de inclusão indicam etapas obrigatórias: tanto o cadastro de uma publicação quanto o registro de um avistamento incluem a seleção da localização no mapa. A visualização dos detalhes pode ser complementada por ações como traçar uma rota, enviar uma mensagem, compartilhar a publicação ou registrar um avistamento. O diagrama resume as funções centrais; regras de negócio e fluxos alternativos são especificados no Quadro 2 e no Apêndice A.
-
+As relações de inclusão indicam etapas obrigatórias: o cadastro de uma publicação e o registro de um avistamento incluem a seleção da localização no mapa, e o cadastro de conta inclui a verificação do código enviado pelo WhatsApp. As relações de extensão indicam comportamentos opcionais: a visualização dos detalhes pode ser estendida pelo traçado de rota e pelo compartilhamento da publicação, o login pode ser estendido pela redefinição de senha e o cadastro de uma publicação pode ser estendido pela oferta de recompensa. O diagrama resume as funções centrais; regras de negócio e fluxos alternativos são especificados no Quadro 2 e no Apêndice A.
 
 \subsubsection{Diagrama de Classes de Domínio}
 
@@ -146,12 +139,12 @@ O diagrama de classes de domínio organiza as entidades da aplicação, seus atr
     \centering
     \caption{Diagrama de Classes de Domínio do Sistema Proposto}
     \label{fig:diagrama_classes}
-    \includegraphics[trim=15 14 15 46, clip, width=\textwidth, height=0.86\textheight, keepaspectratio]{imagens/02_modelagem/figura08_diagrama_classes_v4.pdf}
+    \includegraphics[width=\textwidth, height=0.86\textheight, keepaspectratio]{imagens/02_modelagem/figura08_diagrama_classes_v5.png}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-No modelo, \textit{Usuario} representa as contas e concentra os dados e operações de autenticação, perfil e participação na plataforma. \textit{Publicacao} representa os registros de animais, reunindo categoria, situação, descrição, localização, características, a indicação de recompensa e operações de criação, edição, encerramento, renovação e compartilhamento. A classe \textit{Avistamento} registra relatos associados a uma publicação, enquanto \textit{FotoPublicacao} organiza as fotografias de cada publicação, com até seis imagens por anúncio.
+No modelo, \textit{Usuario} representa as contas e concentra os dados e operações de autenticação, perfil e participação na plataforma. \textit{Publicacao} representa os registros de animais, reunindo categoria, situação, descrição, características, localização, prazo de expiração e operações de criação, edição, encerramento, renovação e compartilhamento. A classe \textit{FotoPublicacao} organiza as fotografias de cada publicação, com até seis imagens por anúncio, e \textit{Recompensa} guarda o valor e a descrição da recompensa opcional oferecida pelo autor. A classe \textit{Avistamento} registra relatos associados a uma publicação, com local, descrição e foto.
 
-A comunicação privada é representada pelas classes \textit{Conversa} e \textit{Mensagem}: cada conversa reúne as mensagens trocadas entre remetente e destinatário a respeito de uma publicação, com registro de leitura e eventual foto anexada. A classe \textit{Notificacao} registra os avisos destinados a cada usuário, como possíveis correspondências, novos avistamentos, mensagens e lembretes de renovação, guardando o tipo do aviso, o título, a mensagem, a referência ao registro relacionado e a indicação de leitura; cada usuário pode receber várias notificações, e cada notificação pode se referir a uma publicação. A classe \textit{Denuncia} apoia o envio e o tratamento administrativo de denúncias relacionadas às publicações. As associações apresentadas na figura indicam os vínculos entre usuários, publicações, avistamentos, imagens, conversas, mensagens, notificações e denúncias.
+A comunicação privada é representada pelas classes \textit{Conversa} e \textit{Mensagem}: cada conversa liga dois usuários a uma publicação e reúne as mensagens trocadas entre eles, com registro de leitura e eventual foto anexada. A classe \textit{Notificacao} registra os avisos destinados a cada usuário, como possíveis correspondências, novos avistamentos, mensagens e lembretes de renovação, guardando o tipo do aviso, o título, a mensagem, a publicação relacionada e a indicação de leitura. A classe \textit{Denuncia} apoia o envio e o tratamento administrativo de denúncias, e \textit{SolicitacaoDevolucao} registra o pedido de comprovação de tutela, com o relato, a foto enviada, a situação do pedido e o eventual motivo de recusa; a aprovação dessa solicitação libera ao solicitante o endereço exato onde o animal está acolhido.
 
 Com os requisitos funcionais formalizados e a modelagem de classes de domínio consolidada, o Capítulo 5 apresenta a solução proposta com o aplicativo WeFIND, detalhando a concepção da ferramenta, seus fluxos principais e suas regras de negócio; a arquitetura e as decisões técnicas são tratadas no Capítulo 6.

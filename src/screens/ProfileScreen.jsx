@@ -131,7 +131,8 @@ const ProfileScreen = ({ navigation }) => {
     },
   ].filter((item) => (
     (item.route !== 'Ranking' || APP_FEATURES.communityRanking) &&
-    (item.route !== 'FosterVolunteers' || APP_FEATURES.fosterVolunteers)
+    (item.route !== 'FosterVolunteers' || APP_FEATURES.fosterVolunteers) &&
+    (item.route !== 'MuralReencontros' || APP_FEATURES.successStories)
   ));
 
   const settingsLinks = [

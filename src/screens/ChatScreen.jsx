@@ -58,7 +58,7 @@ const ChatScreen = (props) => {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
 
-  // Estados para a comprovação inicial obrigatória de posse (quando visitante entra em pet encontrado)
+  // Estados para a comprovação inicial de posse em pets encontrados
   const [proofText, setProofText] = useState('');
   const [proofPhoto, setProofPhoto] = useState(null);
   const [submittingProof, setSubmittingProof] = useState(false);
@@ -215,35 +215,49 @@ const ChatScreen = (props) => {
 
   // Identifica papéis na conversa
   const isFoundPet = !isItemDeleted && (itemData?.status === 'found' || conversation?.itemStatus === 'found');
+  const isAdoptionItem = Boolean(itemData?.extra_fields?.is_direct_adoption);
+  const requiresOwnershipProof = Boolean(
+    isFoundPet &&
+    !isAdoptionItem &&
+    itemData?.extra_fields?.requires_ownership_proof !== false
+  );
   const isMeFinder = itemData ? itemData.owner_id === user?.id : conversation?.itemOwnerId === user?.id;
   const hasUserSentMessage = messages.some(m => m.sender_id === user?.id);
 
   useEffect(() => {
-    if (!itemId || !user?.id || isMeFinder || !isFoundPet) return;
+    if (!itemId || !user?.id || isMeFinder || !requiresOwnershipProof) return;
     getVerificationStatus(itemId, user.id)
       .then((result) => setVerificationStatus(result?.status || null))
       .catch((statusError) => console.warn('[ChatScreen] Erro ao carregar comprovação:', statusError.message));
-  }, [itemId, user?.id, isMeFinder, isFoundPet]);
+  }, [itemId, user?.id, isMeFinder, requiresOwnershipProof]);
 
   const refreshVerificationStatus = async () => {
-    if (!itemId || !user?.id || isMeFinder || !isFoundPet) return;
+    if (!itemId || !user?.id || isMeFinder || !requiresOwnershipProof) return;
     const result = await getVerificationStatus(itemId, user.id);
     setVerificationStatus(result?.status || null);
   };
 
   useEffect(() => {
-    if (!itemId || !user?.id || isMeFinder || !isFoundPet || verificationStatus !== 'pending') return;
+    if (!itemId || !user?.id || isMeFinder || !requiresOwnershipProof || verificationStatus !== 'pending') return;
     const interval = setInterval(() => {
       refreshVerificationStatus().catch((statusError) => {
         console.warn('[ChatScreen] Erro ao atualizar status da comprovação:', statusError.message);
       });
     }, 5000);
     return () => clearInterval(interval);
-  }, [itemId, user?.id, isMeFinder, isFoundPet, verificationStatus]);
+  }, [itemId, user?.id, isMeFinder, requiresOwnershipProof, verificationStatus]);
 
-  // O chat de um animal encontrado só é liberado após a aprovação do tutor.
-  const requiresInitialProof = Boolean(!otherDeleted && itemId && !isItemDeleted && isFoundPet && !isMeFinder && verificationStatus !== 'approved' && !loading);
-  const verificationPending = verificationStatus === 'pending';
+  // Quando exigida, a comprovação precisa ser aprovada antes da liberação do chat.
+  const requiresInitialProof = Boolean(
+    !otherDeleted &&
+    itemId &&
+    !isItemDeleted &&
+    requiresOwnershipProof &&
+    !isMeFinder &&
+    verificationStatus !== 'approved' &&
+    !loading
+  );
+  const verificationPending = requiresOwnershipProof && verificationStatus === 'pending';
 
   // Resgatista pode confirmar o tutor e liberar o local de retirada
   const canShareLocation = Boolean(itemId && !isItemDeleted && isFoundPet && isMeFinder);
@@ -347,7 +361,7 @@ const ChatScreen = (props) => {
     setPhotoPreview(null);
   };
 
-  // Seletor de Foto para Comprovação Inicial Obrigatória
+  // Seletor de foto para comprovação inicial de posse
   const handlePickProofPhoto = async (source = 'gallery') => {
     try {
       let result;
@@ -383,7 +397,7 @@ const ChatScreen = (props) => {
     }
   };
 
-  // Envio da Comprovação Inicial Obrigatória pelo Tutor
+  // Envio da comprovação inicial pelo tutor
   const handleSubmitProof = async () => {
     if (!proofText.trim() && !proofPhoto) {
       Alert.alert(
@@ -818,7 +832,9 @@ const ChatScreen = (props) => {
             <Text style={{ fontWeight: '800' }}>Dica de Segurança:</Text>{' '}
             {verificationPending
               ? 'Sua solicitação está em análise. O chat será liberado assim que o dono da publicação aprovar a devolução.'
-              : 'Só combine locais de entrega após o tutor apresentar fotos antigas ou características que comprovem que é o dono.'}
+              : isFoundPet && !requiresOwnershipProof
+                ? 'O autor do anúncio não exige comprovação para iniciar a conversa. Combine a devolução pelo app e mantenha seus dados pessoais protegidos.'
+                : 'Só combine locais de entrega após o tutor apresentar fotos antigas ou características que comprovem que é o dono.'}
           </Text>
         </View>
       )}

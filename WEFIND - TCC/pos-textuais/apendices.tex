@@ -5,7 +5,7 @@
 \phantomsection
 \addcontentsline{toc}{section}{APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO}
 
-Esta seção apresenta a especificação textual de sete casos de uso que compõem o escopo funcional central da plataforma WeFIND, descrevendo atores, pré-condições, fluxos principais, alternativas e exceções.
+Esta seção apresenta a especificação textual de oito casos de uso que compõem o escopo funcional central da plataforma WeFIND, descrevendo atores, pré-condições, fluxos principais, alternativas e exceções.
 
 \vspace{0.5cm}
 
@@ -274,6 +274,43 @@ Esta seção apresenta a especificação textual de sete casos de uso que compõ
 \end{table}
 
 \clearpage
+
+\clearpage
+
+\subsection*{Caso de Uso UC08: Solicitar Comprovação de Tutela}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+\textbf{Identificador} & UC08 \\ \hline
+\textbf{Nome do Caso de Uso} & Solicitar Comprovação de Tutela \\ \hline
+\textbf{Ator Principal} & Usuário Autenticado (solicitante) \\ \hline
+\textbf{Atores Secundários} & Autor da publicação (quem acolheu o animal) \\ \hline
+\textbf{Resumo} & Permite ao usuário que se identifica como tutor de um animal anunciado como encontrado comprovar a tutela para obter o endereço exato e combinar a devolução. \\ \hline
+\textbf{Pré-Condições} & Usuário autenticado; publicação do tipo ``Encontrado'' ativa, com endereço exato protegido. \\ \hline
+\multicolumn{2}{|l|}{\textbf{Fluxo Principal:}} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. Na ficha do animal encontrado, o usuário aciona a opção de comprovação de tutela.\par
+2. O sistema solicita a forma de comprovação (fotos do animal, carteira de vacinação ou marcas ocultas).\par
+3. O usuário anexa as imagens pela galeria ou pela câmera e escreve uma mensagem ao autor da publicação.\par
+4. O usuário confirma o envio.\par
+5. O sistema registra a solicitação como pendente e notifica o autor da publicação por notificação e mensagem privada.\par
+6. O autor analisa o relato e as imagens e aprova a solicitação.\par
+7. O sistema libera ao solicitante o endereço exato do local onde o animal está acolhido e o notifica da aprovação.
+} \\ \hline
+\multicolumn{2}{|l|}{\textbf{Fluxos Alternativos:}} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+6a. Recusa da solicitação: o autor recusa o pedido e pode registrar o motivo; o sistema notifica o solicitante, e o endereço permanece protegido.
+} \\ \hline
+\multicolumn{2}{|l|}{\textbf{Fluxos de Exceção:}} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Mensagem vazia: o sistema exige a descrição de como o usuário comprova ser o tutor antes de permitir o envio.
+} \\ \hline
+\textbf{Pós-Condições} & Solicitação registrada e analisada; em caso de aprovação, endereço exato liberado ao solicitante. \\ \hline
+\end{tabular}
+\end{table}
 
 \clearpage
 
@@ -707,7 +744,7 @@ Para permitir a identificação precisa de um animal anunciado, o sistema dispon
     \hfill
     \begin{minipage}[t]{0.48\textwidth}
         \centering
-        \includegraphics[height=11.2cm,keepaspectratio]{imagens/04_telas_aplicativo/figura21_tela_cartaz.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/figura21_tela_cartaz.jpeg}
         \par\vspace{0.12cm}
         {\small Figura C4.b) Cartaz com Código QR}
     \end{minipage}
@@ -805,7 +842,7 @@ Denúncias exigem análise e ação administrativa para apoiar a integridade das
 80\% dos respondentes avaliaram com nota máxima e 20\% com nota 4 a geração automatizada de cartazes. & \textbf{RF15} & Geração de cartaz digital com informações da publicação e código QR para exportação ou compartilhamento. & Incluído na tarefa 3 da avaliação com participantes; resultado individual não registrado. \\ \hline
 Publicações sem atualização podem permanecer visíveis após o fim da busca. & \textbf{RF16} & Vigência de 30 dias, aviso três dias antes do vencimento, ocultação após expirar, renovação durante 30 dias de carência e remoção definitiva, após esse prazo, pela rotina local para publicações do usuário autenticado. & Verificação individual não registrada. \\ \hline
 A comparação entre anúncios perdidos e encontrados pode apoiar a identificação de possíveis correspondências. & \textbf{RF17} & Comparação automática de publicações por espécie, características físicas e distância, com apresentação de sugestões de correspondência e confirmação final pelos usuários. & Verificação individual não registrada. \\ \hline
-70\% dos participantes aprovaram a exigência de comprovação antes da devolução do animal, para prevenir golpes. & \textbf{RF18} & Solicitação de devolução com relato e fotos, análise pelo autor da publicação, aprovação ou recusa, liberação do endereço exato após a aprovação e notificação do solicitante. & Verificação individual não registrada. \\ \hline
+70\% dos participantes aprovaram a exigência de comprovação antes da devolução do animal, para prevenir golpes. & \textbf{RF18} & Solicitação de devolução com relato e fotos, análise pelo autor da publicação, aprovação ou recusa, liberação do endereço exato após a aprovação e notificação do solicitante. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 \end{longtable}
 }
 

@@ -26,7 +26,7 @@ O levantamento investigou práticas de identificação de animais e as experiên
     \centering
     \caption{Adesão ao uso de microchip de identificação em animais domésticos}
     \label{fig:adocao_microchip}
-    \includegraphics[width=0.52\textwidth]{imagens/01_pesquisa/grafico_adocao_microchip.png}
+    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/grafico_adocao_microchip.png}
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{figure}
 
@@ -48,7 +48,7 @@ O questionário também investigou o uso rotineiro de coleiras de identificaçã
 Na Figura~\ref{fig:uso_coleira}, 75\% dos participantes (15 respostas) indicaram que seus animais domésticos não utilizam coleira no dia a dia; 15\% (3 respostas) relataram o uso de plaquinha de identificação visual e 10\% (2 respostas), de coleira com dispositivo de rastreamento.
 
 
-Em seguida, investigou-se o comportamento dos participantes em episódios de desaparecimento, identificando os canais usados no momento do sumiço, conforme demonstrado na Figura~\ref{fig:pesquisa_meios}.
+Em seguida, investigou-se o comportamento dos participantes em episódios de desaparecimento, identificando os canais usados no momento do sumiço, conforme a Figura~\ref{fig:pesquisa_meios}.
 
 \begin{figure}[H]
     \centering
@@ -58,10 +58,10 @@ Em seguida, investigou-se o comportamento dos participantes em episódios de des
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{figure}
 
-Os resultados da Figura~\ref{fig:pesquisa_meios}, na qual era permitida a seleção de múltiplos canais simultâneos, foram calculados sobre 19 respostas válidas. Nesse grupo, 100\% (19 respostas) relataram recorrer a redes sociais generalistas, como Instagram e Facebook, para divulgar animais perdidos. Em seguida, apareceram os grupos de troca de mensagens no WhatsApp, com 73,7\% (14 respostas), a afixação de cartazes impressos em postes e comércios, com 57,9\% (11 respostas), o contato presencial com vizinhos, com 42,1\% (8 respostas), e a comunicação direta com clínicas veterinárias, com 26,3\% (5 respostas).
+Os resultados da Figura~\ref{fig:pesquisa_meios}, na qual era permitida a seleção de múltiplos canais simultâneos, foram calculados sobre 19 respostas válidas. Nesse grupo, 100\% (19 respostas) relataram recorrer a redes sociais generalistas, como Instagram e Facebook, para divulgar animais perdidos. Em seguida, apareceram os grupos de troca de mensagens no WhatsApp, com 73,7\% (14 respostas), os cartazes impressos em postes e comércios, com 57,9\% (11 respostas), o contato presencial com vizinhos, com 42,1\% (8 respostas), e a comunicação direta com clínicas veterinárias, com 26,3\% (5 respostas).
 
 
-Para compreender a vivência prática da comunidade frente à problemática dos desaparecimentos, os participantes foram questionados sobre experiências prévias de perda ou localização de animais desorientados nas ruas, conforme exibido na Figura~\ref{fig:experiencia_perda}.
+Os participantes também foram questionados sobre experiências anteriores de perda de um animal ou de resgate de animais perdidos na rua, conforme a Figura~\ref{fig:experiencia_perda}.
 
 \begin{figure}[H]
     \centering
@@ -207,35 +207,33 @@ A articulação entre as necessidades identificadas, os requisitos de software e
 
 \subsection{Processo de Desenvolvimento de Software}
 
-Como o aplicativo foi desenvolvido em entregas funcionais sucessivas, verificadas em dispositivos móveis e ajustadas antes do avanço para incrementos seguintes, adotou-se um ciclo de vida iterativo e incremental (Valente, 2023).
-
-O processo também se apoiou em princípios do desenvolvimento ágil de software, como a entrega de software funcional e a adaptação a mudanças, articulados ao ciclo iterativo e incremental.
-
-Para estruturar essas premissas no ciclo prático de trabalho, combinou-se o modelo de ciclo de vida iterativo e incremental com o método visual de gerenciamento de tarefas Kanban, operacionalizado em plataforma em nuvem para articular a evolução das funcionalidades desde a concepção dos requisitos até a validação por testes.
+O desenvolvimento seguiu um ciclo de vida iterativo e incremental (Valente, 2023), apoiado em princípios do desenvolvimento ágil, como a entrega frequente de software funcional e a adaptação a mudanças. As tarefas foram organizadas com o método Kanban, desde a definição dos requisitos até os testes.
 
 
 \subsubsection{Abordagem Ágil e Ciclo de Vida Incremental}
 
-Para o desenvolvimento da aplicação, adotou-se o modelo de ciclo de vida incremental e iterativo (Valente, 2023). Sob essa abordagem, o sistema não é produzido de uma só vez em um bloco único; pelo contrário, o projeto foi dividido em pequenas entregas chamadas de incrementos funcionais, cada um planejado, desenvolvido e testado no dispositivo móvel antes do início da fase seguinte.
-A Figura~\ref{fig:ciclo_incremental_wefind} ilustra o modelo incremental de forma geral: cada entrega percorre etapas de desenvolvimento e acrescenta funcionalidades ao produto. No WeFIND, a evolução ocorreu por meio dos cinco incrementos funcionais descritos a seguir.
+No modelo incremental, o sistema não é produzido de uma só vez: o projeto é dividido em pequenas entregas, chamadas de incrementos funcionais, e cada uma é planejada, desenvolvida e testada no dispositivo móvel antes do início da seguinte.
+A Figura~\ref{fig:ciclo_incremental_wefind} ilustra o modelo incremental de forma geral: cada entrega percorre etapas de desenvolvimento e acrescenta funcionalidades ao produto. No WeFIND, a evolução ocorreu por meio dos seis incrementos funcionais descritos a seguir.
 
 \begin{figure}[H]
     \centering
     \caption{Representação do modelo incremental de desenvolvimento de software}
     \label{fig:ciclo_incremental_wefind}
-    \includegraphics[width=0.82\textwidth]{imagens/03_arquitetura_design/figura13_ciclo_iterativo_incremental.png}
+    \includegraphics[width=0.85\textwidth]{imagens/03_arquitetura_design/figura13_ciclo_iterativo_incremental.png}
     \fonte{Kolb (2013), que atribui a figura a Pressman (2010)}
 \end{figure}
 
 O primeiro incremento dedicou-se ao acesso e à gestão de usuários, compreendendo a criação de conta, a autenticação e a visualização do perfil pessoal.
 
-O segundo incremento contemplou o núcleo espacial de busca, envolvendo o mapa interativo, a exibição de animais perdidos e encontrados por proximidade física e a filtragem rápida por espécie.
+O segundo incremento tratou da busca por localização, com o mapa interativo, a exibição de animais perdidos e encontrados por proximidade física e a filtragem rápida por espécie.
 
 No terceiro incremento, desenvolveu-se a gestão de publicações e fotos, permitindo cadastrar anúncios de animais perdidos ou encontrados, acompanhados de características físicas e imagens.
 
-O quarto incremento concentrou-se na comunicação e colaboração, integrando a linha do tempo de relatos de avistamentos pela comunidade e o canal de mensagens privativo em tempo real, permitindo o contato entre os participantes sem a necessidade de expor números de telefone no anúncio.
+O quarto incremento concentrou-se na comunicação e na colaboração, com a linha do tempo de avistamentos, o canal de mensagens privadas em tempo real e a central de notificações, permitindo o contato entre os participantes sem expor números de telefone no anúncio.
 
-Por fim, o quinto incremento concentrou-se na geração de cartazes padronizados de busca com código QR para compartilhamento ou impressão.
+O quinto incremento acrescentou a geração de cartazes de busca com código QR para compartilhamento ou impressão.
+
+Por fim, o sexto incremento reuniu os recursos de apoio ao reencontro e à segurança da comunidade: a sugestão heurística de correspondência entre anúncios, a recompensa opcional, a comprovação de tutela e o fluxo de denúncia e moderação.
 
 Essa organização favoreceu a identificação antecipada de inconsistências por meio de verificações incrementais em aparelhos celulares. A avaliação sistemática da cobertura dos requisitos e os testes das funcionalidades são detalhados no Capítulo 8.
 
@@ -259,7 +257,9 @@ O quadro também reuniu requisitos funcionais e não funcionais, além de oportu
 
 \subsubsection{Etapas do Processo de Desenvolvimento}
 
-Para descrever o processo em linhas gerais, o projeto foi organizado em quatro etapas. Cabe registrar que a implementação do aplicativo já estava em andamento quando a pesquisa de campo foi aplicada, em setembro de 2026; por isso, as respostas obtidas foram utilizadas para validar, priorizar e ajustar os requisitos e funcionalidades em desenvolvimento, e não como único ponto de partida do projeto. Essas etapas sintetizam as atividades metodológicas gerais, enquanto os cinco incrementos representam as entregas funcionais do aplicativo. As atividades de requisitos, modelagem e implementação foram retomadas e ajustadas ao longo dos incrementos; a avaliação formal de usabilidade com participantes ocorreu ao final. A primeira etapa correspondeu à concepção e engenharia de requisitos, na qual as respostas obtidas no formulário de campo com a comunidade e as lições aprendidas na análise comparativa de plataformas similares foram organizadas em requisitos e posteriormente consolidadas no escopo central apresentado no Capítulo 4. Como as etapas se sobrepuseram ao longo dos incrementos, essa consolidação ocorreu de forma iterativa.
+Em linhas gerais, o projeto foi organizado em quatro etapas. Enquanto os seis incrementos representam as entregas do aplicativo, as etapas resumem as atividades do trabalho como um todo; requisitos, modelagem e implementação foram retomados ao longo dos incrementos, e a avaliação de usabilidade ocorreu ao final. A implementação já estava em andamento quando a pesquisa de campo foi aplicada, em setembro de 2026; por isso, as respostas foram usadas para validar, priorizar e ajustar os requisitos e as funcionalidades em desenvolvimento.
+
+A primeira etapa correspondeu à engenharia de requisitos: as respostas da pesquisa de campo e as observações da análise de plataformas similares foram organizadas em requisitos, consolidados no escopo central apresentado no Capítulo 4.
 
 A segunda etapa envolveu a modelagem e o projeto de interface, compreendendo a construção dos diagramas conceituais da UML no software Astah UML (Astah, 2026), o planejamento estrutural do banco de dados relacional e a elaboração iterativa do protótipo visual e de interação no Figma (Figma, 2026), apresentados nos Capítulos 4, 6 e 7.
 

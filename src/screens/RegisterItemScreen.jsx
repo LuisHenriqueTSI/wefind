@@ -29,6 +29,7 @@ import MapLocationPicker from '../components/MapLocationPicker';
 import { states } from '../lib/br-locations';
 import Card from '../components/Card';
 import COLORS from '../constants/theme';
+import { APP_FEATURES } from '../constants/features';
 
 const PET_SPECIES_OPTIONS = [
   { label: 'Selecione a espécie', value: '' },
@@ -47,7 +48,14 @@ const PET_SIZE_OPTIONS = ['Pequeno', 'Médio', 'Grande', 'Gigante'];
 const PET_GENDER_OPTIONS = ['Macho', 'Fêmea', 'Não informado'];
 const PET_AGE_OPTIONS = ['Filhote', 'Adulto', 'Idoso', 'Não informado'];
 const PET_BREED_OPTIONS = ['Sem raça definida'];
-const HELP_NEED_OPTIONS = ['Resgate', 'Lar temporário', 'Transporte', 'Ração', 'Veterinário', 'Adoção'];
+const HELP_NEED_OPTIONS = [
+  'Resgate',
+  ...(APP_FEATURES.fosterVolunteers ? ['Lar temporário'] : []),
+  'Transporte',
+  'Ração',
+  'Veterinário',
+  'Adoção',
+];
 const RECOVERY_SEARCH_DAYS = 21;
 const PET_TEMPERAMENT_OPTIONS = [
   '😇 Dócil',
@@ -370,6 +378,9 @@ const RegisterItemScreen = ({ navigation, route }) => {
   // Custódia e Adoção (quando status === 'found')
   const [foundCustody, setFoundCustody] = useState(
     editItem?.extra_fields?.found_custody || 'with_me' // 'with_me' | 'spotted'
+  );
+  const [requiresOwnershipProof, setRequiresOwnershipProof] = useState(
+    editItem?.extra_fields?.requires_ownership_proof !== false
   );
   const [helpNeeds, setHelpNeeds] = useState(editItem?.extra_fields?.help_network?.needs || []);
   const [helpNetworkExpanded, setHelpNetworkExpanded] = useState(
@@ -1526,6 +1537,9 @@ const RegisterItemScreen = ({ navigation, route }) => {
           temperament: status === 'adoption' ? (animalTemperament || []) : [],
           is_direct_adoption: isDirectAdoption,
           found_custody: status === 'found' ? foundCustody : (isDirectAdoption ? 'with_me' : null),
+          requires_ownership_proof: itemType === 'animal' && status === 'found'
+            ? requiresOwnershipProof
+            : null,
           recovery_search: status === 'found' && foundCustody === 'with_me' ? {
             ...(editItem?.extra_fields?.recovery_search || {}),
             started_at: editItem?.extra_fields?.recovery_search?.started_at || new Date().toISOString(),
@@ -2123,6 +2137,32 @@ const RegisterItemScreen = ({ navigation, route }) => {
                       </Text>
                     </TouchableOpacity>
                   </View>
+
+                  {itemType === 'animal' && (
+                    <TouchableOpacity
+                      onPress={() => setRequiresOwnershipProof((currentValue) => !currentValue)}
+                      activeOpacity={0.8}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: requiresOwnershipProof }}
+                      style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 12 }}
+                    >
+                      <MaterialIcons
+                        name={requiresOwnershipProof ? 'check-box' : 'check-box-outline-blank'}
+                        size={22}
+                        color={requiresOwnershipProof ? colors.primary : colors.textMuted}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: colors.text, fontSize: 13, fontWeight: '700' }}>
+                          Exigir comprovação de posse
+                        </Text>
+                        <Text style={{ color: colors.textSecondary, fontSize: 11.5, lineHeight: 16, marginTop: 3 }}>
+                          {requiresOwnershipProof
+                            ? 'A pessoa deverá enviar informações ou fotos antes de iniciar o chat. O endereço exato continua protegido.'
+                            : 'A pessoa poderá iniciar o chat sem enviar comprovantes. O endereço exato continua protegido e só será compartilhado por você.'}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
 
                   <View
                     style={{

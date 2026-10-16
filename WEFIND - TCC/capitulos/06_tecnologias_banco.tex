@@ -4,8 +4,6 @@ Os capítulos anteriores descrevem o que o WeFIND faz; falta mostrar sobre quais
 
 Para apoiar a comunicação dessas decisões, a ISO/IEC/IEEE 42010:2022 estabelece requisitos para estruturar e expressar descrições de arquitetura, incluindo pontos de vista e modelos, e distingue a arquitetura da descrição que a representa (ISO, 2022).
 
-Essa perspectiva permite apresentar não apenas quais tecnologias foram escolhidas, mas também como os elementos implementados se distribuem e se relacionam.
-
 \subsection{Arquitetura e Tecnologias do Aplicativo}
 
 Para situar os componentes e as integrações utilizados na aplicação, a Figura~\ref{fig:arquitetura_wefind} apresenta uma visão geral da arquitetura do WeFIND.
@@ -14,11 +12,11 @@ Para situar os componentes e as integrações utilizados na aplicação, a Figur
     \centering
     \caption{Arquitetura da plataforma WeFIND}
     \label{fig:arquitetura_wefind}
-    \includegraphics[width=\textwidth]{imagens/03_arquitetura_design/figura13_arquitetura_wefind.png}
+    \includegraphics[width=\textwidth]{imagens/03_arquitetura_design/figura13_arquitetura_wefind_v2.png}
     \fonte{Autoria própria (2026), com auxílio de ferramenta de inteligência artificial}
 \end{figure}
 
-A Figura~\ref{fig:arquitetura_wefind} apresenta três componentes: o cliente móvel, os serviços de backend do Supabase e o provedor externo de mensageria. O aplicativo concentra a interface e os recursos do dispositivo; o Supabase oferece autenticação, banco de dados, armazenamento e atualização em tempo real; e a Evolution API, hospedada no Render, intermedeia o envio de mensagens pelo WhatsApp.
+A Figura~\ref{fig:arquitetura_wefind} apresenta três componentes: o cliente móvel, os serviços de backend do Supabase e o provedor externo de mensageria. O aplicativo concentra a interface e os recursos do dispositivo; o Supabase oferece autenticação, banco de dados, armazenamento, atualização em tempo real e funções de borda; e a Evolution API, hospedada no Render, realiza o envio de mensagens pelo WhatsApp. O aplicativo não se comunica diretamente com a Evolution API: as solicitações de envio passam pelas funções de borda, que guardam a credencial do serviço.
 
 A aplicação móvel foi desenvolvida com React Native, React e Expo. A Figura~\ref{fig:principais_tecnologias} destaca as principais tecnologias adotadas no projeto.
 
@@ -26,7 +24,7 @@ A aplicação móvel foi desenvolvida com React Native, React e Expo. A Figura~\
     \centering
     \caption{Principais tecnologias que compõem a plataforma WeFIND}
     \label{fig:principais_tecnologias}
-    \includegraphics[width=0.82\textwidth]{imagens/03_arquitetura_design/figura11_principais_tecnologias.png}
+    \includegraphics[width=0.85\textwidth]{imagens/03_arquitetura_design/figura11_principais_tecnologias.png}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
@@ -50,7 +48,7 @@ Para apoiar o desenvolvimento, utilizaram-se Node.js, npm e Visual Studio Code n
     \centering
     \caption{Ferramentas auxiliares de apoio ao desenvolvimento do projeto}
     \label{fig:ferramentas_auxiliares}
-    \includegraphics[width=0.88\textwidth]{imagens/03_arquitetura_design/figura12_ferramentas_auxiliares.png}
+    \includegraphics[width=0.85\textwidth]{imagens/03_arquitetura_design/figura12_ferramentas_auxiliares.png}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
@@ -72,7 +70,7 @@ Os códigos temporários de cadastro, recuperação de senha e alteração de te
 
 Backups, restauração, expiração global de sessões e disponibilidade dependem das configurações e dos serviços dos provedores Supabase e Render; não são garantias fornecidas exclusivamente pelo aplicativo.
 
-Para a comunicação com o WhatsApp, utilizou-se a Evolution API (Evolution API, 2026), hospedada no Render (Render, 2026). No ambiente utilizado, a integração por requisições HTTP REST apoiou o envio de códigos de recuperação de senha e de avisos de avistamento.
+Para a comunicação com o WhatsApp, utilizou-se a Evolution API (Evolution API, 2026), hospedada no Render (Render, 2026). No ambiente utilizado, a integração por requisições HTTP REST apoiou o envio dos códigos de verificação de cadastro e de recuperação de senha e dos avisos do sistema, como novos avistamentos e possíveis correspondências entre publicações, para os usuários que autorizaram esse canal.
 
 \subsection{Banco de Dados e Ciclo de Vida das Publicações}
 

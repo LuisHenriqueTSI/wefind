@@ -3,12 +3,11 @@ import {
   View,
   Text,
   ActivityIndicator,
-  FlatList,
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Modal,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, Feather } from '@expo/vector-icons';
@@ -27,7 +26,7 @@ import { triggerLocalNotification } from '../services/pushNotifications';
 import { WeFindText } from '../components/WeFindBrand';
 import COLORS from '../constants/theme';
 
-function getTikTokRelativeTime(dateString) {
+function getRelativeTime(dateString) {
   if (!dateString) return '';
   const now = new Date();
   const date = new Date(dateString);
@@ -41,6 +40,34 @@ function getTikTokRelativeTime(dateString) {
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} sem`;
   return `${Math.floor(diffDays / 30)} m`;
 }
+
+// Rótulo, ícone e ação de cada tipo de aviso
+const TYPE_META = {
+  message: { label: 'Nova mensagem', icon: 'chat-bubble-outline' },
+  nearby_lost_pet: { label: 'Animal perdido perto de você', icon: 'location-on', alert: true },
+  match: { label: 'Possível correspondência', icon: 'compare-arrows' },
+  pet_match: { label: 'Possível correspondência', icon: 'compare-arrows' },
+  sighting: { label: 'Novo avistamento', icon: 'visibility' },
+  renewal_reminder: { label: 'Renovação da publicação', icon: 'update', action: 'Renovar' },
+  item_removed: { label: 'Publicação removida', icon: 'delete-outline' },
+  claim_received: { label: 'Pedido de comprovação de tutela', icon: 'assignment-ind' },
+  claim_approved: { label: 'Comprovação aprovada', icon: 'check-circle-outline' },
+  claim_rejected: { label: 'Comprovação recusada', icon: 'highlight-off' },
+};
+const DEFAULT_META = { label: 'Aviso do WeFIND', icon: 'notifications-none' };
+
+const SYSTEM_FILTERS = [
+  { key: 'all', label: 'Todas' },
+  { key: 'unread', label: 'Não lidas' },
+  { key: 'matches', label: 'Correspondências' },
+  { key: 'sightings', label: 'Avistamentos' },
+  { key: 'alerts', label: 'Proximidade' },
+  { key: 'renewals', label: 'Renovação' },
+];
+const COMMUNITY_FILTERS = [
+  { key: 'all', label: 'Todas' },
+  { key: 'unread', label: 'Não lidas' },
+];
 
 export default function NotificationsScreen({ navigation, onNotificationsUpdated }) {
   const { user, isAdmin } = useAuth();
@@ -90,7 +117,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
       title: msg.otherName || 'Membro da Comunidade',
       prefix: '💬 Mensagem sobre o pet:',
       message: `${msg.otherName || 'Membro da Comunidade'} enviou uma nova mensagem sobre "${msg.itemTitle || 'Pet sem nome'}".`,
-      time: getTikTokRelativeTime(msg.lastMessageAt),
+      time: getRelativeTime(msg.lastMessageAt),
       timestamp: new Date(msg.lastMessageAt || Date.now()).getTime(),
       read: false,
       otherId: msg.otherId,
@@ -137,7 +164,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
           ...alert,
           prefix,
           icon: iconName,
-          time: getTikTokRelativeTime(alert.created_at),
+          time: getRelativeTime(alert.created_at),
           timestamp: new Date(alert.created_at || Date.now()).getTime(),
           isCritical: isNearby || isRenewal || isMatch || isClaim || !alert.read,
         };
@@ -170,7 +197,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
     return filtered.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
   }, [activeTab, messageNotifications, systemAlerts, selectedFilter]);
 
-  // Agrupamento por seção estilo TikTok (Importantes / Mais Antigas)
+  // Agrupamento por seção (recentes e não lidas / mais antigas)
   const groupedSections = useMemo(() => {
     const important = [];
     const older = [];
@@ -188,7 +215,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
 
     const result = [];
     if (important.length > 0) {
-      result.push({ title: 'Notificações importantes', isLightning: true, data: important });
+      result.push({ title: 'Recentes', isLightning: true, data: important });
     }
     if (older.length > 0) {
       result.push({ title: 'Mais antigas', isLightning: false, data: older });
@@ -364,328 +391,167 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
     }
   }
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? '#0A120D' : '#FFFFFF' }]} edges={['top']}>
-      {/* 1. HEADER ESTILO TIKTOK */}
-      <View style={[styles.navHeader, { borderBottomColor: isDark ? '#1E3626' : '#F1F5F9' }]}>
+  const filters = activeTab === 'system' ? SYSTEM_FILTERS : COMMUNITY_FILTERS;
+  const filterLabel = (filters.find((f) => f.key === selectedFilter) || filters[0]).label;
+
+  const renderTab = (key, label, count) => {
+    const active = activeTab === key;
+    return (
+      <TouchableOpacity
+        style={styles.tab}
+        onPress={() => {
+          setActiveTab(key);
+          setSelectedFilter('all');
+        }}
+        activeOpacity={0.8}
+        accessibilityRole="tab"
+        accessibilityState={{ selected: active }}
+      >
+        <Text style={[styles.tabText, { color: active ? (isDark ? colors.primary : '#A8D5AE') : '#FFFFFF', opacity: active ? 1 : 0.7 }]}>
+          {label}{count > 0 ? ` (${count})` : ''}
+        </Text>
+        <View style={[styles.tabLine, { backgroundColor: active ? (isDark ? colors.primary : '#A8D5AE') : 'transparent' }]} />
+      </TouchableOpacity>
+    );
+  };
+
+  const renderRow = (item, index, list) => {
+    const meta = TYPE_META[item.type] || DEFAULT_META;
+    const unread = !item.read;
+    const body = item.message || item.title;
+    const isRenewing = renewingItemId && renewingItemId === item.itemId;
+    const iconColor = meta.alert ? '#B42318' : colors.primary;
+    return (
+      <View key={String(item.id)}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.navBackBtn}
-          accessibilityLabel="Voltar"
+          style={[styles.row, unread && { backgroundColor: isDark ? 'rgba(82,153,96,0.10)' : '#F1F6F1' }]}
           activeOpacity={0.7}
+          onPress={() => handleNotificationPress(item)}
+          accessibilityLabel={`${meta.label}${unread ? ', não lida' : ''}. ${body}`}
         >
-          <MaterialIcons name="arrow-back" size={24} color={colors.text} />
+          <View style={[styles.rowIcon, { backgroundColor: isDark ? colors.surface : '#FFFFFF', borderColor: colors.cardBorder }]}>
+            <MaterialIcons name={meta.icon} size={20} color={iconColor} />
+          </View>
+          <View style={styles.rowBody}>
+            <View style={styles.rowTop}>
+              <Text style={[styles.rowTitle, { color: colors.text }, unread && styles.rowTitleUnread]} numberOfLines={1}>
+                {meta.label}
+              </Text>
+              <Text style={[styles.rowTime, { color: unread ? colors.primary : colors.textMuted }]}>{item.time}</Text>
+            </View>
+            <Text style={[styles.rowText, { color: colors.textSecondary }]} numberOfLines={2}>{body}</Text>
+            {meta.action ? (
+              <View style={styles.rowActions}>
+                {isRenewing ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <View style={[styles.smallBtn, { borderColor: colors.primary }]}>
+                    <Text style={[styles.smallBtnText, { color: colors.primary }]}>{meta.action}</Text>
+                  </View>
+                )}
+              </View>
+            ) : null}
+          </View>
+          {unread ? <View style={[styles.dot, { backgroundColor: colors.primary }]} /> : <View style={styles.dotSpace} />}
         </TouchableOpacity>
+        {index < list.length - 1 && <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />}
+      </View>
+    );
+  };
 
-        <Text style={[styles.navTitle, { color: colors.text }]}>Notificações</Text>
-
-        <View style={styles.navActionsRight}>
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <View style={[styles.header, { backgroundColor: colors.headerBg }]}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon} accessibilityLabel="Voltar" activeOpacity={0.7}>
+            <MaterialIcons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Notificações</Text>
           {isAdmin && (
-            <TouchableOpacity
-              onPress={handleTestNotification}
-              style={[styles.adminTestBtn, { backgroundColor: isDark ? '#1E3626' : '#EAF2EB' }]}
-              accessibilityLabel="Gerar Notificações de Teste (Admin)"
-              activeOpacity={0.7}
-            >
-              <MaterialIcons name="bolt" size={20} color={COLORS.primary} />
+            <TouchableOpacity onPress={handleTestNotification} style={styles.headerIcon} accessibilityLabel="Gerar notificações de teste (admin)" activeOpacity={0.7}>
+              <MaterialIcons name="bolt" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           )}
-
-          <TouchableOpacity
-            onPress={handleClearAllOptions}
-            style={styles.navActionBtn}
-            accessibilityLabel="Opções de limpeza"
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="done-all" size={23} color={colors.text} />
+          <TouchableOpacity onPress={handleClearAllOptions} style={styles.headerIcon} accessibilityLabel="Marcar todas como lidas" activeOpacity={0.7}>
+            <MaterialIcons name="done-all" size={22} color="#FFFFFF" />
           </TouchableOpacity>
+        </View>
+        <View style={styles.tabs}>
+          {renderTab('system', 'Avisos', unreadSystemCount)}
+          {renderTab('community', 'Mensagens', unreadCommunityCount)}
         </View>
       </View>
 
-      {/* 2. ABAS SUPERIORES SEGMENTADAS (Comunidade | Sistema) */}
-      <View style={[styles.tabBarContainer, { borderBottomColor: isDark ? '#1E3626' : '#F1F5F9' }]}>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'community' && styles.tabButtonActive]}
-          onPress={() => {
-            setActiveTab('community');
-            setSelectedFilter('all');
-          }}
-          activeOpacity={0.75}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text
-              style={[
-                styles.tabButtonText,
-                { color: activeTab === 'community' ? colors.text : colors.textMuted },
-                activeTab === 'community' && styles.tabButtonTextActive,
-              ]}
-            >
-              Comunidade
-            </Text>
-            {unreadCommunityCount > 0 && (
-              <View style={[styles.tabBadge, { backgroundColor: COLORS.primary }]}>
-                <Text style={styles.tabBadgeText}>{unreadCommunityCount}</Text>
-              </View>
-            )}
-          </View>
-          {activeTab === 'community' && <View style={[styles.tabActiveIndicator, { backgroundColor: colors.text }]} />}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'system' && styles.tabButtonActive]}
-          onPress={() => {
-            setActiveTab('system');
-            setSelectedFilter('all');
-          }}
-          activeOpacity={0.75}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text
-              style={[
-                styles.tabButtonText,
-                { color: activeTab === 'system' ? colors.text : colors.textMuted },
-                activeTab === 'system' && styles.tabButtonTextActive,
-              ]}
-            >
-              Sistema {unreadSystemCount > 0 ? `(${unreadSystemCount})` : ''}
-            </Text>
-          </View>
-          {activeTab === 'system' && <View style={[styles.tabActiveIndicator, { backgroundColor: colors.text }]} />}
+      <View style={[styles.filterBar, { borderBottomColor: colors.cardBorder }]}>
+        <TouchableOpacity style={styles.filterBtn} onPress={() => setFilterModalVisible(true)} activeOpacity={0.7} accessibilityLabel="Filtrar notificações">
+          <MaterialIcons name="filter-list" size={18} color={colors.textSecondary} />
+          <Text style={[styles.filterText, { color: colors.textSecondary }]}>Mostrando:</Text>
+          <Text style={[styles.filterText, styles.filterValue, { color: colors.text }]}>{filterLabel}</Text>
+          <MaterialIcons name="arrow-drop-down" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
-        {/* 3. BANNER INFORMATIVO RETRÁTIL */}
-        {bannerVisible && (
-          <View style={[styles.noticeBanner, { backgroundColor: isDark ? '#132218' : '#F8FAF8', borderColor: isDark ? '#1E3626' : '#E5EBE6' }]}>
-            <Text style={[styles.noticeText, { color: colors.textSecondary }]}>
-              Notificações e alertas ficam salvos por 30 dias
-            </Text>
-            <TouchableOpacity onPress={() => setBannerVisible(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <MaterialIcons name="close" size={17} color={colors.textMuted} />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* 4. SELETOR DROPDOWN DE FILTRO DE NOTIFICAÇÕES */}
-        <View style={styles.filterDropdownRow}>
-          <TouchableOpacity
-            style={styles.filterDropdownBtn}
-            onPress={() => setFilterModalVisible(true)}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.filterDropdownText, { color: colors.text }]}>
-              {selectedFilter === 'all' && (activeTab === 'system' ? 'Todas as notificações do sistema' : 'Todas as mensagens da comunidade')}
-              {selectedFilter === 'unread' && 'Apenas não lidas'}
-              {selectedFilter === 'alerts' && 'Alertas de Proximidade'}
-              {selectedFilter === 'sightings' && 'Avistamentos Registrados'}
-              {selectedFilter === 'renewals' && 'Lembretes de Renovação'}
-            </Text>
-            <MaterialIcons name="keyboard-arrow-down" size={20} color={colors.text} />
-          </TouchableOpacity>
-        </View>
-
-        {/* 5. FEED DE NOTIFICAÇÕES EM ESTILO TIKTOK */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={COLORS.primary} />
+            <ActivityIndicator size="large" color={colors.primary} />
             <Text style={[styles.loadingText, { color: colors.textMuted }]}>Carregando notificações...</Text>
           </View>
         ) : groupedSections.length > 0 ? (
           groupedSections.map((section, sIdx) => (
-            <View key={`sec_${sIdx}`} style={styles.sectionContainer}>
-              {/* Título da Seção */}
-              <View style={styles.sectionTitleRow}>
-                {section.isLightning && (
-                  <MaterialIcons name="bolt" size={16} color="#EF4444" style={{ marginRight: 4 }} />
-                )}
-                <Text style={[styles.sectionTitleText, { color: colors.text }]}>
-                  {section.title}
-                </Text>
-              </View>
-
-              {/* Lista de Itens da Seção */}
-              {section.data.map((item) => {
-                return (
-                  <TouchableOpacity
-                    key={String(item.id)}
-                    style={[
-                      styles.notificationItem,
-                      { borderBottomColor: isDark ? '#1E3626' : '#F8FAFC' },
-                    ]}
-                    activeOpacity={0.75}
-                    onPress={() => handleNotificationPress(item)}
-                  >
-                    {/* Ícone Circular Estilo TikTok */}
-                    <View
-                      style={[
-                        styles.itemIconCircle,
-                        {
-                          backgroundColor: isDark ? '#132218' : '#FFFFFF',
-                          borderColor: isDark ? '#1E3626' : '#E2E8F0',
-                        },
-                      ]}
-                    >
-                      <MaterialIcons
-                        name={item.icon || 'notifications'}
-                        size={21}
-                        color={item.type === 'nearby_lost_pet' ? '#EF4444' : COLORS.primary}
-                      />
-                    </View>
-
-                    {/* Texto Principal com Prefixo em Negrito e Timestamp Relativo */}
-                    <View style={styles.itemContentBox}>
-                      <Text style={[styles.itemText, { color: colors.text }]}>
-                        <Text style={styles.itemPrefix}>{item.prefix} </Text>
-                        <Text style={{ color: isDark ? '#E2E8F0' : '#1E293B' }}>{item.message || item.title} </Text>
-                        <Text style={[styles.itemTimeAgo, { color: colors.textMuted }]}>
-                          {item.time}
-                        </Text>
-                      </Text>
-                    </View>
-
-                    {/* Ação Direita: Ponto Vermelho (Não lido) + Chevron Seta */}
-                    <View style={styles.itemActionRight}>
-                      {renewingItemId === item.itemId ? (
-                        <ActivityIndicator size="small" color={COLORS.primary} style={{ marginRight: 6 }} />
-                      ) : !item.read ? (
-                        <View style={styles.unreadRedDot} />
-                      ) : null}
-                      <MaterialIcons name="chevron-right" size={19} color={isDark ? '#475569' : '#94A3B8'} />
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+            <View key={`sec_${sIdx}`}>
+              <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>{section.title}</Text>
+              {section.data.map((item, i) => renderRow(item, i, section.data))}
             </View>
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? '#132218' : '#EAF2EB' }]}>
-              <MaterialIcons name="notifications-none" size={42} color={COLORS.primary} />
-            </View>
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>Tudo limpo por aqui</Text>
-            <Text style={[styles.emptyDescription, { color: colors.textSecondary, marginBottom: 20 }]}>
-              Você receberá avisos em tempo real sobre avistamentos, mensagens e lembretes de publicações.
+            <MaterialIcons name="notifications-none" size={44} color={colors.textMuted} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              {selectedFilter === 'all' ? 'Nenhuma notificação' : 'Nada neste filtro'}
+            </Text>
+            <Text style={[styles.emptyDescription, { color: colors.textSecondary }]}>
+              {selectedFilter === 'all'
+                ? 'Avistamentos, mensagens, possíveis correspondências e lembretes de renovação aparecem aqui.'
+                : 'Troque o filtro para ver os outros avisos.'}
             </Text>
             {isAdmin && (
-              <TouchableOpacity
-                onPress={handleTestNotification}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: COLORS.primary,
-                  paddingHorizontal: 18,
-                  paddingVertical: 12,
-                  borderRadius: 14,                }}
-                activeOpacity={0.8}
-              >
-                <MaterialIcons name="bolt" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
-                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
-                  Gerar Notificações de Teste (Admin)
-                </Text>
+              <TouchableOpacity onPress={handleTestNotification} style={[styles.smallBtn, { borderColor: colors.primary, marginTop: 16 }]} activeOpacity={0.8}>
+                <Text style={[styles.smallBtnText, { color: colors.primary }]}>Gerar notificações de teste (admin)</Text>
               </TouchableOpacity>
             )}
           </View>
         )}
+
+        {bannerVisible && !loading && (
+          <Text style={[styles.footnote, { color: colors.textMuted }]}>As notificações ficam salvas por 30 dias.</Text>
+        )}
       </ScrollView>
 
-      {/* MODAL DE FILTRO (Estilo Bottom Sheet) */}
-      <Modal
-        visible={filterModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFilterModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalBackdrop}
-          activeOpacity={1}
-          onPress={() => setFilterModalVisible(false)}
-        >
-          <View style={[styles.modalSheet, { backgroundColor: isDark ? '#132218' : '#FFFFFF' }]}>
-            <View style={styles.modalDragHandle} />
-            <Text style={[styles.modalHeaderTitle, { color: colors.text }]}>Filtrar Notificações</Text>
-
-            <TouchableOpacity
-              style={[styles.modalOptionRow, selectedFilter === 'all' && styles.modalOptionActive]}
-              onPress={() => {
-                setSelectedFilter('all');
-                setFilterModalVisible(false);
-              }}
-            >
-              <Text style={[styles.modalOptionText, { color: colors.text }, selectedFilter === 'all' && { color: COLORS.primary, fontWeight: '800' }]}>
-                Todas as notificações
-              </Text>
-              {selectedFilter === 'all' && <MaterialIcons name="check" size={20} color={COLORS.primary} />}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.modalOptionRow, selectedFilter === 'unread' && styles.modalOptionActive]}
-              onPress={() => {
-                setSelectedFilter('unread');
-                setFilterModalVisible(false);
-              }}
-            >
-              <Text style={[styles.modalOptionText, { color: colors.text }, selectedFilter === 'unread' && { color: COLORS.primary, fontWeight: '800' }]}>
-                Apenas não lidas
-              </Text>
-              {selectedFilter === 'unread' && <MaterialIcons name="check" size={20} color={COLORS.primary} />}
-            </TouchableOpacity>
-
-            {activeTab === 'system' && (
-              <>
+      <Modal visible={filterModalVisible} transparent animationType="fade" onRequestClose={() => setFilterModalVisible(false)}>
+        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setFilterModalVisible(false)}>
+          <View style={[styles.modalSheet, { backgroundColor: colors.surface }]}>
+            <View style={styles.modalHandle} />
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Mostrar</Text>
+            {filters.map((f) => {
+              const active = selectedFilter === f.key;
+              return (
                 <TouchableOpacity
-                  style={[styles.modalOptionRow, selectedFilter === 'alerts' && styles.modalOptionActive]}
+                  key={f.key}
+                  style={[styles.modalOption, { borderBottomColor: colors.cardBorder }]}
                   onPress={() => {
-                    setSelectedFilter('alerts');
+                    setSelectedFilter(f.key);
                     setFilterModalVisible(false);
                   }}
+                  accessibilityState={{ selected: active }}
                 >
-                  <Text style={[styles.modalOptionText, { color: colors.text }, selectedFilter === 'alerts' && { color: COLORS.primary, fontWeight: '800' }]}>
-                    🚨 Alertas de Proximidade
+                  <Text style={[styles.modalOptionText, { color: active ? colors.primary : colors.text }, active && { fontWeight: '800' }]}>
+                    {f.label}
                   </Text>
-                  {selectedFilter === 'alerts' && <MaterialIcons name="check" size={20} color={COLORS.primary} />}
+                  {active && <MaterialIcons name="check" size={20} color={colors.primary} />}
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.modalOptionRow, selectedFilter === 'matches' && styles.modalOptionActive]}
-                  onPress={() => {
-                    setSelectedFilter('matches');
-                    setFilterModalVisible(false);
-                  }}
-                >
-                  <Text style={[styles.modalOptionText, { color: colors.text }, selectedFilter === 'matches' && { color: COLORS.primary, fontWeight: '800' }]}>
-                    🎯 Matches Inteligentes
-                  </Text>
-                  {selectedFilter === 'matches' && <MaterialIcons name="check" size={20} color={COLORS.primary} />}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.modalOptionRow, selectedFilter === 'sightings' && styles.modalOptionActive]}
-                  onPress={() => {
-                    setSelectedFilter('sightings');
-                    setFilterModalVisible(false);
-                  }}
-                >
-                  <Text style={[styles.modalOptionText, { color: colors.text }, selectedFilter === 'sightings' && { color: COLORS.primary, fontWeight: '800' }]}>
-                    👁️ Avistamentos Registrados
-                  </Text>
-                  {selectedFilter === 'sightings' && <MaterialIcons name="check" size={20} color={COLORS.primary} />}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.modalOptionRow, selectedFilter === 'renewals' && styles.modalOptionActive]}
-                  onPress={() => {
-                    setSelectedFilter('renewals');
-                    setFilterModalVisible(false);
-                  }}
-                >
-                  <Text style={[styles.modalOptionText, { color: colors.text }, selectedFilter === 'renewals' && { color: COLORS.primary, fontWeight: '800' }]}>
-                    ⏳ Lembretes de Renovação
-                  </Text>
-                  {selectedFilter === 'renewals' && <MaterialIcons name="check" size={20} color={COLORS.primary} />}
-                </TouchableOpacity>
-              </>
-            )}
+              );
+            })}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -694,242 +560,51 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  navHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 52,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  navBackBtn: {
-    padding: 4,
-    marginLeft: -4,
-  },
-  navTitle: {
-    fontSize: 17.5,
-    fontWeight: '800',
-    textAlign: 'center',
-    flex: 1,
-    letterSpacing: -0.3,
-  },
-  navActionsRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  navActionBtn: {
-    padding: 4,
-  },
-  adminTestBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabBarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  tabButtonActive: {},
-  tabButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  tabButtonTextActive: {
-    fontWeight: '800',
-  },
-  tabActiveIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    height: 2.5,
-    width: '60%',
-    borderRadius: 2,
-  },
-  tabBadge: {
-    marginLeft: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 10,
-  },
-  tabBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  scrollBody: {
-    paddingBottom: 40,
-  },
-  noticeBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  noticeText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  filterDropdownRow: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  filterDropdownBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  filterDropdownText: {
-    fontSize: 15,
-    fontWeight: '800',
-    marginRight: 4,
-    letterSpacing: -0.2,
-  },
-  sectionContainer: {
-    marginTop: 12,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  sectionTitleText: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: -0.1,
-  },
-  notificationItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  itemIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    flexShrink: 0,
-  },
-  itemContentBox: {
-    flex: 1,
-    marginRight: 10,
-  },
-  itemText: {
-    fontSize: 13.5,
-    lineHeight: 18.5,
-  },
-  itemPrefix: {
-    fontWeight: '800',
-  },
-  itemTimeAgo: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  itemActionRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexShrink: 0,
-  },
-  unreadRedDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#EF4444',
-    marginRight: 6,
-  },
-  loadingContainer: {
-    paddingVertical: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 13,
-  },
-  emptyContainer: {
-    paddingVertical: 56,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    marginBottom: 6,
-  },
-  emptyDescription: {
-    fontSize: 13.5,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 36,
-  },
-  modalDragHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#94A3B8',
-    alignSelf: 'center',
-    marginBottom: 14,
-  },
-  modalHeaderTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  modalOptionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E2E8F0',
-  },
-  modalOptionActive: {
-    opacity: 1,
-  },
-  modalOptionText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  container: { flex: 1 },
+
+  header: { paddingHorizontal: 8 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', height: 56 },
+  headerIcon: { padding: 10 },
+  headerTitle: { flex: 1, color: '#FFFFFF', fontSize: 19, fontWeight: '800', marginLeft: 4 },
+  tabs: { flexDirection: 'row' },
+  tab: { flex: 1, alignItems: 'center', paddingTop: 10 },
+  tabText: { color: '#FFFFFF', fontSize: 14.5, fontWeight: '700', marginBottom: 10 },
+  tabLine: { height: 3, width: '100%', borderTopLeftRadius: 3, borderTopRightRadius: 3 },
+
+  filterBar: { borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16 },
+  filterBtn: { width: '100%', minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  filterText: { fontSize: 13.5, lineHeight: 18 },
+  filterValue: { fontWeight: '700' },
+
+  scrollBody: { paddingBottom: 32 },
+  sectionTitle: { fontSize: 13, fontWeight: '700', paddingHorizontal: 16, paddingTop: 18, paddingBottom: 6 },
+
+  row: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 16, paddingVertical: 14 },
+  rowIcon: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  rowBody: { flex: 1 },
+  rowTop: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  rowTitle: { flex: 1, fontSize: 14.5, fontWeight: '600' },
+  rowTitleUnread: { fontWeight: '800' },
+  rowTime: { fontSize: 12 },
+  rowText: { fontSize: 13.5, lineHeight: 19, marginTop: 2 },
+  rowActions: { flexDirection: 'row', marginTop: 10 },
+  smallBtn: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
+  smallBtnText: { fontSize: 13, fontWeight: '700' },
+  dot: { width: 8, height: 8, borderRadius: 4, marginLeft: 10, marginTop: 6 },
+  dotSpace: { width: 8, marginLeft: 10 },
+  divider: { height: StyleSheet.hairlineWidth, marginLeft: 68 },
+
+  loadingContainer: { paddingVertical: 48, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { marginTop: 10, fontSize: 13 },
+  emptyContainer: { paddingVertical: 64, paddingHorizontal: 32, alignItems: 'center' },
+  emptyTitle: { fontSize: 16, fontWeight: '700', marginTop: 12, marginBottom: 6 },
+  emptyDescription: { fontSize: 13.5, textAlign: 'center', lineHeight: 20 },
+  footnote: { fontSize: 12, textAlign: 'center', marginTop: 24, paddingHorizontal: 16 },
+
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  modalSheet: { borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 32 },
+  modalHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#CBD5E1', alignSelf: 'center', marginBottom: 12 },
+  modalTitle: { fontSize: 16, fontWeight: '800', marginBottom: 6 },
+  modalOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth },
+  modalOptionText: { fontSize: 15 },
 });

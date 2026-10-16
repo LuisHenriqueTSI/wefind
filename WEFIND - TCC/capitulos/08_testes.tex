@@ -5,7 +5,7 @@ Um aplicativo que funciona no aparelho do desenvolvedor ainda precisa ser examin
 
 \subsection{Verificação Funcional Manual}
 
-Antes da avaliação com participantes, o autor realizou verificações manuais dos fluxos funcionais descritos no Capítulo 4, incluindo acesso à conta, consulta e publicação de anúncios, busca no mapa, filtros, registro de avistamentos, mensagens, avisos e moderação. As verificações ocorreram entre 10 e 25 de setembro de 2026, em um aparelho Xiaomi Redmi Note 13 com Android 15 (versão/build informada: AQ3A.240829.003). Durante os fluxos percorridos, não foram observados erros que impedissem a conclusão das operações. A geração e o compartilhamento do cartaz (RF15) também foram incluídos na terceira tarefa do roteiro aplicado aos participantes; como o questionário avaliou a conclusão do conjunto de tarefas, não houve registro isolado do resultado dessa funcionalidade.
+Antes da avaliação com participantes, o autor realizou verificações manuais dos fluxos funcionais descritos no Capítulo 4, incluindo acesso à conta, consulta e publicação de anúncios, busca no mapa, filtros, registro de avistamentos, mensagens, avisos e moderação. As verificações ocorreram entre 10 e 25 de setembro de 2026, em um aparelho Xiaomi Redmi Note 13 com Android 15 (versão/build informada: AQ3A.240829.003). Durante os fluxos percorridos, não foram observados erros que impedissem a conclusão das operações. O fluxo de comprovação de tutela (RF18) também foi verificado manualmente, desde o envio da solicitação até a análise pelo autor da publicação e a liberação do endereço após a aprovação, sem erros observados. A geração e o compartilhamento do cartaz (RF15) também foram incluídos na terceira tarefa do roteiro aplicado aos participantes; como o questionário avaliou a conclusão do conjunto de tarefas, não houve registro isolado do resultado dessa funcionalidade.
 
 Além das verificações funcionais, foi realizada uma inspeção estática manual do código e das migrações, na qual foram identificadas práticas relacionadas à proteção da comunicação e dos dados, à autenticação e ao controle de acesso. O detalhamento dos controles observados está no Apêndice E.
 
@@ -45,13 +45,11 @@ No manifesto, o MobSF contabilizou um alerta de severidade alta e sete avisos. O
 
 Na análise de código, foram registrados zero alertas altos, sete avisos e três itens classificados como informativos. Os avisos incluem padrões que a ferramenta associa, por exemplo, a possíveis segredos embutidos, uso de MD5, armazenamento externo, consultas SQL e geração de valores aleatórios. Como a análise também abrange bibliotecas incluídas no pacote, esses avisos requerem verificação manual para determinar se se aplicam ao código do WeFIND.
 
-Em conjunto, as capturas documentam os resultados da triagem automatizada e indicam os pontos priorizados para a revisão das configurações do aplicativo.
-
 \subsection{Avaliação de Usabilidade}
 
 Para avaliar a experiência de uso do WeFIND, foi realizado um estudo com 12 tutores de animais, que percorreram cinco tarefas no aplicativo e, em seguida, responderam a um questionário com questões abertas e itens baseados na Escala de Usabilidade do Sistema (SUS). A seguir, são descritos os critérios considerados, o instrumento, os procedimentos adotados e os resultados obtidos.
 
-Os testes de usabilidade constituem uma metodologia empírica de avaliação focada em observar como pessoas reais interagem com um produto computacional para atingir metas determinadas. Conforme estabelece a norma técnica ABNT NBR ISO 9241-11 (2021), a usabilidade é definida como a medida na qual um sistema, produto ou serviço pode ser usado por usuários específicos para alcançar objetivos definidos com eficácia, eficiência e satisfação em um contexto de uso especificado.
+Os testes de usabilidade avaliam como as pessoas utilizam um produto para alcançar objetivos determinados. Conforme estabelece a norma técnica ABNT NBR ISO 9241-11 (2021), a usabilidade é definida como a medida na qual um sistema, produto ou serviço pode ser usado por usuários específicos para alcançar objetivos definidos com eficácia, eficiência e satisfação em um contexto de uso especificado.
 
 No projeto de interfaces para dispositivos móveis, a usabilidade ajuda a reduzir a carga cognitiva do usuário, prevenir erros e facilitar a execução das ações essenciais (Rogers; Sharp; Preece, 2023). Em momentos de aflição provocados pela perda de um animal de estimação, telas sobrecarregadas, terminologias ambíguas ou formulários confusos podem levar o usuário à desistência ou ao preenchimento incorreto de dados importantes. Por isso, a facilidade de aprendizado e de uso dos fluxos principais foi um dos aspectos examinados na avaliação.
 
@@ -81,17 +79,17 @@ Cada voluntário recebeu a instrução de acessar o aplicativo WeFIND e percorre
     \item Acessar e conferir as notificações e avisos recebidos na central do aplicativo.
 \end{enumerate}
 
-Após a realização do roteiro, os respondentes preencheram o instrumento de coleta, organizado em quatro seções articuladas: validação do perfil do respondente quanto à tutela de animais; questão conjunta avaliando a autopercepção sobre a conclusão das cinco tarefas; bloco das dez afirmações da escala SUS, apresentado em português conforme a redação de Teixeira (2015) e avaliado em escala Likert de cinco pontos; e três perguntas abertas de caráter qualitativo para registro livre de pontos positivos, dificuldades vivenciadas e sugestões de aprimoramento.
+Após o roteiro, os participantes responderam ao formulário, organizado em quatro seções: validação do perfil do respondente quanto à tutela de animais; questão conjunta avaliando a autopercepção sobre a conclusão das cinco tarefas; bloco das dez afirmações da escala SUS, apresentado em português conforme a redação de Teixeira (2015) e avaliado em escala Likert de cinco pontos; e três perguntas abertas de caráter qualitativo para registro livre de pontos positivos, dificuldades vivenciadas e sugestões de aprimoramento.
 
 A pergunta de verificação da conclusão das atividades oferecia quatro alternativas de resposta: conclusão de todas as cinco tarefas com facilidade; conclusão de todas, porém com dúvidas em alguma etapa; conclusão parcial (apenas algumas tarefas); ou não conclusão das tarefas.
 
-Para o processamento dos dados quantitativos de usabilidade, as dez afirmações Likert (com pontuações de 1 a 5) foram submetidas ao procedimento padrão de cálculo do escore SUS (Brooke, 1996; Sauro; Lewis, 2016). Nas afirmações com enunciado positivo (itens ímpares: 1, 3, 5, 7 e 9), subtraiu-se 1 da pontuação assinalada pelo respondente. Nas afirmações com enunciado negativo (itens pares: 2, 4, 6, 8 e 10), subtraiu-se o valor assinalado de 5. A soma dos dez valores convertidos de cada participante foi multiplicada pelo coeficiente multiplicador 2,5, gerando uma escala normalizada final com pontuação contínua de 0 a 100 pontos.
+Para o processamento dos dados quantitativos de usabilidade, as dez afirmações Likert (com pontuações de 1 a 5) foram submetidas ao procedimento padrão de cálculo do escore SUS (Brooke, 1996; Sauro; Lewis, 2016). Nas afirmações com enunciado positivo (itens ímpares: 1, 3, 5, 7 e 9), subtraiu-se 1 da pontuação assinalada pelo respondente. Nas afirmações com enunciado negativo (itens pares: 2, 4, 6, 8 e 10), subtraiu-se o valor assinalado de 5. A soma dos dez valores convertidos de cada participante foi multiplicada por 2,5, resultando em um escore de 0 a 100 pontos.
 
 \subsubsection{Resultados}
 
-A tabulação dos dados permitiu analisar a aceitação do aplicativo sob diferentes perspectivas complementares: a conclusão das tarefas, a apuração estatística do questionário SUS, o exame qualitativo dos comentários espontâneos e os relatos de fluidez e estabilidade durante a navegação.
+Os resultados são apresentados a seguir em quatro partes: a conclusão das tarefas, os escores da SUS, as respostas abertas e os relatos sobre a fluidez da navegação.
 
-No que se refere ao perfil dos respondentes e à conclusão das atividades propostas, a totalidade dos 12 participantes (100\%) confirmou ser tutora de animais domésticos, atendendo ao perfil definido para a avaliação. Em relação à execução prática do roteiro, todos os 12 voluntários selecionaram a opção ``Sim, concluí todas as 5 tarefas com facilidade''. O \hyperref[quadro:conclusao_tarefas]{Quadro 5} apresenta a distribuição consolidada das respostas obtidas nessa etapa.
+Todos os 12 participantes confirmaram ser tutores de animais domésticos, perfil definido para a avaliação. Em relação à execução prática do roteiro, todos os 12 voluntários selecionaram a opção ``Sim, concluí todas as 5 tarefas com facilidade''. O \hyperref[quadro:conclusao_tarefas]{Quadro 5} apresenta a distribuição consolidada das respostas obtidas nessa etapa.
 
 \begin{table}[H]
     \centering
@@ -111,7 +109,7 @@ No que se refere ao perfil dos respondentes e à conclusão das atividades propo
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{table}
 
-A totalidade de respostas indicando conclusão das tarefas com facilidade mostra que os participantes perceberam os fluxos de navegação do WeFIND como claros e diretos.
+O fato de todos indicarem a conclusão das tarefas com facilidade mostra que os participantes perceberam os fluxos de navegação do WeFIND como claros e diretos.
 
 Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo SUS, o cálculo individual das respostas aos dez itens resultou em escores elevados. A média aritmética geral obtida pelo WeFIND atingiu a marca de 93,33 pontos, com pontuações individuais situadas entre 85,0 e 100,0 pontos. O \hyperref[quadro:escores_sus]{Quadro 6} apresenta a distribuição dos escores anonimizados obtidos para cada respondente (P1 a P12).
 
@@ -168,9 +166,9 @@ A análise das questões abertas complementou as métricas numéricas, trazendo 
 
 Quanto às dúvidas e dificuldades, 7 dos 12 respondentes declararam não ter enfrentado qualquer obstáculo durante as tarefas (uma resposta permaneceu em branco). Quatro participantes apontaram dúvidas pontuais: dificuldade em identificar de imediato onde acessar a ficha detalhada de um animal anunciado, questionamento sobre a diferença entre as modalidades de registro (animal perdido versus animal avistado/encontrado), dúvida sobre qual o passo inicial ideal ao abrir a aplicação pela primeira vez e acesso ao histórico de registros efetuados anteriormente.
 
-Embora todos tenham indicado que concluíram as cinco atividades com facilidade, quatro participantes descreveram dúvidas pontuais. Esses relatos mostram que a percepção geral positiva convive com pontos específicos de melhoria, que orientam as sugestões apresentadas a seguir.
+Assim, mesmo com a conclusão das tarefas declarada por todos, os relatos indicam pontos específicos de melhoria, que orientam as sugestões apresentadas a seguir.
 
-Dentre as sugestões práticas mencionadas, destacaram-se: aumentar o destaque visual do botão que abre os detalhes da publicação, inserir textos de apoio elucidando a diferença entre as opções de cadastro, enriquecer os filtros com características mais específicas, disponibilizar uma apresentação guiada de boas-vindas no primeiro acesso, permitir a opção de salvar publicações favoritas e facilitar a consulta ao histórico pessoal. Três participantes manifestaram satisfação plena sem sugerir melhorias imediatas, e dois não responderam ao campo opcional.
+Dentre as sugestões práticas mencionadas, destacaram-se: aumentar o destaque visual do botão que abre os detalhes da publicação, inserir textos de apoio explicando a diferença entre as opções de cadastro, enriquecer os filtros com características mais específicas, disponibilizar uma apresentação guiada de boas-vindas no primeiro acesso, permitir a opção de salvar publicações favoritas e facilitar a consulta ao histórico pessoal. Três participantes manifestaram satisfação plena sem sugerir melhorias imediatas, e dois não responderam ao campo opcional.
 
 Como percepção qualitativa de uso, os participantes relataram fluidez durante a navegação entre as abas e ausência de travamentos ou encerramentos inesperados.
 
