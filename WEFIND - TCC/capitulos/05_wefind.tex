@@ -29,9 +29,9 @@ O WeFIND adota duas formas distintas e complementares para relacionar informaç�
 
 \subsubsection{Correspondência entre publicações}
 
-A correspondência automática analisa duas publicações ativas cadastradas de forma independente: uma do tipo ``Perdido'' e outra do tipo ``Encontrado''. O sistema avalia a compatibilidade de atributos como espécie, porte, sexo, raça e pelagem, cruzando esses dados com a distância geográfica entre os pontos registrados. A listagem pode apresentar sugestões a partir de 55\% de similaridade; as notificações automáticas utilizam o limiar de 60\%.
+A correspondência automática analisa duas publicações ativas cadastradas de forma independente: uma do tipo ``Perdido'' e outra do tipo ``Encontrado''. O sistema avalia a compatibilidade de atributos como espécie, porte, sexo, raça, pelagem e idade, cruzando esses dados com a distância geográfica entre os pontos registrados ou, na ausência de coordenadas, com a cidade e o bairro informados. A listagem pode apresentar sugestões a partir de 55 pontos, em um índice heurístico de 0 a 100; as notificações automáticas utilizam o limiar de 60 pontos.
 
-A formulação matemática desse cálculo, a atribuição de pesos a cada atributo morfológico e a aplicação da fórmula de Haversine para a distância geográfica são detalhadas na seção do Capítulo~6 dedicada ao motor de correspondência e no Quadro~4. As interfaces do usuário e as notificações resultantes desse cruzamento são ilustradas no Capítulo~7 (Seção~7.5).
+A formulação matemática desse cálculo, a atribuição de pesos a cada atributo morfológico e a aplicação da fórmula de Haversine para a distância geográfica são detalhadas na seção do Capítulo~6 dedicada ao motor de correspondência e no Quadro~4. As interfaces do usuário e as notificações resultantes desse cruzamento são ilustradas nas telas do fluxo de localização e correspondência apresentadas no Capítulo~7.
 
 Essa funcionalidade tem como objetivo aproximar tutores e resgatistas que possam estar tratando do mesmo animal. Ela não altera o status das publicações, não confirma reencontros e não substitui a validação humana: a ferramenta atua como um mecanismo de apoio para que as partes comparem fotos e características, cabendo exclusivamente aos envolvidos a confirmação do caso.
 

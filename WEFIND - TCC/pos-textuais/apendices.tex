@@ -2,6 +2,7 @@
 % APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO
 % ============================================================
 \section*{APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO}
+\phantomsection
 \addcontentsline{toc}{section}{APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO}
 
 Esta seção apresenta a especificação textual de sete casos de uso que compõem o escopo funcional central da plataforma WeFIND, descrevendo atores, pré-condições, fluxos principais, alternativas e exceções.
@@ -19,7 +20,7 @@ Esta seção apresenta a especificação textual de sete casos de uso que compõ
 \textbf{Nome do Caso de Uso} & Efetuar Login \\ \hline
 \textbf{Ator Principal} & Usuário Visitante \\ \hline
 \textbf{Atores Secundários} & Serviço de Autenticação (Supabase Auth) e Gateway de Mensageria (Evolution API / WhatsApp) \\ \hline
-\textbf{Resumo} & Permite ao usuário autenticar-se na plataforma mediante e-mail e senha, gerando token JWT de sessão persistente. \\ \hline
+\textbf{Resumo} & Permite ao usuário autenticar-se na plataforma mediante e-mail e senha ou por meio da conta Google, gerando token JWT de sessão persistente. \\ \hline
 \textbf{Pré-Condições} & Possuir cadastro ativo no WeFIND. \\ \hline
 \multicolumn{2}{|l|}{\textbf{Fluxo Principal:}} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
@@ -28,12 +29,13 @@ Esta seção apresenta a especificação textual de sete casos de uso que compõ
 3. O usuário preenche as credenciais e toca em ``Entrar''.\par
 4. O sistema valida o formato sintático do e-mail e o comprimento da senha.\par
 5. O sistema submete a requisição ao Supabase Auth.\par
-6. O serviço valida as credenciais e confirma a validação da conta via WhatsApp.\par
+6. O serviço valida as credenciais e retorna a sessão autenticada.\par
 7. O sistema armazena a sessão localmente (\textit{AsyncStorage}) e redireciona ao mural principal autenticado.
 } \\ \hline
 \multicolumn{2}{|l|}{\textbf{Fluxos Alternativos:}} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
 3a. Esquecimento de credenciais (\textit{<<extend>>}): o usuário aciona a opção \textbf{Redefinir Senha}, recebendo código OTP de 6 dígitos via Evolution API no WhatsApp para cadastro de nova senha.\par
+3b. Login com Google: o usuário aciona a opção de entrar com o Google, conclui a autenticação no navegador do dispositivo e retorna ao aplicativo com a sessão gerenciada pelo Supabase Auth.\par
 1a. Exploração sem cadastro: o usuário opta por ``Continuar explorando como visitante'', acessando a visualização de publicações e do mapa em modo somente leitura.
 } \\ \hline
 \multicolumn{2}{|l|}{\textbf{Fluxos de Exceção:}} \\
@@ -80,7 +82,7 @@ Esta seção apresenta a especificação textual de sete casos de uso que compõ
 4b. Senha fora dos parâmetros: o sistema sinaliza que a senha deve possuir no mínimo 6 caracteres.\par
 6b. Código incorreto ou expirado: o sistema sinaliza a inconsistência e solicita nova inserção.
 } \\ \hline
-\textbf{Pós-Condições} & Conta criada, validada em duas etapas e pronta para autenticação. \\ \hline
+\textbf{Pós-Condições} & Conta criada, com telefone confirmado por código e pronta para autenticação. \\ \hline
 \end{tabular}
 \end{table}
 
@@ -256,7 +258,7 @@ Esta seção apresenta a especificação textual de sete casos de uso que compõ
 2. O sistema lista os anúncios que receberam denúncias dos usuários com o respectivo motivo.\par
 3. O administrador examina as fotos, o texto e os dados do anúncio reportado.\par
 4. O administrador seleciona a ação cabível: desconsiderar denúncia, suspender anúncio ou excluir publicação.\par
-5. O sistema atualiza o status do anúncio e registra a decisão no log de auditoria.
+5. O sistema atualiza o status do anúncio e da denúncia conforme a decisão tomada.
 } \\ \hline
 \multicolumn{2}{|l|}{\textbf{Fluxos Alternativos:}} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
@@ -267,7 +269,7 @@ Esta seção apresenta a especificação textual de sete casos de uso que compõ
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
 4c. Infração grave ou fraude dolosa: o administrador exclui o anúncio e suspende preventivamente a conta do usuário infrator.
 } \\ \hline
-\textbf{Pós-Condições} & Publicação moderada e integridade comunitária da plataforma assegurada. \\ \hline
+\textbf{Pós-Condições} & Denúncia analisada e publicação mantida, suspensa ou removida conforme a decisão do administrador. \\ \hline
 \end{tabular}
 \end{table}
 
@@ -279,13 +281,14 @@ Esta seção apresenta a especificação textual de sete casos de uso que compõ
 % APÊNDICE B: INSTRUMENTOS DE PESQUISA
 % ============================================================
 \section*{APÊNDICE B: INSTRUMENTOS DE PESQUISA (QUESTIONÁRIO DE CAMPO E ESCALA SUS)}
+\phantomsection
 \addcontentsline{toc}{section}{APÊNDICE B: INSTRUMENTOS DE PESQUISA (QUESTIONÁRIO DE CAMPO E ESCALA SUS)}
 
-Este apêndice documenta o instrumento de coleta de dados primários aplicado durante o diagnóstico exploratório (Google Forms) e apresenta o protocolo SUS planejado para a avaliação posterior da aplicação.
+Este apêndice documenta o instrumento de coleta de dados primários aplicado durante o diagnóstico exploratório (Google Forms) e o protocolo SUS aplicado na avaliação de usabilidade descrita no Capítulo 8.
 
 \subsection*{B.1 Levantamento de Campo com Tutores (Gráficos Consolidados e Instrumento de Pesquisa)}
 
-Esta seção documenta os resultados consolidados da pesquisa de campo aplicada entre 1º e 11 de setembro de 2026 aos participantes voluntários na plataforma Google Forms, durante a etapa de diagnóstico empírico e levantamento de requisitos (Capítulo~3). A divulgação ocorreu em um grupo do Facebook relacionado à proteção animal. Até 11 de setembro, 20 pessoas haviam respondido ao formulário, que continha cerca de 18 perguntas. Quando indicado no texto ou nas figuras, uma questão incluída posteriormente possui 19 respostas válidas. As Figuras~B1 a B14 apresentam as distribuições percentuais das respostas obtidas nas dimensões investigadas.
+Esta seção documenta os resultados consolidados da pesquisa de campo aplicada entre 1º e 11 de setembro de 2026 aos participantes voluntários na plataforma Google Forms, durante a etapa de diagnóstico empírico e levantamento de requisitos (Capítulo~3). A divulgação ocorreu em um grupo do Facebook relacionado à proteção animal. Até 11 de setembro, 20 pessoas haviam respondido ao formulário, composto por 18 perguntas. Quando indicado no texto ou nas figuras, uma questão incluída posteriormente possui 19 respostas válidas. As Figuras~B1 a B14 apresentam as distribuições percentuais das respostas obtidas nas dimensões investigadas.
 
 % Configuração da numeração de figuras do Apêndice B (Figura B1, B2, ...)
 \renewcommand{\thefigure}{B\arabic{figure}}
@@ -484,13 +487,59 @@ Por fim, a pesquisa buscou identificar quais recursos são vistos como os maiore
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{figure}
 
-A apuração da Figura~\ref{fig:forms_diferencial_plataforma} aponta a centralização temática exclusiva como o principal diferencial para 45\% dos votantes (9 respostas), seguida pelo mapa interativo por proximidade (20\%, 4 respostas), pela emissão automática de cartazes padronizados (15\%, 3 respostas), pelo registro de avistamentos por GPS (10\%) e pela privacidade do chat interno (10\%). Esses dados confirmam que a proposta de valor atende de modo direto às principais carências das ferramentas convencionais.
+A apuração da Figura~\ref{fig:forms_diferencial_plataforma} aponta a centralização temática exclusiva como o principal diferencial para 45\% dos votantes (9 respostas), seguida pelo mapa interativo por proximidade (20\%, 4 respostas), pela emissão automática de cartazes padronizados (15\%, 3 respostas), pelo registro de avistamentos por GPS (10\%, 2 respostas) e pela privacidade do chat interno (10\%, 2 respostas). Esses dados expressam a percepção do grupo consultado e foram considerados na priorização das funcionalidades.
+
+
+
+Para documentar o instrumento aplicado, as Figuras~\ref{fig:questionario_parte1} a~\ref{fig:questionario_parte5} reproduzem as perguntas do formulário de pesquisa de campo, na forma como foram apresentadas aos participantes no Google Forms.
+
+\begin{figure}[H]
+    \centering
+    \caption{Questionário da pesquisa de campo no Google Forms -- parte 1 de 5}
+    \label{fig:questionario_parte1}
+    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte1.png}
+    \fonte{Autoria própria (Google Forms, 2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Questionário da pesquisa de campo no Google Forms -- parte 2 de 5}
+    \label{fig:questionario_parte2}
+    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte2.png}
+    \fonte{Autoria própria (Google Forms, 2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Questionário da pesquisa de campo no Google Forms -- parte 3 de 5}
+    \label{fig:questionario_parte3}
+    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte3.png}
+    \fonte{Autoria própria (Google Forms, 2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Questionário da pesquisa de campo no Google Forms -- parte 4 de 5}
+    \label{fig:questionario_parte4}
+    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte4.png}
+    \fonte{Autoria própria (Google Forms, 2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Questionário da pesquisa de campo no Google Forms -- parte 5 de 5}
+    \label{fig:questionario_parte5}
+    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte5.png}
+    \fonte{Autoria própria (Google Forms, 2026)}
+\end{figure}
 
 \clearpage
 
 \subsection*{B.2 Escala de Usabilidade do Sistema (SUS)}
 
 Escala de avaliação de usabilidade aplicada aos 12 participantes do teste do WeFIND apresentado no Capítulo 8. O formulário adotou a redação em português das dez afirmações da \textit{System Usability Scale} (SUS) conforme apresentada por Teixeira (2015), reproduzida a seguir. A fonte é uma publicação de divulgação sobre a escala e não é citada como estudo de validação psicométrica da tradução.
+
+O formulário de avaliação foi organizado em quatro seções: (1) confirmação do perfil do respondente como tutor de animal de estimação; (2) pergunta única sobre a conclusão das cinco tarefas do roteiro, com as alternativas ``concluí todas as tarefas com facilidade'', ``concluí todas, mas tive dúvida em alguma etapa'', ``concluí apenas algumas tarefas'' e ``não consegui concluir as tarefas''; (3) as dez afirmações da SUS reproduzidas a seguir; e (4) três perguntas abertas, de resposta opcional, sobre os pontos positivos, as dificuldades encontradas e as sugestões de melhoria.
 
 \vspace{0.3cm}
 \noindent
@@ -522,6 +571,7 @@ Escala de avaliação de usabilidade aplicada aos 12 participantes do teste do W
 % APÊNDICE C: GUIA DE UTILIZAÇÃO DO SISTEMA WeFIND (MANUAL DO USUÁRIO)
 % ============================================================
 \section*{APÊNDICE C: GUIA DE UTILIZAÇÃO DO SISTEMA WeFIND (MANUAL DO USUÁRIO)}
+\phantomsection
 \addcontentsline{toc}{section}{APÊNDICE C: GUIA DE UTILIZAÇÃO DO SISTEMA WeFIND (MANUAL DO USUÁRIO)}
 
 Este guia prático foi elaborado para orientar tutores de animais domésticos, protetores independentes e membros da comunidade na utilização do aplicativo WeFIND. Organizado em formato de manual de instruções passo a passo, o documento apresenta capturas das telas do sistema e explica os principais fluxos de busca e divulgação de animais perdidos e encontrados.
@@ -697,26 +747,28 @@ O sistema de mensageria (Figura~C5) viabiliza o contato ágil e protegido entre 
 % APÊNDICE D: MATRIZ DE RASTREABILIDADE DE REQUISITOS E VERIFICAÇÕES
 % ============================================================
 \section*{APÊNDICE D: MATRIZ DE RASTREABILIDADE DE REQUISITOS E VERIFICAÇÕES}
+\phantomsection
 \addcontentsline{toc}{section}{APÊNDICE D: MATRIZ DE RASTREABILIDADE DE REQUISITOS E VERIFICAÇÕES}
 
 Este apêndice apresenta a rastreabilidade entre as necessidades identificadas no Capítulo~3, os requisitos funcionais centrais do Capítulo~4 e as funcionalidades correspondentes no aplicativo.
 
-A Tabela~D1 também registra a verificação funcional manual relatada pelo autor. As verificações foram realizadas sem roteiro formal previamente documentado; por isso, a matriz não as apresenta como casos de teste padronizados nem como validação independente. O procedimento e suas limitações são descritos no Capítulo~8.
+A Quadro~D1 também registra a verificação funcional manual relatada pelo autor. As verificações foram realizadas sem roteiro formal previamente documentado; por isso, a matriz não as apresenta como casos de teste padronizados nem como validação independente. O procedimento e suas limitações são descritos no Capítulo~8.
 
 \vspace{0.3cm}
 {
+\phantomsection\hypertarget{quadro:rastreabilidade}{}\label{quadro:rastreabilidade}
 \small
 \renewcommand{\arraystretch}{1.18}
 \setlength{\tabcolsep}{2.5pt}
 \begin{longtable}{|>{\raggedright\arraybackslash}p{4.1cm}|>{\centering\arraybackslash}p{1.4cm}|>{\raggedright\arraybackslash}p{5.8cm}|>{\raggedright\arraybackslash}p{2.7cm}|}
 \hline
-\multicolumn{4}{|c|}{\textbf{Tabela D1: Matriz de Rastreabilidade do Sistema WeFIND}} \\
+\multicolumn{4}{|c|}{\textbf{Quadro D1: Matriz de Rastreabilidade do Sistema WeFIND}} \\
 \multicolumn{4}{|c|}{\textbf{(Necessidades $\rightarrow$ Requisitos $\rightarrow$ Funcionalidades $\rightarrow$ Verificação)}} \\ \hline
 \textbf{Necessidade Identificada (Pesquisa/Diagnóstico)} & \textbf{Requisito} & \textbf{Funcionalidade Implementada} & \textbf{Verificação manual} \\ \hline
 \endfirsthead
 
 \hline
-\multicolumn{4}{|c|}{\textbf{Tabela D1: Matriz de Rastreabilidade do Sistema WeFIND (Continuação)}} \\
+\multicolumn{4}{|c|}{\textbf{Quadro D1: Matriz de Rastreabilidade do Sistema WeFIND (Continuação)}} \\
 \multicolumn{4}{|c|}{\textbf{(Necessidades $\rightarrow$ Requisitos $\rightarrow$ Funcionalidades $\rightarrow$ Verificação)}} \\ \hline
 \textbf{Necessidade Identificada (Pesquisa/Diagnóstico)} & \textbf{Requisito} & \textbf{Funcionalidade Implementada} & \textbf{Verificação manual} \\ \hline
 \endhead
@@ -763,19 +815,20 @@ Este apêndice registra os dados necessários para identificar o pacote analisad
 \vspace{0.3cm}
 \begin{table}[H]
 \centering
+\phantomsection\hypertarget{quadro:mobsf_pacote}{}\label{quadro:mobsf_pacote}
 \small
 \begin{tabular}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{10.8cm}|}
 \hline
+\multicolumn{2}{|c|}{\textbf{Quadro E1: Identificação do pacote submetido à análise estática}} \\ \hline
 \textbf{Dado} & \textbf{Valor} \\ \hline
 Data da análise & 14 de outubro de 2026 \\ \hline
 Ferramenta & Mobile Security Framework (MobSF), versão 4.5.4 \\ \hline
 Tipo de análise & Estática; o aplicativo não foi executado \\ \hline
 Arquivo analisado & \textit{WeFIND\_v2.0.apk} \\ \hline
-Aplicativo e versão & WeFIND, versão 1.0.0 \\ \hline
+Aplicativo e versão & WeFIND, versão 2.0 \\ \hline
 Identificador do pacote & \textit{com.wefind.app} \\ \hline
 Resumo SHA-256 & \parbox[t]{10.5cm}{\itshape\small f383cd85\allowbreak36142706\allowbreak d14d6e9d\allowbreak44bebdb2\allowbreak23ee7d78\allowbreak77bc9446\allowbreak a4fb21ff\allowbreak685b90f9} \\ \hline
 \end{tabular}
-\caption{Identificação do pacote submetido à análise estática}
 \fonte{Relatório do MobSF (2026)}
 \end{table}
 
