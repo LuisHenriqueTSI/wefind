@@ -140,15 +140,15 @@ As relações de inclusão indicam etapas obrigatórias: tanto o cadastro de uma
 
 \subsubsection{Diagrama de Classes de Domínio}
 
-O diagrama de classes de domínio organiza as entidades da aplicação, seus atributos e relações. A Figura~\ref{fig:diagrama_classes}, apresentada em página na orientação horizontal para melhor legibilidade, traz uma visão resumida das entidades relacionadas aos fluxos centrais de publicação, avistamento, comunicação e moderação.
+O diagrama de classes de domínio organiza as entidades da aplicação, seus atributos e relações. A Figura~\ref{fig:diagrama_classes}, apresentada em página inteira para melhor legibilidade, traz uma visão resumida das entidades relacionadas aos fluxos centrais de publicação, avistamento, comunicação e moderação.
 
-\begin{sidewaysfigure}
+\begin{figure}[p]
     \centering
     \caption{Diagrama de Classes de Domínio do Sistema Proposto}
     \label{fig:diagrama_classes}
-    \includegraphics[width=\textheight,height=0.85\textwidth,keepaspectratio]{imagens/02_modelagem/figura08_diagrama_classes_v4.pdf}
+    \includegraphics[trim=15 14 15 46, clip, width=\textwidth, height=0.86\textheight, keepaspectratio]{imagens/02_modelagem/figura08_diagrama_classes_v4.pdf}
     \fonte{Autoria própria (2026)}
-\end{sidewaysfigure}
+\end{figure}
 
 No modelo, \textit{Usuario} representa as contas e concentra os dados e operações de autenticação, perfil e participação na plataforma. \textit{Publicacao} representa os registros de animais, reunindo categoria, situação, descrição, localização, características, a indicação de recompensa e operações de criação, edição, encerramento, renovação e compartilhamento. A classe \textit{Avistamento} registra relatos associados a uma publicação, enquanto \textit{FotoPublicacao} organiza as fotografias de cada publicação, com até seis imagens por anúncio.
 

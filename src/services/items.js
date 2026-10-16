@@ -44,16 +44,86 @@ const ensureCleanupExpiredItems = async () => {
   }
 };
 
+const getOwnerProfileSelection = async () => {
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error) throw error;
+
+  return session?.user
+    ? 'profiles!owner_id(name, email, whatsapp, phone, avatar_url, avatar_path)'
+    : '';
+};
+
+const attachPublicItemRelations = async (items = []) => {
+  if (!items.length) return [];
+
+  const itemIds = items.map(item => item.id).filter(Boolean);
+  const [{ data: photos, error: photosError }, { data: rewards, error: rewardsError }] = await Promise.all([
+    supabase.from('item_photos').select('id, item_id, url').in('item_id', itemIds),
+    supabase.from('rewards').select('id, item_id, amount, currency, status, description').in('item_id', itemIds),
+  ]);
+
+  if (photosError) {
+    console.error('[attachPublicItemRelations] Não foi possível carregar fotos:', photosError.message);
+  }
+  if (rewardsError) {
+    console.error('[attachPublicItemRelations] Não foi possível carregar recompensas:', rewardsError.message);
+  }
+
+  const photosByItem = (photos || []).reduce((groups, photo) => {
+    if (!groups[photo.item_id]) groups[photo.item_id] = [];
+    groups[photo.item_id].push({ id: photo.id, url: photo.url });
+    return groups;
+  }, {});
+  const rewardsByItem = (rewards || []).reduce((groups, reward) => {
+    if (!groups[reward.item_id]) groups[reward.item_id] = [];
+    groups[reward.item_id].push(reward);
+    return groups;
+  }, {});
+
+  return items.map(item => ({
+    ...item,
+    profiles: null,
+    owner_name: 'Tutor',
+    item_photos: photosByItem[item.id] || [],
+    rewards: normalizeItemRewards({ ...item, rewards: rewardsByItem[item.id] || [] }),
+    renewalInfo: getRenewalInfo(item),
+  }));
+};
+
+const listPublicFeedItems = async (filters = {}) => {
+  const { data, error } = await supabase.rpc('get_public_feed_items', {
+    p_item_id: filters.id || null,
+    p_category: filters.category || null,
+    p_status: filters.status || null,
+    p_species: filters.species || null,
+    p_state: filters.state || null,
+    p_city: filters.city || null,
+    p_neighborhood: filters.neighborhood || null,
+    p_search_term: filters.searchTerm || null,
+    p_limit: filters.limit || 100,
+  });
+  if (error) throw error;
+
+  return attachPublicItemRelations((data || []).filter(item => item && !shouldHideItem(item)));
+};
+
 // Busca itens já com fotos, dono e recompensas em uma ÚNICA query otimizada (para Home)
 export const listItemsWithPhotosAndOwner = async (filters = {}) => {
   try {
+    const ownerProfileSelection = await getOwnerProfileSelection();
+    if (!ownerProfileSelection) {
+      console.log('[listItemsWithPhotosAndOwner] Carregando feed público:', filters);
+      return await listPublicFeedItems(filters);
+    }
+
     // Executa limpeza em background sem travar o carregamento do feed
     ensureCleanupExpiredItems().catch(() => {});
     console.log('[listItemsWithPhotosAndOwner] Carregando itens otimizados:', filters);
-    
+    const profileSelection = ownerProfileSelection ? `, ${ownerProfileSelection}` : '';
+
     let query = supabase
       .from('items')
-      .select('*, profiles!owner_id(name, email, whatsapp, phone, avatar_url, avatar_path), item_photos(id, url), rewards(id, amount, currency, status, description)')
+      .select(`*${profileSelection}, item_photos(id, url), rewards(id, amount, currency, status, description)`)
       .order('created_at', { ascending: false });
 
     if (filters.status) query = query.eq('status', filters.status);
@@ -104,8 +174,15 @@ export const listItemsWithPhotosAndOwner = async (filters = {}) => {
         return bDate - aDate;
       });
   } catch (error) {
-    console.log('[listItemsWithPhotosAndOwner] Exceção:', error.message);
-    return [];
+    console.error('[listItemsWithPhotosAndOwner] Exceção ao carregar publicações:', error.message);
+    const ownerProfileSelection = await getOwnerProfileSelection().catch((sessionError) => {
+      console.error('[listItemsWithPhotosAndOwner] Não foi possível verificar a sessão:', sessionError.message);
+      return null;
+    });
+    if (ownerProfileSelection === '') return [];
+    if (ownerProfileSelection === null) return [];
+    // Fallback final: tenta sem join de profiles (para usuários não autenticados / RLS)
+    return await listItemsWithoutProfiles(filters).catch(() => []);
   }
 };
 
@@ -154,9 +231,10 @@ export const getItems = async (filters = {}) => {
 
 const listItemsWithPhotosAndOwnerFallback = async (filters = {}) => {
   try {
+    const ownerProfileSelection = await getOwnerProfileSelection();
     let query = supabase
       .from('items')
-      .select('*, profiles!owner_id(name, email, whatsapp, phone, avatar_url, avatar_path)')
+      .select(ownerProfileSelection ? `*, ${ownerProfileSelection}` : '*')
       .order('created_at', { ascending: false });
 
     if (filters.status) query = query.eq('status', filters.status);
@@ -171,7 +249,10 @@ const listItemsWithPhotosAndOwnerFallback = async (filters = {}) => {
     if (filters.city) query = query.eq('city', filters.city);
 
     const { data, error } = await query;
-    if (error) return [];
+    if (error) {
+      console.log('[listItemsWithPhotosAndOwnerFallback] Erro com profiles, tentando sem profiles:', error.message);
+      return await listItemsWithoutProfiles(filters);
+    }
 
     const itemIds = (data || []).map((item) => item.id).filter(Boolean);
     if (itemIds.length > 0) {
@@ -201,6 +282,64 @@ const listItemsWithPhotosAndOwnerFallback = async (filters = {}) => {
 
     return (data || []).filter(item => filters.owner_id || !shouldHideItem(item));
   } catch (e) {
+    console.log('[listItemsWithPhotosAndOwnerFallback] Exceção, tentando sem profiles:', e.message);
+    return await listItemsWithoutProfiles(filters).catch(() => []);
+  }
+};
+
+// Fallback final: busca itens SEM join de profiles (funciona para usuários não autenticados / RLS)
+const listItemsWithoutProfiles = async (filters = {}) => {
+  try {
+    console.log('[listItemsWithoutProfiles] Carregando itens sem perfil (visitante):', filters);
+    let query = supabase
+      .from('items')
+      .select('*, item_photos(id, url), rewards(id, amount, currency, status, description)')
+      .order('created_at', { ascending: false });
+
+    if (filters.status) query = query.eq('status', filters.status);
+    if (filters.category) query = query.eq('category', filters.category);
+    if (filters.resolved !== undefined) {
+      query = query.eq('resolved', filters.resolved);
+    } else if (!filters.owner_id) {
+      query = query.eq('resolved', false);
+    }
+    if (filters.owner_id) query = query.eq('owner_id', filters.owner_id);
+    if (filters.state) query = query.eq('state', filters.state);
+    if (filters.city) query = query.eq('city', filters.city);
+    if (filters.neighborhood) query = query.eq('neighborhood', filters.neighborhood);
+
+    const { data, error } = await query;
+    if (error) {
+      console.log('[listItemsWithoutProfiles] Erro:', error.message);
+      return [];
+    }
+
+    return (data || [])
+      .filter(item => filters.owner_id || !shouldHideItem(item))
+      .map(item => {
+        const itemPhotos = Array.isArray(item.item_photos)
+          ? item.item_photos
+          : item.item_photos ? [item.item_photos] : [];
+        const itemRewards = Array.isArray(item.rewards)
+          ? item.rewards
+          : item.rewards ? [item.rewards] : [];
+
+        return {
+          ...item,
+          profiles: null,
+          owner_name: item.owner_name || 'Tutor',
+          item_photos: itemPhotos.filter(p => p && p.url),
+          rewards: normalizeItemRewards({ ...item, rewards: itemRewards }),
+          renewalInfo: getRenewalInfo(item),
+        };
+      })
+      .sort((a, b) => {
+        const aDate = new Date(a.created_at || 0).getTime();
+        const bDate = new Date(b.created_at || 0).getTime();
+        return bDate - aDate;
+      });
+  } catch (error) {
+    console.log('[listItemsWithoutProfiles] Exceção:', error.message);
     return [];
   }
 };
@@ -684,13 +823,33 @@ export const listItems = async (filters = {}) => {
 export const getItemDetails = async (itemId) => {
   try {
     console.log('[getItemDetails] Carregando detalhes do item:', itemId);
-    
-    // Get the item first
-    const { data: item, error: itemError } = await supabase
-      .from('items')
-      .select('*')
-      .eq('id', itemId)
-      .single();
+    const ownerProfileSelection = await getOwnerProfileSelection();
+    const isPublicRequest = !ownerProfileSelection;
+    let item;
+    let itemError;
+    if (isPublicRequest) {
+      const { data, error } = await supabase.rpc('get_public_feed_items', {
+        p_item_id: Number(itemId),
+        p_category: null,
+        p_status: null,
+        p_species: null,
+        p_state: null,
+        p_city: null,
+        p_neighborhood: null,
+        p_search_term: null,
+        p_limit: 1,
+      });
+      item = data?.[0] || null;
+      itemError = error;
+    } else {
+      const result = await supabase
+        .from('items')
+        .select('*')
+        .eq('id', itemId)
+        .single();
+      item = result.data;
+      itemError = result.error;
+    }
 
     if (itemError || !item) {
       console.log('[getItemDetails] Erro ao carregar item:', itemError?.message);
@@ -703,12 +862,15 @@ export const getItemDetails = async (itemId) => {
       .select('id, url')
       .eq('item_id', itemId);
 
-    // Get owner profile (incluindo created_at e contato)
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, name, avatar_url, email, whatsapp, phone, created_at')
-      .eq('id', item.owner_id)
-      .single();
+    let profile = null;
+    if (!isPublicRequest) {
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url, email, whatsapp, phone, created_at')
+        .eq('id', item.owner_id)
+        .single();
+      profile = ownerProfile;
+    }
 
     // Get rewards
     const { data: rewards } = await supabase
@@ -735,17 +897,23 @@ export const searchItems = async (searchTerm) => {
   try {
     const term = (searchTerm || '').trim();
     if (!term) return [];
+    const ownerProfileSelection = await getOwnerProfileSelection();
+
+    if (!ownerProfileSelection) {
+      const publicItems = await listPublicFeedItems({ searchTerm: term, limit: 100 });
+      return publicItems;
+    }
 
     const { data, error } = await supabase
       .from('items')
-      .select('*, profiles!owner_id(name, email, whatsapp, phone, avatar_url, avatar_path), item_photos(id, url), rewards(id, amount, currency, status, description)')
+      .select(`*, ${ownerProfileSelection}, item_photos(id, url), rewards(id, amount, currency, status, description)`)
       .eq('resolved', false)
       .or(`title.ilike.%${term}%,description.ilike.%${term}%,city.ilike.%${term}%,state.ilike.%${term}%,neighborhood.ilike.%${term}%,species.ilike.%${term}%`)
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.log('[searchItems] Erro:', error.message);
-      return [];
+      console.log('[searchItems] Erro na busca autenticada:', error.message);
+      return await searchItemsWithoutProfiles(term);
     }
 
     return (data || [])
@@ -759,6 +927,45 @@ export const searchItems = async (searchTerm) => {
       }));
   } catch (error) {
     console.log('[searchItems] Exceção:', error.message);
+    // Fallback final: tenta sem profiles
+    const term = (searchTerm || '').trim();
+    const ownerProfileSelection = await getOwnerProfileSelection().catch((sessionError) => {
+      console.error('[searchItems] Não foi possível verificar a sessão:', sessionError.message);
+      return null;
+    });
+    if (term && ownerProfileSelection) return await searchItemsWithoutProfiles(term).catch(() => []);
+    return [];
+  }
+};
+
+// Fallback de busca sem join de profiles (para visitantes não autenticados / RLS)
+const searchItemsWithoutProfiles = async (term) => {
+  try {
+    console.log('[searchItemsWithoutProfiles] Buscando sem perfil (visitante):', term);
+    const { data, error } = await supabase
+      .from('items')
+      .select('*, item_photos(id, url), rewards(id, amount, currency, status, description)')
+      .eq('resolved', false)
+      .or(`title.ilike.%${term}%,description.ilike.%${term}%,city.ilike.%${term}%,state.ilike.%${term}%,neighborhood.ilike.%${term}%,species.ilike.%${term}%`)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.log('[searchItemsWithoutProfiles] Erro:', error.message);
+      return [];
+    }
+
+    return (data || [])
+      .filter((item) => !shouldHideItem(item))
+      .map((item) => ({
+        ...item,
+        profiles: null,
+        owner_name: item.owner_name || 'Tutor',
+        item_photos: Array.isArray(item.item_photos) ? item.item_photos.filter((p) => p && p.url) : [],
+        rewards: normalizeItemRewards({ ...item, rewards: item.rewards || [] }),
+        renewalInfo: getRenewalInfo(item),
+      }));
+  } catch (error) {
+    console.log('[searchItemsWithoutProfiles] Exceção:', error.message);
     return [];
   }
 };

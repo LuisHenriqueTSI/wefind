@@ -41,6 +41,7 @@ import PetMatchModal from '../components/PetMatchModal';
 import OptimizedImage from '../components/OptimizedImage';
 import * as Location from 'expo-location';
 import { canTraceRouteToItem, getPublicRouteTarget } from '../services/routeEligibility';
+import { APP_FEATURES } from '../constants/features';
 
 const formatItemDate = (value) => {
   if (!value) return '';
@@ -197,6 +198,11 @@ const ItemDetailScreen = ({ route, navigation }) => {
   };
 
   const loadSightings = async () => {
+    if (!user?.id) {
+      setSightings([]);
+      return;
+    }
+
     try {
       const data = await sightingsService.getSightings(itemId);
       setSightings(data || []);
@@ -222,7 +228,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
         setRewards(itemData.rewards || []);
 
         // Matches são dados privados do autor da publicação.
-        if (user?.id === itemData.owner_id && (itemData.status === 'lost' || itemData.status === 'found')) {
+        if (user?.id && user.id === itemData.owner_id && (itemData.status === 'lost' || itemData.status === 'found')) {
           findMatchesForPet(itemData, { minScore: 55 })
             .then((matches) => setPotentialMatches(matches || []))
             .catch((e) => console.log('[ItemDetailScreen] Erro ao buscar matches:', e.message));
@@ -2271,7 +2277,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   <MaterialIcons name="chevron-right" size={21} color={colors.textMuted} />
                 </TouchableOpacity>
 
-                {user && (item.status === 'lost' || (item.status === 'found' && !isAdoption)) && (
+                {APP_FEATURES.fosterVolunteers && user && (item.status === 'lost' || (item.status === 'found' && !isAdoption)) && (
                   <>
                     <TouchableOpacity
                       style={[styles.sheetAction, { borderBottomColor: colors.border }]}

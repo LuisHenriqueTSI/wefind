@@ -20,6 +20,7 @@ import * as itemsService from '../services/items';
 import * as ratingsService from '../services/ratings';
 import { getFosterProfile } from '../services/foster';
 import { getUserGamificationData } from '../services/gamification';
+import { APP_FEATURES } from '../constants/features';
 import OptimizedImage from '../components/OptimizedImage';
 import COLORS from '../constants/theme';
 
@@ -61,8 +62,8 @@ const UserProfileScreen = ({ route, navigation }) => {
         userService.getUserById(userId),
         itemsService.getUserItems(userId),
         ratingsService.getUserRatings(userId),
-        getFosterProfile(userId),
-        getUserGamificationData(userId),
+        APP_FEATURES.fosterVolunteers ? getFosterProfile(userId) : Promise.resolve(null),
+        APP_FEATURES.gamification ? getUserGamificationData(userId) : Promise.resolve(null),
         currentUser && currentUser.id !== userId
           ? ratingsService.canRateUser(currentUser.id, userId)
           : Promise.resolve(false),
@@ -410,7 +411,7 @@ const UserProfileScreen = ({ route, navigation }) => {
           <Text style={[styles.profileName, { color: colors.text }]}>{displayName}</Text>
 
           {/* Badge de Nível de Guardião Comunitário WeFIND */}
-          {gamificationData?.rank && (
+          {APP_FEATURES.gamification && gamificationData?.rank && (
             <View
               style={[
                 styles.guardianBadge,
@@ -504,7 +505,7 @@ const UserProfileScreen = ({ route, navigation }) => {
           </View>
 
           {/* INSÍGNIA DE LAR TEMPORÁRIO SOLIDÁRIO */}
-          {fosterProfile?.isActive && (
+          {APP_FEATURES.fosterVolunteers && fosterProfile?.isActive && (
             <View style={{
               marginTop: 12,
               padding: 12,

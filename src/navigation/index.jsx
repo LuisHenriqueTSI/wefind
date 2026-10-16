@@ -47,6 +47,7 @@ import GamificationScreen from '../screens/GamificationScreen';
 import { listItems } from '../services/items';
 import { buildRenewalAlerts } from '../services/notifications';
 import { WeFindText } from '../components/WeFindBrand';
+import { APP_FEATURES } from '../constants/features';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -265,11 +266,13 @@ const PublicStack = () => {
         component={UserProfileScreen}
         options={{ title: 'Perfil do Membro' }}
       />
-      <Stack.Screen
-        name="FosterVolunteers"
-        component={FosterVolunteersScreen}
-        options={{ headerShown: false }}
-      />
+      {APP_FEATURES.fosterVolunteers && (
+        <Stack.Screen
+          name="FosterVolunteers"
+          component={FosterVolunteersScreen}
+          options={{ headerShown: false }}
+        />
+      )}
       <Stack.Screen
         name="ChatScreen"
         component={ChatScreen}
@@ -616,16 +619,20 @@ const MainStack = () => {
         component={DashboardScreen}
         options={{ title: 'Dashboard' }}
       />
-      <Stack.Screen
-        name="Ranking"
-        component={RankingScreen}
-        options={{ title: 'Ranking da Comunidade' }}
-      />
-      <Stack.Screen
-        name="Gamification"
-        component={GamificationScreen}
-        options={{ title: 'Conquistas e nível' }}
-      />
+      {APP_FEATURES.communityRanking && (
+        <Stack.Screen
+          name="Ranking"
+          component={RankingScreen}
+          options={{ title: 'Ranking da Comunidade' }}
+        />
+      )}
+      {APP_FEATURES.gamification && (
+        <Stack.Screen
+          name="Gamification"
+          component={GamificationScreen}
+          options={{ title: 'Conquistas e nível' }}
+        />
+      )}
       <Stack.Screen
         name="Admin"
         component={AdminScreen}
@@ -686,11 +693,13 @@ const MainStack = () => {
         component={UserProfileScreen}
         options={{ title: 'Perfil do Membro' }}
       />
-      <Stack.Screen
-        name="FosterVolunteers"
-        component={FosterVolunteersScreen}
-        options={{ headerShown: false }}
-      />
+      {APP_FEATURES.fosterVolunteers && (
+        <Stack.Screen
+          name="FosterVolunteers"
+          component={FosterVolunteersScreen}
+          options={{ headerShown: false }}
+        />
+      )}
       <Stack.Screen
         name="MyPets"
         component={MyPetsScreen}

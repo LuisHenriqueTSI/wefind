@@ -17,6 +17,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import FosterVolunteerModal from '../components/FosterVolunteerModal';
 import { getFosterProfile } from '../services/foster';
+import { APP_FEATURES } from '../constants/features';
 
 const ProfileScreen = ({ navigation }) => {
   const { userProfile, user, signOut, refreshProfile, isAdmin } = useAuth();
@@ -40,7 +41,7 @@ const ProfileScreen = ({ navigation }) => {
           .from('items')
           .select('id', { count: 'exact', head: true })
           .eq('owner_id', user.id),
-        getFosterProfile(user.id),
+        APP_FEATURES.fosterVolunteers ? getFosterProfile(user.id) : Promise.resolve(null),
       ]);
       if (itemsRes.status === 'fulfilled') {
         if (itemsRes.value.error) {
@@ -128,7 +129,10 @@ const ProfileScreen = ({ navigation }) => {
       iconColor: colors.primary,
       route: 'Sobre',
     },
-  ];
+  ].filter((item) => (
+    (item.route !== 'Ranking' || APP_FEATURES.communityRanking) &&
+    (item.route !== 'FosterVolunteers' || APP_FEATURES.fosterVolunteers)
+  ));
 
   const settingsLinks = [
     {
@@ -148,7 +152,9 @@ const ProfileScreen = ({ navigation }) => {
   const profileLinks = [
     { label: 'Meus pets e carteirinhas', icon: 'pets', route: 'MyPets' },
     { label: 'Meus anúncios', icon: 'campaign', route: 'MeusAnuncios', count: userItemsCount },
-    { label: 'Conquistas e nível', icon: 'workspace-premium', route: 'Gamification' },
+    ...(APP_FEATURES.gamification
+      ? [{ label: 'Conquistas e nível', icon: 'workspace-premium', route: 'Gamification' }]
+      : []),
     { label: 'Solicitações de devolução', icon: 'assignment-turned-in', route: 'ClaimsManagement' },
     ...(isAdmin ? [{ label: 'Painel administrativo', icon: 'admin-panel-settings', route: 'Admin' }] : []),
   ];
@@ -235,41 +241,44 @@ const ProfileScreen = ({ navigation }) => {
       {/* 4. GRUPO: COMUNIDADE & IMPACTO */}
       <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>COMUNIDADE & IMPACTO</Text>
       <View style={[styles.menuGroup, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        {/* Item Especial: Lar Temporário Solidário */}
-        <TouchableOpacity
-          style={styles.menuRow}
-          onPress={() => setFosterModalVisible(true)}
-          activeOpacity={0.75}
-        >
-          <MaterialIcons
-            name="home-work"
-            size={20}
-            color={fosterProfile?.isActive ? '#16A34A' : colors.textSecondary}
-            style={styles.menuIcon}
-          />
-          <View style={styles.menuTextBox}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={[styles.menuTitle, { color: colors.text }]}>Lar Temporário Solidário</Text>
-              <View style={{
-                paddingHorizontal: 6,
-                paddingVertical: 1.5,
-                borderRadius: 6,
-                backgroundColor: fosterProfile?.isActive ? '#DCFCE7' : (isDark ? '#334155' : '#E2E8F0'),
-              }}>
-                <Text style={{
-                  fontSize: 10,
-                  fontWeight: '800',
-                  color: fosterProfile?.isActive ? '#15803D' : colors.textSecondary,
-                }}>
-                  {fosterProfile?.isActive ? 'ATIVO' : 'INATIVO'}
-                </Text>
+        {APP_FEATURES.fosterVolunteers && (
+          <>
+            <TouchableOpacity
+              style={styles.menuRow}
+              onPress={() => setFosterModalVisible(true)}
+              activeOpacity={0.75}
+            >
+              <MaterialIcons
+                name="home-work"
+                size={20}
+                color={fosterProfile?.isActive ? '#16A34A' : colors.textSecondary}
+                style={styles.menuIcon}
+              />
+              <View style={styles.menuTextBox}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={[styles.menuTitle, { color: colors.text }]}>Lar Temporário Solidário</Text>
+                  <View style={{
+                    paddingHorizontal: 6,
+                    paddingVertical: 1.5,
+                    borderRadius: 6,
+                    backgroundColor: fosterProfile?.isActive ? '#DCFCE7' : (isDark ? '#334155' : '#E2E8F0'),
+                  }}>
+                    <Text style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: fosterProfile?.isActive ? '#15803D' : colors.textSecondary,
+                    }}>
+                      {fosterProfile?.isActive ? 'ATIVO' : 'INATIVO'}
+                    </Text>
+                  </View>
+                </View>
               </View>
-            </View>
-          </View>
-          <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
-        </TouchableOpacity>
+              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
 
-        <View style={[styles.menuDivider, { backgroundColor: colors.divider }]} />
+            <View style={[styles.menuDivider, { backgroundColor: colors.divider }]} />
+          </>
+        )}
 
         {communityLinks.map((item, index) => (
           <React.Fragment key={item.route}>
@@ -331,11 +340,13 @@ const ProfileScreen = ({ navigation }) => {
       </TouchableOpacity>
 
       {/* Modal de Lar Temporário Solidário */}
-      <FosterVolunteerModal
-        visible={fosterModalVisible}
-        onClose={() => setFosterModalVisible(false)}
-        onSaved={(updated) => setFosterProfile(updated)}
-      />
+      {APP_FEATURES.fosterVolunteers && (
+        <FosterVolunteerModal
+          visible={fosterModalVisible}
+          onClose={() => setFosterModalVisible(false)}
+          onSaved={(updated) => setFosterProfile(updated)}
+        />
+      )}
     </ScrollView>
   );
 };
