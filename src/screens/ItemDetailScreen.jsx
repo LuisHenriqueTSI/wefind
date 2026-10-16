@@ -64,7 +64,6 @@ const formatStreetNumberNeighborhood = (item, isAuthorized = false) => {
   const isLost = item?.status === 'lost';
   const isFoundHome = item?.status === 'found' && item?.extra_fields?.found_custody !== 'spotted';
   const isSpotted = item?.extra_fields?.found_custody === 'spotted';
-  const requiresOwnershipProof = item?.extra_fields?.requires_ownership_proof !== false;
   const details = item?.extra_fields?.location_details;
   const district = (details?.district || item?.neighborhood || '').trim();
 
@@ -871,6 +870,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
     }
   };
 
+  const requiresOwnershipProof = item.extra_fields?.requires_ownership_proof !== false;
   const isAdoption = Boolean(item.extra_fields?.is_direct_adoption || itemsService.isPetAvailableForAdoption(item));
   const isFound = item.status === 'found' && !isAdoption;
 
