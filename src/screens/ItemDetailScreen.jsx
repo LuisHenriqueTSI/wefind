@@ -42,6 +42,11 @@ import PetMatchModal from '../components/PetMatchModal';
 import OptimizedImage from '../components/OptimizedImage';
 import * as Location from 'expo-location';
 import { canTraceRouteToItem, getPublicRouteTarget } from '../services/routeEligibility';
+import {
+  getPrivateLocationSummary,
+  isResidentialAddressPrivate,
+  removeHouseNumberFromStreet,
+} from '../utils/locationPrivacy';
 
 const formatItemDate = (value) => {
   if (!value) return '';
@@ -60,16 +65,18 @@ const formatCityState = (item) => {
   return item?.neighborhood || item?.extra_fields?.location_details?.district || 'Localização não informada';
 };
 
-const formatStreetNumberNeighborhood = (item, isAuthorized = false) => {
+const formatStreetNumberNeighborhood = (item) => {
   const isLost = item?.status === 'lost';
-  const isFoundHome = item?.status === 'found' && item?.extra_fields?.found_custody !== 'spotted';
-  const isSpotted = item?.extra_fields?.found_custody === 'spotted';
   const details = item?.extra_fields?.location_details;
   const district = (details?.district || item?.neighborhood || '').trim();
 
+  if (isResidentialAddressPrivate(item)) {
+    return getPrivateLocationSummary(item, { includeCityState: false });
+  }
+
   // 1. ANIMAL PERDIDO: Exibe como Região de Desaparecimento (sem expor o número da casa do tutor)
   if (isLost) {
-    const reference = (details?.reference || details?.street || item?.street || '').trim();
+    const reference = removeHouseNumberFromStreet(details?.reference || details?.street || item?.street);
     if (reference && district && reference !== district) {
       return `Região de ${district} • Proximidades: ${reference}`;
     }
@@ -79,12 +86,7 @@ const formatStreetNumberNeighborhood = (item, isAuthorized = false) => {
     return 'Região de Desaparecimento informada pelo tutor';
   }
 
-  // 2. ANIMAL ACOLHIDO (Lar / Custódia Provisória): Protege a casa do acolhedor
-  if (isFoundHome && !isAuthorized) {
-    return district ? `Região do Bairro ${district} (Endereço protegido)` : 'Região de Acolhimento (Endereço protegido)';
-  }
-
-  // 3. ANIMAL VISTO NA RUA / AUTORIZADO: Exibe endereço completo da via pública
+  // ANIMAL VISTO NA RUA: Exibe endereço da via pública
   const street = (details?.street || item?.street || '').trim();
   const number = (details?.number || item?.house_number || '').trim();
 
@@ -95,7 +97,7 @@ const formatStreetNumberNeighborhood = (item, isAuthorized = false) => {
     return parts.join(', ');
   }
 
-  const rawText = (details?.text || item?.address || '').trim();
+  const rawText = removeHouseNumberFromStreet(details?.text || item?.address);
   if (rawText) {
     return rawText;
   }
@@ -1354,25 +1356,9 @@ const ItemDetailScreen = ({ route, navigation }) => {
           <Text style={[styles.locationCityText, { color: colors.text }]}>
             {formatCityState(item)}
           </Text>
-          {formatStreetNumberNeighborhood(
-            item,
-            Boolean(
-              isOwner ||
-              isAdmin ||
-              verificationState?.status === 'approved' ||
-              (item?.status !== 'found' || item?.extra_fields?.found_custody === 'spotted')
-            )
-          ) ? (
+          {formatStreetNumberNeighborhood(item) ? (
             <Text style={[styles.locationStreetText, { color: colors.textSecondary, marginBottom: 8 }]}>
-              {formatStreetNumberNeighborhood(
-                item,
-                Boolean(
-                  isOwner ||
-                  isAdmin ||
-                  verificationState?.status === 'approved' ||
-                  (item?.status !== 'found' || item?.extra_fields?.found_custody === 'spotted')
-                )
-              )}
+              {formatStreetNumberNeighborhood(item)}
             </Text>
           ) : null}
 
@@ -1403,10 +1389,10 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   <MaterialIcons name="verified" size={20} color="#2E5634" style={{ marginTop: 1 }} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 12.5, fontWeight: '800', color: isDark ? '#34D399' : '#1E3E24' }}>
-                      Comprovação Aprovada • Endereço Liberado
+                      Comprovação Aprovada • Devolução Autorizada
                     </Text>
                     <Text style={{ fontSize: 11.5, color: isDark ? '#D1FAE5' : '#065F46', lineHeight: 16, marginTop: 2 }}>
-                      Sua comprovação de tutor foi verificada com sucesso! O endereço exato foi revelado acima para combinar a devolução do pet.
+                      Sua comprovação de tutor foi verificada. Combine a devolução pelo chat em um ponto público seguro; o endereço residencial continua protegido.
                     </Text>
                   </View>
                 </View>
@@ -1429,7 +1415,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                       Comprovação em Análise ⏳
                     </Text>
                     <Text style={{ fontSize: 11.5, color: isDark ? '#FEF3C7' : '#78350F', lineHeight: 16, marginTop: 2 }}>
-                      Suas fotos e justificativa foram enviadas para moderação. Assim que aprovadas, o endereço completo e a rota exata serão desbloqueados aqui.
+                      Suas fotos e justificativa foram enviadas para moderação. Se aprovadas, você poderá combinar a devolução pelo chat; o endereço residencial continuará protegido.
                     </Text>
                   </View>
                 </View>
@@ -1487,7 +1473,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                     </Text>
                   </View>
                   <Text style={{ fontSize: 11.5, color: isDark ? '#D1FAE5' : '#065F46', lineHeight: 16 }}>
-                    O endereço exato e o número da residência estão ocultos para proteger a família acolhedora. Se este é o seu animal, envie uma comprovação de tutor (fotos anteriores ou carteirinha) para desbloquear a localização completa.
+                    O endereço exato e o número da residência estão protegidos. Se este é o seu animal, envie uma comprovação de tutor (fotos anteriores ou carteirinha) para solicitar a conversa de devolução.
                   </Text>
                   <TouchableOpacity
                     onPress={() => {
@@ -2330,7 +2316,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   <>
                     <TouchableOpacity
                       style={[styles.sheetAction, { borderBottomColor: colors.border }]}
-                      onPress={() => { setShowActionMenu(false); navigation.navigate('FosterVolunteers', { city: item.city || item.address || '', species: item.species || 'all' }); }}
+                      onPress={() => { setShowActionMenu(false); navigation.navigate('FosterVolunteers', { city: item.city || item.neighborhood || '', species: item.species || 'all' }); }}
                       activeOpacity={0.8}
                     >
                       <View style={[styles.sheetActionIcon, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.18)' : '#ECFDF5' }]}>

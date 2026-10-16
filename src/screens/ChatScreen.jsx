@@ -26,6 +26,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import COLORS from '../constants/theme';
+import { getPrivateLocationSummary, isResidentialAddressPrivate } from '../utils/locationPrivacy';
 
 const ChatScreen = (props) => {
   const insets = useSafeAreaInsets();
@@ -216,6 +217,7 @@ const ChatScreen = (props) => {
   // Identifica papéis na conversa
   const isFoundPet = !isItemDeleted && (itemData?.status === 'found' || conversation?.itemStatus === 'found');
   const isAdoptionItem = Boolean(itemData?.extra_fields?.is_direct_adoption);
+  const isPrivateResidentialLocation = isResidentialAddressPrivate(itemData) || isItemDeleted;
   const requiresOwnershipProof = Boolean(
     isFoundPet &&
     !isAdoptionItem &&
@@ -269,11 +271,13 @@ const ChatScreen = (props) => {
   const registeredCity = itemData?.extra_fields?.location_details?.city || itemData?.city || '';
   const registeredState = itemData?.extra_fields?.location_details?.state || itemData?.state || '';
 
-  const registeredAddressText = [
-    [registeredStreet, registeredNumber ? `Nº ${registeredNumber}` : ''].filter(Boolean).join(', '),
-    registeredDistrict,
-    [registeredCity, registeredState].filter(Boolean).join(' - '),
-  ].filter(Boolean).join(', ') || itemData?.address || 'Endereço cadastrado no WeFIND';
+  const registeredAddressText = isPrivateResidentialLocation
+    ? getPrivateLocationSummary(itemData)
+    : [
+        [registeredStreet, registeredNumber ? `Nº ${registeredNumber}` : ''].filter(Boolean).join(', '),
+        registeredDistrict,
+        [registeredCity, registeredState].filter(Boolean).join(' - '),
+      ].filter(Boolean).join(', ') || itemData?.address || 'Endereço cadastrado no WeFIND';
 
   const itemLatitude = itemData?.latitude ?? itemData?.extra_fields?.location_details?.latitude ?? itemData?.extra_fields?.latitude;
   const itemLongitude = itemData?.longitude ?? itemData?.extra_fields?.location_details?.longitude ?? itemData?.extra_fields?.longitude;
@@ -459,19 +463,23 @@ const ChatScreen = (props) => {
   const handleConfirmShareLocation = async () => {
     setSharingLocation(true);
     try {
+      if (isPrivateResidentialLocation && locationType !== 'safe_point') {
+        Alert.alert('Ponto seguro obrigatório', 'Para proteger o endereço residencial, escolha um ponto público de encontro.');
+        return;
+      }
+
       const finalAddress = locationType === 'registered' ? registeredAddressText : customSafeAddress.trim();
       if (!finalAddress) {
         Alert.alert('Endereço Obrigatório', 'Por favor, informe o local de encontro ou selecione o endereço cadastrado.');
-        setSharingLocation(false);
         return;
       }
 
       const instructions = pickupInstructions.trim() ? `\n📝 Orientações: ${pickupInstructions.trim()}` : '';
-      const lat = itemLatitude || '';
-      const lng = itemLongitude || '';
-      const coordsPart = (lat && lng) ? `\n🗺️ Coordenadas: lat=${lat},lng=${lng}` : '';
-
-      const content = `📍 [LOCAL DE RETIRADA LIBERADO]\n🏠 Local de Entrega: ${finalAddress}${instructions}${coordsPart}`;
+      const coordsPart = !isPrivateResidentialLocation && itemLatitude && itemLongitude
+        ? `\n🗺️ Coordenadas: lat=${itemLatitude},lng=${itemLongitude}`
+        : '';
+      const safePointMarker = locationType === 'safe_point' ? '\n[PONTO_SEGURO_PUBLICO]' : '';
+      const content = `📍 [LOCAL DE RETIRADA LIBERADO]${safePointMarker}\n🏠 Local de Entrega: ${finalAddress}${instructions}${coordsPart}`;
 
       const sentMsg = await sendMessage({
         sender_id: user.id,
@@ -497,7 +505,12 @@ const ChatScreen = (props) => {
       setShowShareLocationModal(false);
       setCustomSafeAddress('');
       setPickupInstructions('');
-      Alert.alert('Local Enviado! 🎉', 'O endereço de retirada foi compartilhado no chat e o traçado de rota GPS foi liberado para o tutor.');
+      Alert.alert(
+        'Local Enviado! 🎉',
+        isPrivateResidentialLocation
+          ? 'O ponto público de encontro foi compartilhado no chat. O endereço residencial e suas coordenadas permanecem protegidos.'
+          : 'O endereço de retirada foi compartilhado no chat e o traçado de rota GPS foi liberado para o tutor.'
+      );
     } catch (err) {
       Alert.alert('Erro ao compartilhar local', err.message || 'Tente novamente.');
     } finally {
@@ -592,25 +605,32 @@ const ChatScreen = (props) => {
     let displayInstructions = '';
 
     if (isLocationReleaseMsg) {
-      const matchLat = item.content.match(/lat=([^,\n]+)/);
-      const matchLng = item.content.match(/lng=([^,\n]+)/);
-      if (matchLat && matchLng) {
-        parsedCoords = {
-          latitude: parseFloat(matchLat[1]),
-          longitude: parseFloat(matchLng[1]),
-        };
-      } else if (itemLatitude && itemLongitude) {
-        parsedCoords = {
-          latitude: parseFloat(itemLatitude),
-          longitude: parseFloat(itemLongitude),
-        };
+      const isPublicSafePointMsg = item.content.includes('[PONTO_SEGURO_PUBLICO]');
+      if (isPrivateResidentialLocation && !isPublicSafePointMsg) {
+        displayAddress = getPrivateLocationSummary(itemData);
+      } else {
+        if (!isPrivateResidentialLocation) {
+          const matchLat = item.content.match(/lat=([^,\n]+)/);
+          const matchLng = item.content.match(/lng=([^,\n]+)/);
+          if (matchLat && matchLng) {
+            parsedCoords = {
+              latitude: parseFloat(matchLat[1]),
+              longitude: parseFloat(matchLng[1]),
+            };
+          } else if (itemLatitude && itemLongitude) {
+            parsedCoords = {
+              latitude: parseFloat(itemLatitude),
+              longitude: parseFloat(itemLongitude),
+            };
+          }
+        }
+
+        const matchAddress = item.content.match(/🏠 Local de Entrega:\s*([^\n]+)/);
+        if (matchAddress) displayAddress = matchAddress[1].trim();
+
+        const matchInst = item.content.match(/📝 Orientações:\s*([^\n]+)/);
+        if (matchInst) displayInstructions = matchInst[1].trim();
       }
-
-      const matchAddress = item.content.match(/🏠 Local de Entrega:\s*([^\n]+)/);
-      if (matchAddress) displayAddress = matchAddress[1].trim();
-
-      const matchInst = item.content.match(/📝 Orientações:\s*([^\n]+)/);
-      if (matchInst) displayInstructions = matchInst[1].trim();
     }
 
     return (
@@ -645,7 +665,7 @@ const ChatScreen = (props) => {
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 4 }}>
                 <MaterialIcons name="verified-user" size={16} color="#2E5634" />
                 <Text style={{ fontSize: 11.5, fontWeight: '900', color: '#2E5634', letterSpacing: 0.3 }}>
-                  LOCAL DE RETIRADA CONFIRMADO
+                  {isPrivateResidentialLocation ? 'PONTO DE ENCONTRO' : 'LOCAL DE RETIRADA CONFIRMADO'}
                 </Text>
               </View>
               <Text style={{ fontSize: 13.5, fontWeight: '700', color: isDark ? '#ECFDF5' : '#065F46', marginBottom: 2 }}>
@@ -658,14 +678,16 @@ const ChatScreen = (props) => {
               ) : null}
 
               {/* Botão de Traçar Rota GPS */}
-              <TouchableOpacity
-                style={styles.mapRouteCtaBtn}
-                onPress={() => handleNavigateToRoute(parsedCoords)}
-                activeOpacity={0.85}
-              >
-                <MaterialIcons name="directions-car" size={17} color="#FFFFFF" style={{ marginRight: 6 }} />
-                <Text style={styles.mapRouteCtaBtnText}>Traçar Rota GPS até o Pet</Text>
-              </TouchableOpacity>
+              {!isPrivateResidentialLocation && (
+                <TouchableOpacity
+                  style={styles.mapRouteCtaBtn}
+                  onPress={() => handleNavigateToRoute(parsedCoords)}
+                  activeOpacity={0.85}
+                >
+                  <MaterialIcons name="directions-car" size={17} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  <Text style={styles.mapRouteCtaBtnText}>Traçar Rota GPS até o Pet</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -797,15 +819,20 @@ const ChatScreen = (props) => {
         <View style={[styles.finderActionBar, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: '#A7F3D0' }]}>
           <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={{ fontSize: 12, fontWeight: '800', color: isDark ? '#D1FAE5' : '#065F46' }}>
-              Confirmar Tutor e Liberar Rota
+              {isPrivateResidentialLocation ? 'Combinar Ponto Público Seguro' : 'Confirmar Tutor e Liberar Rota'}
             </Text>
             <Text style={{ fontSize: 11, color: isDark ? '#A7F3D0' : '#1E3E24' }}>
-              Se as fotos/marcas baterem, compartilhe o local de retirada:
+              {isPrivateResidentialLocation
+                ? 'Não compartilhe o endereço de casa; combine em local público.'
+                : 'Se as fotos/marcas baterem, compartilhe o local de retirada:'}
             </Text>
           </View>
 
           <TouchableOpacity
-            onPress={() => setShowShareLocationModal(true)}
+            onPress={() => {
+              setLocationType(isPrivateResidentialLocation ? 'safe_point' : 'registered');
+              setShowShareLocationModal(true);
+            }}
             style={styles.finderShareBtn}
             activeOpacity={0.85}
           >
@@ -1053,7 +1080,9 @@ const ChatScreen = (props) => {
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <MaterialIcons name="share-location" size={22} color="#2E5634" />
-                <Text style={[styles.modalTitle, { color: colors.text }]}>Liberar Local de Retirada</Text>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                  {isPrivateResidentialLocation ? 'Combinar Ponto Seguro' : 'Liberar Local de Retirada'}
+                </Text>
               </View>
               <TouchableOpacity onPress={() => setShowShareLocationModal(false)}>
                 <MaterialIcons name="close" size={22} color={colors.textMuted} />
@@ -1061,36 +1090,40 @@ const ChatScreen = (props) => {
             </View>
 
             <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-              Escolha onde o tutor irá encontrar você para buscar o pet. O endereço e a rota GPS serão liberados para ele no chat:
+              {isPrivateResidentialLocation
+                ? 'Escolha um ponto público de encontro. O endereço residencial e as coordenadas da casa não serão compartilhados.'
+                : 'Escolha onde o tutor irá encontrar você para buscar o pet. O endereço e a rota GPS serão liberados para ele no chat:'}
             </Text>
 
             <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
               {/* Opção 1: Endereço Cadastrado */}
-              <TouchableOpacity
-                style={[
-                  styles.locationOptionCard,
-                  { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: locationType === 'registered' ? '#2E5634' : colors.border },
-                  locationType === 'registered' && { borderWidth: 2 },
-                ]}
-                onPress={() => setLocationType('registered')}
-                activeOpacity={0.8}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                  <MaterialIcons
-                    name={locationType === 'registered' ? 'radio-button-checked' : 'radio-button-unchecked'}
-                    size={20}
-                    color={locationType === 'registered' ? '#2E5634' : colors.textMuted}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.locationOptionTitle, { color: colors.text }]}>
-                      🏠 Endereço Cadastrado do Pet
-                    </Text>
-                    <Text style={[styles.locationOptionText, { color: colors.textSecondary }]}>
-                      {registeredAddressText}
-                    </Text>
+              {!isPrivateResidentialLocation && (
+                <TouchableOpacity
+                  style={[
+                    styles.locationOptionCard,
+                    { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: locationType === 'registered' ? '#2E5634' : colors.border },
+                    locationType === 'registered' && { borderWidth: 2 },
+                  ]}
+                  onPress={() => setLocationType('registered')}
+                  activeOpacity={0.8}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+                    <MaterialIcons
+                      name={locationType === 'registered' ? 'radio-button-checked' : 'radio-button-unchecked'}
+                      size={20}
+                      color={locationType === 'registered' ? '#2E5634' : colors.textMuted}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.locationOptionTitle, { color: colors.text }]}>
+                        🏠 Endereço Cadastrado do Pet
+                      </Text>
+                      <Text style={[styles.locationOptionText, { color: colors.textSecondary }]}>
+                        {registeredAddressText}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              )}
 
               {/* Opção 2: Ponto de Encontro Seguro */}
               <TouchableOpacity
@@ -1122,7 +1155,7 @@ const ChatScreen = (props) => {
               {locationType === 'safe_point' && (
                 <TextInput
                   style={[styles.modalInput, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: colors.border, color: colors.text }]}
-                  placeholder="Ex: Clínica Veterinária Vida Animal - Av. Brasil 450..."
+                  placeholder="Ex.: praça pública, clínica veterinária ou pet shop"
                   placeholderTextColor={colors.textMuted}
                   value={customSafeAddress}
                   onChangeText={setCustomSafeAddress}
@@ -1136,7 +1169,7 @@ const ChatScreen = (props) => {
               </Text>
               <TextInput
                 style={[styles.modalInput, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: colors.border, color: colors.text, minHeight: 60 }]}
-                placeholder="Ex: Trazer coleira ou caixa de transporte, interfonar no ap 102..."
+                placeholder="Ex.: trazer coleira ou caixa de transporte"
                 placeholderTextColor={colors.textMuted}
                 value={pickupInstructions}
                 onChangeText={setPickupInstructions}
@@ -1155,7 +1188,9 @@ const ChatScreen = (props) => {
               ) : (
                 <>
                   <MaterialIcons name="share-location" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-                  <Text style={styles.modalConfirmBtnText}>Enviar Localização & Liberar Rota GPS</Text>
+                  <Text style={styles.modalConfirmBtnText}>
+                    {isPrivateResidentialLocation ? 'Enviar Ponto Público Seguro' : 'Enviar Localização & Liberar Rota GPS'}
+                  </Text>
                 </>
               )}
             </TouchableOpacity>

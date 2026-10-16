@@ -59,7 +59,7 @@ const ETAPAS = [
   {
     shot: 'tutela',
     titulo: 'Comprove que o animal é seu',
-    texto: 'Em animais encontrados, o endereço exato fica protegido. O tutor envia fotos ou documentos, quem acolheu analisa e, ao aprovar, o endereço é liberado para combinar a devolução.',
+    texto: 'Em animais encontrados, o endereço residencial fica protegido. O tutor pode enviar fotos ou documentos para análise e, se aprovado, combinar a devolução pelo chat em um ponto público seguro.',
   },
 ];
 

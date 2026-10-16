@@ -18,6 +18,11 @@ import * as itemsService from '../services/items';
 import ShareCardFlyer from './ShareCardFlyer';
 import { useTheme } from '../contexts/ThemeContext';
 import COLORS from '../constants/theme';
+import {
+  getPrivateLocationSummary,
+  isResidentialAddressPrivate,
+  removeHouseNumberFromStreet,
+} from '../utils/locationPrivacy';
 
 /**
  * Modal Completo de Divulgação:
@@ -50,7 +55,14 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
       : (item.status === 'found' ? '🔍 ENCONTRADO' : '🚨 PROCURA-SE / PERDIDO');
 
     const locationLabel = isAdoption ? '📍 Onde está' : '📍 Local';
-    const location = [item.street, item.neighborhood, item.city, item.state].filter(Boolean).join(' - ') || 'Não especificado';
+    const location = isResidentialAddressPrivate(item)
+      ? getPrivateLocationSummary(item)
+      : [
+          item.status === 'lost' ? removeHouseNumberFromStreet(item.street) : item.street,
+          item.neighborhood,
+          item.city,
+          item.state,
+        ].filter(Boolean).join(' - ') || 'Não especificado';
     const rawDate = String(item.date || '');
     const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? new Date(`${rawDate}T12:00:00`) : new Date(rawDate);
     const formattedDate = item.date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('pt-BR') : 'Não informada';

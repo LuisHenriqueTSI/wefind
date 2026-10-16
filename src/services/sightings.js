@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { roundPublicCoordinate } from '../utils/locationPrivacy';
 
 const DELETED_SIGHTINGS_KEY = '@wefind_deleted_sightings_store';
 let inMemoryDeletedSightings = new Set();
@@ -695,9 +696,22 @@ export const getItemSightingTrail = async (item) => {
     const trailSteps = [];
 
     // 1. Ponto Inicial (Origem do Desaparecimento ou Ponto Original de Cadastro)
-    const initialLat = Number(item.extra_fields?.initial_latitude ?? item.latitude);
-    const initialLng = Number(item.extra_fields?.initial_longitude ?? item.longitude);
-    const initialAddress = item.extra_fields?.initial_address || item.address || [item.street, item.neighborhood, item.city, item.state].filter(Boolean).join(' - ') || 'Local de desaparecimento';
+    const rawInitialLat = Number(item.extra_fields?.initial_latitude ?? item.latitude);
+    const rawInitialLng = Number(item.extra_fields?.initial_longitude ?? item.longitude);
+    const initialLat = item.status === 'lost' ? roundPublicCoordinate(rawInitialLat) : rawInitialLat;
+    const initialLng = item.status === 'lost' ? roundPublicCoordinate(rawInitialLng) : rawInitialLng;
+    const initialNeighborhood = item.neighborhood || item.extra_fields?.location_details?.district || '';
+    const initialCity = item.city || item.extra_fields?.location_details?.city || '';
+    const initialState = item.state || item.extra_fields?.location_details?.state || '';
+    const initialAddress = item.status === 'lost'
+      ? [
+          initialNeighborhood ? `Região de ${initialNeighborhood}` : 'Região de Desaparecimento',
+          [initialCity, initialState].filter(Boolean).join(' - '),
+        ].filter(Boolean).join(' • ')
+      : item.extra_fields?.initial_address ||
+        item.address ||
+        [item.street, item.neighborhood, item.city, item.state].filter(Boolean).join(' - ') ||
+        'Local de desaparecimento';
 
     if (Number.isFinite(initialLat) && Number.isFinite(initialLng) && initialLat !== 0 && initialLng !== 0) {
       trailSteps.push({

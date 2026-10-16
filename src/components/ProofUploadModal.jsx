@@ -140,7 +140,7 @@ export default function ProofUploadModal({
 
       Alert.alert(
         'Comprovação Enviada com Sucesso! 🛡️',
-        'Sua solicitação foi enviada para verificação. Assim que confirmada, você terá acesso direto ao endereço completo e ao contato do acolhedor.',
+        'Sua solicitação foi enviada para verificação. Se aprovada, você poderá combinar a devolução pelo chat em um ponto público seguro. O endereço residencial continuará protegido.',
         [
           {
             text: 'Entendido',

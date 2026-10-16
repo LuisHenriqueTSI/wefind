@@ -2158,7 +2158,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                         <Text style={{ color: colors.textSecondary, fontSize: 11.5, lineHeight: 16, marginTop: 3 }}>
                           {requiresOwnershipProof
                             ? 'A pessoa deverá enviar informações ou fotos antes de iniciar o chat. O endereço exato continua protegido.'
-                            : 'A pessoa poderá iniciar o chat sem enviar comprovantes. O endereço exato continua protegido e só será compartilhado por você.'}
+                            : 'A pessoa poderá iniciar o chat sem enviar comprovantes. O endereço residencial continua protegido; combine a devolução em um ponto público seguro.'}
                         </Text>
                       </View>
                     </TouchableOpacity>

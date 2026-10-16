@@ -31,6 +31,11 @@ import * as claimsService from '../services/itemClaims';
 import Card from '../components/Card';
 import ShareButton from '../components/ShareButton';
 import COLORS from '../constants/theme';
+import {
+  getPrivateLocationSummary,
+  isResidentialAddressPrivate,
+  removeHouseNumberFromStreet,
+} from '../utils/locationPrivacy';
 // Get screen width for carousel
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CARD_IMAGE_HEIGHT = 340; // altura intermediária para a foto do card
@@ -117,17 +122,18 @@ const formatCityState = (item) => {
 
 const formatStreetNumberNeighborhood = (item) => {
   const isLost = item?.status === 'lost';
-  const isFoundHome = item?.status === 'found' && item?.extra_fields?.found_custody !== 'spotted';
-  const isSpotted = item?.extra_fields?.found_custody === 'spotted';
   const details = item?.extra_fields?.location_details;
   const district = (details?.district || item?.neighborhood || '').trim();
 
+  if (isResidentialAddressPrivate(item)) {
+    return getPrivateLocationSummary(item, { includeCityState: false });
+  }
+
   // 1. ANIMAL PERDIDO: Exibe como Região de Desaparecimento (Bairro / Referência sem número)
   if (isLost) {
-    const reference = (details?.reference || details?.street || item?.street || '').trim();
+    const reference = removeHouseNumberFromStreet(details?.reference || details?.street || item?.street);
     if (reference && district && reference !== district) {
-      const cleanRef = reference.replace(/,\s*\d+.*$/, '').replace(/Nº\s*\d+/i, '').trim();
-      return cleanRef ? `Região de ${district} • Próx. a ${cleanRef}` : `Região do Bairro ${district}`;
+      return `Região de ${district} • Próx. a ${reference}`;
     }
     if (district) {
       return `Região do Bairro ${district}`;
@@ -135,13 +141,8 @@ const formatStreetNumberNeighborhood = (item) => {
     return 'Região de Desaparecimento';
   }
 
-  // 2. ANIMAL ACOLHIDO EM LAR: Protege o endereço do lar temporário
-  if (isFoundHome) {
-    return district ? `Região do Bairro ${district} (Endereço protegido)` : 'Região de Acolhimento (Endereço protegido)';
-  }
-
-  // 3. ANIMAL VISTO NA RUA: Exibe rua e altura de via pública
-  const street = (details?.street || item?.street || '').trim();
+  // ANIMAL VISTO NA RUA: Exibe rua e altura de via pública
+  const street = removeHouseNumberFromStreet(details?.street || item?.street);
   const number = (details?.number || item?.house_number || item?.number || '').trim();
 
   const streetPart = street && number ? `${street}, ${number}` : street;
@@ -153,7 +154,7 @@ const formatStreetNumberNeighborhood = (item) => {
 
   const rawText = (details?.text || item?.address || '').trim();
   if (rawText && rawText !== formatCityState(item)) {
-    return rawText.replace(/,\s*\d+.*$/, '').trim() || district || '';
+    return removeHouseNumberFromStreet(rawText) || district || '';
   }
 
   return district || '';

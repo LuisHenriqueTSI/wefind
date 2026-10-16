@@ -3,6 +3,12 @@ import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import * as itemsService from '../services/items';
 import COLORS from '../constants/theme';
+import {
+  getPrivateLocationSummary,
+  isResidentialAddressPrivate,
+  removeHouseNumberFromStreet,
+  shouldHideHouseNumber,
+} from '../utils/locationPrivacy';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -50,14 +56,23 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4' }, ref)
   const locationLabel = isAdoption ? 'ONDE O ANIMAL ESTÁ:' : (isLost ? 'LOCAL DO DESAPARECIMENTO:' : 'LOCAL ONDE FOI ENCONTRADO:');
 
   // Localização
+  const hasPrivateAddress = isResidentialAddressPrivate(item);
   const city = item.city || item.extra_fields?.location_details?.city || '';
   const state = item.state || item.extra_fields?.location_details?.state || '';
-  const cityState = [city, state].filter(Boolean).join(' - ');
-  const street = item.street || item.extra_fields?.location_details?.street || '';
-  const houseNumber = item.house_number || item.extra_fields?.location_details?.number || '';
+  const hideHouseNumber = shouldHideHouseNumber(item);
+  const cityState = hasPrivateAddress ? '' : [city, state].filter(Boolean).join(' - ');
+  const rawStreet = item.street || item.extra_fields?.location_details?.street || '';
+  const street = hasPrivateAddress
+    ? ''
+    : item.status === 'lost'
+      ? removeHouseNumberFromStreet(rawStreet)
+      : rawStreet;
+  const houseNumber = hideHouseNumber ? '' : item.house_number || item.extra_fields?.location_details?.number || '';
   const neighborhood = item.neighborhood || item.extra_fields?.location_details?.district || '';
   const streetPart = [street, houseNumber].filter(Boolean).join(', ');
-  const streetNeighborhood = [streetPart, neighborhood].filter(Boolean).join(' - ');
+  const streetNeighborhood = hasPrivateAddress
+    ? getPrivateLocationSummary(item)
+    : [streetPart, neighborhood].filter(Boolean).join(' - ');
 
   // Formatação de data
   const formatDate = (rawDate) => {

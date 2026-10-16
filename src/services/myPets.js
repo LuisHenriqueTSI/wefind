@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import * as itemsService from './items';
 import { broadcastLostPetAlertToNearbyUsers } from './pushNotifications';
 import { processAndNotifyPetMatches } from './petMatching';
+import { removeHouseNumberFromStreet } from '../utils/locationPrivacy';
 
 const MY_PETS_STORAGE_KEY = '@wefind/my_registered_pets';
 
@@ -154,7 +155,7 @@ export async function declarePetLost(userId, pet, userProfile, locationOverride 
     const addressCity = locationOverride?.city || pet.city || userProfile?.city || '';
     const addressState = locationOverride?.state || pet.state || userProfile?.state || '';
     const addressNeighborhood = locationOverride?.neighborhood || pet.neighborhood || userProfile?.neighborhood || '';
-    const addressStreet = locationOverride?.street || pet.street || '';
+    const addressStreet = removeHouseNumberFromStreet(locationOverride?.street || pet.street);
     const addressText = [addressStreet, addressNeighborhood, addressCity, addressState].filter(Boolean).join(' - ') || 'Local informado pelo tutor';
     const species = pet.species || 'Animal';
     const colorValue = String(pet.color || '').trim();

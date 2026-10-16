@@ -120,11 +120,11 @@ const AdminScreen = ({ navigation }) => {
   const handleApproveVerification = (verif) => {
     Alert.alert(
       'Aprovar Comprovação de Tutor',
-      `Deseja confirmar a aprovação da posse do pet para "${verif.profiles?.name || 'o requerente'}"? O endereço exato do animal será liberado para este usuário.`,
+      `Deseja confirmar a aprovação da posse do pet para "${verif.profiles?.name || 'o requerente'}"? A pessoa poderá combinar a devolução pelo chat; o endereço residencial continuará protegido.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Aprovar e Liberar',
+          text: 'Aprovar Comprovação',
           onPress: async () => {
             setProcessingId(verif.id);
             try {
@@ -136,7 +136,7 @@ const AdminScreen = ({ navigation }) => {
               setVerifications((prev) =>
                 prev.map((v) => (v.id === verif.id ? { ...v, status: 'approved' } : v))
               );
-              Alert.alert('Sucesso! 🎉', 'Comprovação aprovada. O endereço exato foi liberado para o tutor.');
+              Alert.alert('Sucesso! 🎉', 'Comprovação aprovada. O tutor poderá combinar a devolução em um ponto público pelo chat.');
             } catch (err) {
               Alert.alert('Erro ao aprovar', err.message || 'Não foi possível concluir.');
             } finally {

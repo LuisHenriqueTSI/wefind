@@ -51,7 +51,7 @@ export const uploadProofFile = async (itemId, claimantId, fileUri) => {
 };
 
 /**
- * Envia pedido de comprovação de posse / tutor para liberar o endereço exato
+ * Envia pedido de comprovação de posse / tutor para autorizar a conversa de devolução
  */
 export const submitOwnershipProof = async ({
   itemId,
@@ -259,7 +259,7 @@ export const approveVerification = async (claimId, { itemId, claimantId, itemTit
         user_id: claimantId,
         type: 'claim_approved',
         title: `✅ Comprovação de Tutor Aprovada!`,
-        message: `Sua comprovação de posse para ${itemTitle} foi analisada e aprovada com sucesso. O endereço exato foi liberado para você!`,
+        message: `Sua comprovação de posse para ${itemTitle} foi aprovada. Combine a devolução pelo chat em um ponto público seguro; o endereço residencial continua protegido.`,
         item_id: itemId,
       }).catch((notificationError) => {
         console.warn('[proofVerification] Falha ao notificar aprovação:', notificationError.message);

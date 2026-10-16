@@ -12,6 +12,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import COLORS from '../constants/theme';
 import { canTraceRouteToItem, getPublicRouteTarget } from '../services/routeEligibility';
+import {
+  getPrivateLocationSummary,
+  isResidentialAddressPrivate,
+  removeHouseNumberFromStreet,
+  roundPublicCoordinate,
+} from '../utils/locationPrivacy';
 
 const BRAZIL_REGION = {
   latitude: -14.235,
@@ -36,9 +42,12 @@ const geocodeItemLocation = async (item) => {
   const directLng = item.longitude ?? item.extra_fields?.location_details?.longitude ?? item.extra_fields?.longitude;
 
   if (Number.isFinite(Number(directLat)) && Number.isFinite(Number(directLng)) && Number(directLat) !== 0 && Number(directLng) !== 0) {
+    const latitude = Number(directLat);
+    const longitude = Number(directLng);
+
     return {
-      latitude: Number(directLat),
-      longitude: Number(directLng),
+      latitude: item.status === 'lost' ? roundPublicCoordinate(latitude) : latitude,
+      longitude: item.status === 'lost' ? roundPublicCoordinate(longitude) : longitude,
     };
   }
 
@@ -114,22 +123,24 @@ const getColorHex = (colorName = '') => {
 const formatItemFullAddress = (item) => {
   if (!item) return '';
 
+  if (isResidentialAddressPrivate(item)) {
+    return getPrivateLocationSummary(item);
+  }
+
   const isLost = item.status === 'lost';
-  const isFoundHome = item.status === 'found' && item.extra_fields?.found_custody !== 'spotted';
-  const isSpotted = item.extra_fields?.found_custody === 'spotted';
 
   // 1. ANIMAL PERDIDO: Exibe apenas Bairro / Referência sem número residencial
   if (isLost) {
     const neighborhood = item.neighborhood || item.extra_fields?.neighborhood || item.extra_fields?.location_details?.district || item.extra_fields?.location_details?.neighborhood || '';
-    const reference = item.extra_fields?.location_details?.reference || item.extra_fields?.street || item.street || '';
+    const reference = removeHouseNumberFromStreet(
+      item.extra_fields?.location_details?.reference || item.extra_fields?.street || item.street
+    );
     const city = item.city || item.extra_fields?.city || item.extra_fields?.location_details?.city || '';
     const state = item.state || item.extra_fields?.state || item.extra_fields?.location_details?.state || '';
 
-    const cleanRef = reference ? reference.replace(/,\s*\d+.*$/, '').replace(/Nº\s*\d+/i, '').trim() : '';
-
     const parts = [];
     if (neighborhood) parts.push(`Região de ${neighborhood}`);
-    if (cleanRef && cleanRef !== neighborhood) parts.push(`Próx. a ${cleanRef}`);
+    if (reference && reference !== neighborhood) parts.push(`Próx. a ${reference}`);
     if (city && state) parts.push(`${city} - ${state}`);
     else if (city) parts.push(city);
 
@@ -139,21 +150,7 @@ const formatItemFullAddress = (item) => {
     return [neighborhood, city, state].filter(Boolean).join(' - ') || 'Região de Desaparecimento';
   }
 
-  // 2. ANIMAL ACOLHIDO (Lar Temporário): Protege o endereço do acolhedor
-  if (isFoundHome) {
-    const neighborhood = item.neighborhood || item.extra_fields?.neighborhood || item.extra_fields?.location_details?.district || '';
-    const city = item.city || item.extra_fields?.city || item.extra_fields?.location_details?.city || '';
-    const state = item.state || item.extra_fields?.state || item.extra_fields?.location_details?.state || '';
-
-    const parts = [];
-    if (neighborhood) parts.push(`Região do Bairro ${neighborhood} (Endereço protegido)`);
-    if (city && state) parts.push(`${city} - ${state}`);
-    else if (city) parts.push(city);
-
-    return parts.join(' • ') || 'Região de Acolhimento (Endereço protegido)';
-  }
-
-  // 3. ANIMAL VISTO NA RUA / AVISTAMENTO: Pode exibir rua e altura da via pública
+  // ANIMAL VISTO NA RUA / AVISTAMENTO: Pode exibir rua e altura da via pública
   const lastSighting = item.extra_fields?.last_sighting_address;
   if (lastSighting && typeof lastSighting === 'string' && !lastSighting.startsWith('{') && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(lastSighting.trim())) {
     return lastSighting.trim();
@@ -2264,9 +2261,13 @@ const PetMapMarker = React.memo(({ item, isSelected, onPress, onCalloutPress }) 
     };
   }, [isSelected, item.id]);
 
+  // Animais perdidos: o ponto informado costuma ser a casa do tutor. O marcador
+  // é arredondado para uma grade de cerca de 100 m, mostrando a região, não o imóvel.
+  const isLostItem = item.status === 'lost';
+  const roundToRegion = (value) => Math.round(Number(value) * 1000) / 1000;
   const coordinate = {
-    latitude: Number(item.latitude),
-    longitude: Number(item.longitude),
+    latitude: isLostItem ? roundToRegion(item.latitude) : Number(item.latitude),
+    longitude: isLostItem ? roundToRegion(item.longitude) : Number(item.longitude),
   };
 
   const isAdoption = itemsService.isPetAvailableForAdoption(item);
