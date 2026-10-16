@@ -2,12 +2,13 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Animated, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import MapView, { Callout, Marker, Polyline } from 'react-native-maps';
-import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import MapView, { Polyline } from 'react-native-maps';
+import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import * as itemsService from '../services/items';
 import * as sightingsService from '../services/sightings';
 import SightingModal from '../components/SightingModal';
+import PetMapMarker from '../components/PetMapMarker';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import COLORS from '../constants/theme';
@@ -2217,130 +2218,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   loadingText: { color: '#374151', fontWeight: '600', fontSize: 13 },
-});
-
-const getSpeciesIcon = (item) => {
-  const species = String(item.species || item.extra_fields?.species || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-  const title = String(item.title || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-  const value = `${species} ${title}`;
-
-  if (/\b(cachorro|cao|canino|dog)\b/.test(value)) return 'dog';
-  if (/\b(gato|felino|cat)\b/.test(value)) return 'cat';
-  if (/\b(ave|aves|passaro|calopsita|papagaio|bird)\b/.test(value)) return 'bird';
-  if (/\b(cavalo|equino|egua|horse)\b/.test(value)) return 'horse';
-  if (/\b(bovino|vaca|boi|cow)\b/.test(value)) return 'cow';
-  if (/\b(coelho|rabbit)\b/.test(value)) return 'rabbit';
-  return 'paw';
-};
-
-const PetMapMarker = React.memo(({ item, isSelected, onPress, onCalloutPress }) => {
-  const [tracksViewChanges, setTracksViewChanges] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-    let timer;
-
-    MaterialCommunityIcons.loadFont()
-      .then(() => {
-        if (!isMounted) return;
-        timer = setTimeout(() => setTracksViewChanges(false), 600);
-      })
-      .catch((error) => {
-        console.warn('[MapScreen] Não foi possível carregar o ícone do marcador:', error);
-      });
-
-    return () => {
-      isMounted = false;
-      if (timer) clearTimeout(timer);
-    };
-  }, [isSelected, item.id]);
-
-  // Animais perdidos: o ponto informado costuma ser a casa do tutor. O marcador
-  // é arredondado para uma grade de cerca de 100 m, mostrando a região, não o imóvel.
-  const isLostItem = item.status === 'lost';
-  const roundToRegion = (value) => Math.round(Number(value) * 1000) / 1000;
-  const coordinate = {
-    latitude: isLostItem ? roundToRegion(item.latitude) : Number(item.latitude),
-    longitude: isLostItem ? roundToRegion(item.longitude) : Number(item.longitude),
-  };
-
-  const isAdoption = itemsService.isPetAvailableForAdoption(item);
-  const isFound = !isAdoption && item.status === 'found';
-  const statusColor = isAdoption ? '#DB2777' : (isFound ? '#16A34A' : '#EA580C');
-  const statusLabel = isAdoption ? 'Adoção' : (isFound ? 'Encontrado' : 'Perdido');
-  const statusIcon = isAdoption ? '💖' : (isFound ? '🟢' : '🔴');
-  const speciesIcon = getSpeciesIcon(item);
-
-  const RING_SIZE = 32;
-  const BORDER_W = 2.5;
-
-  return (
-    <Marker
-      coordinate={coordinate}
-      onPress={onPress}
-      onCalloutPress={onCalloutPress}
-      tracksViewChanges={tracksViewChanges}
-      anchor={{ x: 0.5, y: 0.5 }}
-      calloutAnchor={{ x: 0.5, y: 0.0 }}
-    >
-      {/* Círculo do Marcador com o Emoji */}
-      <View
-        collapsable={false}
-        style={{
-          width: RING_SIZE,
-          height: RING_SIZE,
-          borderRadius: RING_SIZE / 2,
-          backgroundColor: '#FFFFFF',
-          borderWidth: BORDER_W,
-          borderColor: statusColor,
-          alignItems: 'center',
-          justifyContent: 'center',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 2.5,
-          elevation: 4,
-        }}
-      >
-        <MaterialCommunityIcons name={speciesIcon} size={19} color={statusColor} />
-      </View>
-
-      {/* Balão de Seleção Perfeitamente Centralizado Acima do Marcador */}
-      <Callout
-        onPress={onCalloutPress}
-        style={{ width: 160 }}
-      >
-        <View style={{ width: 160, paddingVertical: 4, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#0F172A', textAlign: 'center', width: '100%' }} numberOfLines={1}>
-            {item.title || 'Animal'}
-          </Text>
-          <View style={{
-            backgroundColor: statusColor + '20',
-            borderColor: statusColor,
-            borderWidth: 1,
-            borderRadius: 6,
-            paddingHorizontal: 8,
-            paddingVertical: 2,
-            alignItems: 'center',
-            marginTop: 3,
-          }}>
-            <Text style={{ fontSize: 10, fontWeight: '800', color: statusColor, textTransform: 'uppercase', letterSpacing: 0.3 }}>
-              {isAdoption ? 'Para Adoção' : (isFound ? 'Encontrado' : 'Perdido')}
-            </Text>
-          </View>
-          <Text style={{ fontSize: 9.5, color: '#64748B', marginTop: 3 }}>
-            Toque para ver detalhes
-          </Text>
-        </View>
-      </Callout>
-    </Marker>
-  );
 });
 
 class MapErrorBoundary extends React.Component {
