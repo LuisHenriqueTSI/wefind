@@ -94,7 +94,7 @@ O fluxo de entrada foi planejado para atender tanto usuários que já possuem ca
     \vspace{0.15cm}
     \begin{minipage}[t]{0.48\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-autenticacao-login.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-login-v2.jpeg}
         \par\vspace{0.15cm}
         {\small Figura~\thefigure.a) Tela de Login}
     \end{minipage}
@@ -111,31 +111,38 @@ O fluxo de entrada foi planejado para atender tanto usuários que já possuem ca
 
 A tela de login reúne os campos de e-mail e senha, a recuperação de credenciais e a possibilidade de conhecer o aplicativo antes do cadastro. A Figura~\ref{fig:telas_autenticacao}.b apresenta essa opção de apresentação, que permite ao visitante compreender a finalidade do WeFIND e consultar suas principais funções antes de criar uma conta. Assim, as duas telas formam um fluxo inicial simples: o usuário pode entrar com uma conta existente ou conhecer a proposta do aplicativo antes de prosseguir para o cadastro. Essa organização reduz o número de decisões iniciais e orienta o usuário para as ações essenciais.
 
-Quando o visitante decide continuar, o fluxo conduz ao cadastro ou à recuperação da conta, conforme sua situação. A Figura~\ref{fig:tela_cadastro_recuperacao} apresenta essas duas alternativas de acesso e mostra como o aplicativo mantém os procedimentos concentrados em telas simples.
+Quando o visitante decide continuar, o fluxo conduz ao cadastro ou à recuperação da conta, conforme sua situação. A Figura~\ref{fig:tela_cadastro_recuperacao} apresenta o cadastro, a confirmação do número de WhatsApp e a recuperação da conta, mostrando como o aplicativo mantém esses procedimentos em telas simples.
 
 \begin{figure}[H]
     \centering
-    \caption{Cadastro de Usuário e Recuperação de Conta}
+    \caption{Cadastro de Usuário, Verificação por WhatsApp e Recuperação de Conta}
     \label{fig:tela_cadastro_recuperacao}
     \vspace{0.15cm}
-    \begin{minipage}[t]{0.48\textwidth}
+    \begin{minipage}[t]{0.31\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-criar-conta.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-criar-conta-v2.jpeg}
         \par\vspace{0.15cm}
         {\small Figura~\thefigure.a) Cadastro de Usuário}
     \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.48\textwidth}
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-verificacao-whatsapp.jpeg}
+        \par\vspace{0.15cm}
+        {\small Figura~\thefigure.b) Verificação por WhatsApp}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.31\textwidth}
         \centering
         \capturaTela{imagens/04_telas_aplicativo/tela-recuperar-senha.jpeg}
         \par\vspace{0.15cm}
-        {\small Figura~\thefigure.b) Recuperação de Senha}
+        {\small Figura~\thefigure.c) Recuperação de Senha}
     \end{minipage}
     \par\vspace{0.12cm}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:tela_cadastro_recuperacao}.a, o usuário informa os dados necessários para criar o perfil; na Figura~\ref{fig:tela_cadastro_recuperacao}.b, solicita a redefinição da senha. Separar os dois fluxos evita misturar o cadastro inicial com a manutenção da conta, e ambos usam mensagens objetivas e campos adequados ao celular.
+Na Figura~\ref{fig:tela_cadastro_recuperacao}.a, o usuário informa os dados necessários para criar o perfil e escolhe se deseja receber avisos pelo WhatsApp; na Figura~\ref{fig:tela_cadastro_recuperacao}.b, digita o código de seis dígitos enviado ao número informado, que aparece parcialmente oculto na tela; na Figura~\ref{fig:tela_cadastro_recuperacao}.c, solicita a redefinição da senha. Separar os dois fluxos evita misturar o cadastro inicial com a manutenção da conta, e ambos usam mensagens objetivas e campos adequados ao celular.
 
 Mesmo sem autenticação imediata, o modo visitante permite consultar publicações e localizar informações básicas de animais perdidos ou encontrados. Para preservar a segurança das interações, ações como publicar, comentar ou enviar mensagens dependem de autenticação; essa alternativa de consulta não exige uma figura própria.
 
@@ -288,21 +295,35 @@ Para divulgar o caso fora do aplicativo e conversar com outros usuários, o WeFI
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:tela_cartaz_mensagens}.a, o gerador monta o cartaz com a foto, as características do animal e o local do desaparecimento, nos formatos com código QR, para \textit{stories} ou para \textit{feed} quadrado, e permite compartilhá-lo ou copiar um texto com o link da publicação. A Figura~\ref{fig:tela_cartaz_mensagens}.b mostra a central de mensagens, com as conversas agrupadas por publicação, e a Figura~\ref{fig:tela_cartaz_mensagens}.c, uma conversa privada, que exibe uma dica de segurança para combinar a entrega do animal apenas após a comprovação de tutela.
+Na Figura~\ref{fig:tela_cartaz_mensagens}.a, o gerador monta o cartaz com a foto, as características do animal e o local do desaparecimento, nos formatos com código QR, para \textit{stories} ou para \textit{feed} quadrado, e permite compartilhá-lo ou copiar um texto com o link da publicação. Ao gerar o cartaz, o autor escolhe se o seu WhatsApp aparece na arte, e essa escolha vale também quando outras pessoas compartilham a publicação; por padrão, o telefone fica de fora e o contato é feito pelo chat do aplicativo, por meio do código QR. A Figura~\ref{fig:tela_cartaz_mensagens}.b mostra a central de mensagens, com as conversas agrupadas por publicação, e a Figura~\ref{fig:tela_cartaz_mensagens}.c, uma conversa privada entre o tutor e uma pessoa que viu o animal, que exibe uma dica de segurança para combinar a entrega do animal apenas após a comprovação de tutela.
 
-Os avisos do sistema ficam reunidos na central de notificações, apresentada na Figura~\ref{fig:tela_notificacoes}. Nela, o usuário acompanha lembretes de renovação, novos avistamentos, mensagens e as sugestões de correspondência geradas pelo mecanismo heurístico, identificadas como ``Match Inteligente''.
+Os avisos do sistema ficam reunidos na central de notificações, apresentada na Figura~\ref{fig:tela_notificacoes}. Nela, o usuário acompanha lembretes de renovação, novos avistamentos, mensagens e as possíveis correspondências encontradas pelo mecanismo heurístico. Quando uma correspondência é encontrada, o aviso também chega como notificação no celular.
 
 \begin{figure}[H]
     \centering
-    \caption{Central de Notificações}
+    \caption{Central de Notificações e Aviso de Possível Correspondência}
     \label{fig:tela_notificacoes}
-    \capturaTela{imagens/04_telas_aplicativo/tela-notificacoes.jpeg}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-notificacoes-v2.jpeg}
+        \par\vspace{0.15cm}
+        {\small Figura~\thefigure.a) Central de Notificações}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-alerta-correspondencia.jpeg}
+        \par\vspace{0.15cm}
+        {\small Figura~\thefigure.b) Aviso e Janela de Correspondência}
+    \end{minipage}
+    \par\vspace{0.12cm}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-As notificações são separadas entre avisos da comunidade e do sistema e ficam salvas por 30 dias. Ao tocar em uma sugestão de correspondência, o usuário abre a comparação entre os anúncios mostrada na Figura~\ref{fig:tela_correspondencias}.
+Na Figura~\ref{fig:tela_notificacoes}.a, a central separa os avisos do sistema das mensagens em duas abas, permite filtrar por tipo de aviso (correspondências, avistamentos, alertas de proximidade e renovação) e destaca os itens ainda não lidos; as notificações ficam salvas por 30 dias. A Figura~\ref{fig:tela_notificacoes}.b mostra, no alto, o aviso que chega ao celular de quem já tinha publicado quando um anúncio compatível é cadastrado e, abaixo, a janela de comparação que aparece para quem acabou de publicar, com a pontuação de semelhança e os fatores considerados. Ao tocar em uma sugestão, o usuário chega à comparação entre os anúncios mostrada na Figura~\ref{fig:tela_correspondencias}.
 
-Por fim, a comprovação de tutela, descrita na Seção~5.5, é realizada a partir da ficha de um animal encontrado. A Figura~\ref{fig:tela_comprovacao_tutela} apresenta as etapas desse fluxo.
+A comprovação de tutela, descrita na Seção~5.5, é realizada a partir da ficha de um animal encontrado. A Figura~\ref{fig:tela_comprovacao_tutela} apresenta as etapas desse fluxo.
 
 \begin{figure}[H]
     \centering
@@ -334,3 +355,47 @@ Por fim, a comprovação de tutela, descrita na Seção~5.5, é realizada a part
 \end{figure}
 
 Na Figura~\ref{fig:tela_comprovacao_tutela}.a, o interessado escolhe como deseja comprovar a tutela (fotos do animal, carteira de vacinação ou marcas ocultas), anexa as imagens e escreve uma mensagem para quem acolheu o animal. Após o envio, o aplicativo confirma o recebimento (Figura~\ref{fig:tela_comprovacao_tutela}.b) e passa a exibir a solicitação como ``em análise'' na ficha da publicação, com o endereço exato ainda protegido (Figura~\ref{fig:tela_comprovacao_tutela}.c). Quando o autor aprova a solicitação, o endereço completo é liberado para que as partes combinem a devolução.
+
+Os animais oferecidos para adoção aparecem no mesmo mural das demais publicações, identificados pela etiqueta ``Para Adoção'', como mostra a Figura~\ref{fig:tela_adocao}. A ficha do animal segue o mesmo modelo das outras publicações, e o contato com quem o oferece acontece pelo chat.
+
+\begin{figure}[H]
+    \centering
+    \caption{Publicação para Adoção no Mural}
+    \label{fig:tela_adocao}
+    \capturaTela{imagens/04_telas_aplicativo/tela-feed-adocao.jpeg}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+A área ``Meus pets'', descrita na Seção~5.7, é acessada pelo perfil do usuário. A Figura~\ref{fig:tela_meus_pets} apresenta a lista de animais cadastrados, o formulário de cadastro e a carteirinha digital.
+
+\begin{figure}[H]
+    \centering
+    \caption{Meus Pets e Carteirinha Digital}
+    \label{fig:tela_meus_pets}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-meus-pets.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.a) Lista de Pets}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-cadastrar-pet.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.b) Cadastro do Pet}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-carteirinha.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.c) Carteirinha Digital}
+    \end{minipage}
+    \par\vspace{0.12cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+Na Figura~\ref{fig:tela_meus_pets}.a, cada animal cadastrado aparece com foto, características e número de microchip, acompanhado dos botões para ver a carteirinha, editar o cadastro e acionar o alerta ``Meu pet fugiu''. O formulário da Figura~\ref{fig:tela_meus_pets}.b reaproveita os mesmos seletores de espécie, sexo, porte, cor e faixa etária usados no cadastro de publicações, o que mantém os dados compatíveis com a busca por correspondências. A carteirinha da Figura~\ref{fig:tela_meus_pets}.c reúne a identificação do animal, o tutor, o contato de emergência, as indicações de castração e vacinação e um código QR, e pode ser salva ou compartilhada.
+

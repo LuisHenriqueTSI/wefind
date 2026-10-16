@@ -20,6 +20,14 @@ import { APP_FEATURES } from '../constants/features';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// Medidas do mural calculadas em pixels (porcentagens em elementos absolutos
+// não se comportam igual em todos os aparelhos)
+const HERO_CONTENT_W = SCREEN_WIDTH - 32 - 44; // padding da tela + padding do bloco
+const CARTAZ_W = Math.round(HERO_CONTENT_W * 0.62);
+const CARTAZ_IMG_H = Math.round((CARTAZ_W - 14) * (660 / 520));
+const HERO_PHONE_W = Math.min(124, Math.round(HERO_CONTENT_W * 0.36));
+const MURAL_H = Math.max(CARTAZ_IMG_H + 40, Math.round(HERO_PHONE_W * (1200 / 540)) + 36);
+
 // Paleta da tela (as mesmas cores da landing page)
 const MUSGO = '#17301D';
 const FITA = '#F2CF5B';
@@ -132,13 +140,13 @@ const SobreScreen = ({ navigation }) => {
             No WeFIND, a publicação fica no mapa, recebe avistamentos da vizinhança e é comparada com anúncios parecidos. Tudo no mesmo lugar, sem expor o seu telefone.
           </Text>
 
-          <View style={styles.mural}>
-            <View style={styles.cartaz}>
+          <View style={[styles.mural, { height: MURAL_H }]}>
+            <View style={[styles.cartaz, { width: CARTAZ_W }]}>
               <View style={[styles.fita, styles.fitaA]} />
               <View style={[styles.fita, styles.fitaB]} />
-              <Image source={SHOTS.cartaz} style={styles.cartazImg} resizeMode="cover" />
+              <Image source={SHOTS.cartaz} style={{ width: CARTAZ_W - 14, height: CARTAZ_IMG_H }} resizeMode="cover" />
             </View>
-            <PhoneShot source={SHOTS.mapa} width={118} style={styles.heroPhone} />
+            <PhoneShot source={SHOTS.mapa} width={HERO_PHONE_W} style={styles.heroPhone} />
           </View>
 
           {!user ? (
@@ -280,12 +288,11 @@ const styles = StyleSheet.create({
   hero: { borderRadius: 24, padding: 22, borderWidth: 1, overflow: 'hidden' },
   heroTitle: { color: '#FFFFFF', fontSize: 27, lineHeight: 32, fontWeight: '900', letterSpacing: -0.5 },
   heroLead: { color: '#D3E0D4', fontSize: 14.5, lineHeight: 21, marginTop: 12 },
-  mural: { height: 270, marginTop: 20, marginBottom: 18 },
+  mural: { marginTop: 20, marginBottom: 18 },
   cartaz: {
     position: 'absolute',
     left: 4,
     top: 14,
-    width: '64%',
     backgroundColor: '#FFFFFF',
     padding: 7,
     transform: [{ rotate: '-4deg' }],
@@ -296,7 +303,6 @@ const styles = StyleSheet.create({
     elevation: 8,
     zIndex: 2,
   },
-  cartazImg: { width: '100%', aspectRatio: 520 / 660 },
   fita: { position: 'absolute', top: -10, width: 62, height: 20, backgroundColor: FITA, opacity: 0.92, zIndex: 3 },
   fitaA: { left: -16, transform: [{ rotate: '-28deg' }] },
   fitaB: { right: -16, transform: [{ rotate: '24deg' }] },

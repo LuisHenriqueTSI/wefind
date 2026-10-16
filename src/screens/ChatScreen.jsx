@@ -751,11 +751,15 @@ const ChatScreen = (props) => {
             }}
             activeOpacity={0.8}
           >
-            <View style={styles.chatAvatar}>
-              <Image
-                source={avatarUrl ? { uri: avatarUrl } : require('../../assets/logo.png')}
-                style={styles.chatAvatarImage}
-              />
+            <View style={[styles.chatAvatar, { alignItems: 'center', justifyContent: 'center' }]}>
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.chatAvatarImage} />
+              ) : (
+                // Sem foto de perfil: mostra a inicial do nome, como na lista de conversas
+                <Text style={{ color: COLORS.primary, fontWeight: '800', fontSize: 17 }}>
+                  {(otherName || 'U').trim().charAt(0).toUpperCase() || 'U'}
+                </Text>
+              )}
             </View>
 
             <View style={styles.chatHeaderContent}>

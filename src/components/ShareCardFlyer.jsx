@@ -19,7 +19,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
  * - 'stories': Formato 9:16 Vertical para Instagram Stories e WhatsApp Status
  * - 'feed': Formato 1:1 Quadrado para Feed do Instagram/Facebook e Grupos
  */
-const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4' }, ref) => {
+const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPhone = false }, ref) => {
   if (!item) return null;
 
   const isAdoption = Boolean(
@@ -122,7 +122,8 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4' }, ref)
         null
       );
 
-  const formattedPhone = formatPhoneWithNine(rawPhone);
+  // O telefone só entra no cartaz quando o autor da publicação escolhe mostrá-lo
+  const formattedPhone = showPhone ? formatPhoneWithNine(rawPhone) : null;
   const ownerName = (isThirdParty && thirdParty.name)
     ? thirdParty.name
     : (item.profiles?.name || item.owner_name || 'Tutor do Pet');
@@ -382,7 +383,9 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4' }, ref)
                 <MaterialIcons name="phone" size={18} color="#2E5634" />
                 <Text style={styles.contactPhoneText}>{formattedPhone}</Text>
               </View>
-            ) : null}
+            ) : (
+              <Text style={styles.contactOwnerText}>Fale com o responsável pelo chat do WeFIND, pelo código QR abaixo.</Text>
+            )}
           </View>
 
           {/* SEÇÃO DO QR CODE DINÂMICO PARA IMPRESSÃO */}

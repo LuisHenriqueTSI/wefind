@@ -16,7 +16,7 @@ Para situar os componentes e as integrações utilizados na aplicação, a Figur
     \fonte{Autoria própria (2026), com auxílio de ferramenta de inteligência artificial}
 \end{figure}
 
-A Figura~\ref{fig:arquitetura_wefind} apresenta três componentes: o cliente móvel, os serviços de backend do Supabase e o provedor externo de mensageria. O aplicativo concentra a interface e os recursos do dispositivo; o Supabase oferece autenticação, banco de dados, armazenamento, atualização em tempo real e funções de borda; e a Evolution API, hospedada no Render, realiza o envio de mensagens pelo WhatsApp. O aplicativo não se comunica diretamente com a Evolution API: as solicitações de envio passam pelas funções de borda, que guardam a credencial do serviço.
+A Figura~\ref{fig:arquitetura_wefind} apresenta três componentes: o cliente móvel, os serviços de backend do Supabase e o provedor externo de mensageria. O aplicativo concentra a interface e os recursos do dispositivo; o Supabase oferece autenticação, banco de dados, armazenamento, atualização em tempo real e funções de borda; e a Evolution API, hospedada no Render, realiza o envio de mensagens pelo WhatsApp. O aplicativo não se comunica diretamente com a Evolution API: as solicitações de envio passam pelas funções de borda, que guardam a credencial do serviço. Nos avisos do sistema, o aplicativo informa apenas o identificador do destinatário, e a própria função de borda consulta o número de WhatsApp e a autorização de envio no banco; assim, o telefone de um usuário não é transmitido ao aparelho de quem dispara o aviso.
 
 A aplicação móvel foi desenvolvida com React Native, React e Expo. A Figura~\ref{fig:principais_tecnologias} destaca as principais tecnologias adotadas no projeto.
 
@@ -86,7 +86,7 @@ A persistência estruturada utiliza o PostgreSQL. A Figura~\ref{fig:modelo_logic
 
 A Figura~\ref{fig:modelo_logico_banco} reúne as tabelas que sustentam os fluxos centrais do aplicativo, com os nomes adotados no banco de dados: \textit{profiles}, \textit{items}, \textit{item\_photos}, \textit{sightings}, \textit{conversations}, \textit{messages}, \textit{notifications}, \textit{reports}, \textit{rewards} e \textit{item\_claims}. As chaves primárias (PK) e estrangeiras (FK) estão destacadas, e as linhas indicam relacionamentos de um para muitos: o traço marca o lado ``um'' e o pé de galinha, o lado ``muitos''. Tabelas auxiliares, como a de códigos temporários de verificação, e as de recursos complementares não integram esse recorte.
 
-A tabela \textit{profiles} armazena os dados cadastrais dos usuários. Seu identificador corresponde ao identificador da conta criada no Supabase Auth, e os demais campos registram nome, e-mail, número de WhatsApp, foto de perfil, cidade, estado, a indicação de perfil administrador e a preferência por receber avisos pelo WhatsApp.
+A tabela \textit{profiles} armazena os dados cadastrais dos usuários. Seu identificador corresponde ao identificador da conta criada no Supabase Auth, e os demais campos registram nome, e-mail, número de WhatsApp, foto de perfil, cidade, estado, a indicação de perfil administrador e a preferência por receber avisos pelo WhatsApp. Os animais cadastrados na área ``Meus pets ficam em um campo JSON do próprio perfil (\textit{extra\_fields}), em vez de uma tabela própria, porque pertencem sempre a um único tutor e são lidos junto com o perfil; por isso não aparecem como tabela no modelo lógico. Da mesma forma, a indicação de que um animal está disponível para adoção e o período de busca pelo tutor ficam no campo \textit{extra\_fields} da publicação.
 
 A tabela \textit{items} concentra as publicações de animais perdidos e encontrados. Cada registro está vinculado ao usuário responsável (\textit{owner\_id}) e reúne título, descrição, categoria, situação, características do animal (espécie, raça, porte, sexo, cor e idade), endereço, bairro, cidade, estado, coordenadas geográficas, data do ocorrido, indicação de encerramento (\textit{resolved}) e prazo de expiração (\textit{expires\_at}). As fotografias ficam em \textit{item\_photos}, que guarda o endereço de cada arquivo enviado ao Supabase Storage.
 
@@ -109,14 +109,14 @@ O WeFIND compara publicações não resolvidas de animais perdidos e encontrados
 \renewcommand{\arraystretch}{1.12}
 \begin{longtable}{|>{\raggedright\arraybackslash}p{3.3cm}|>{\raggedright\arraybackslash}p{8.4cm}|>{\centering\arraybackslash}p{2.5cm}|}
 \hline
-\multicolumn{3}{|c|}{\textbf{Quadro 4: Critérios e Pesos do Algoritmo de Correspondência do WeFIND}} \\ \hline
+\multicolumn{3}{|c|}{Quadro 4: Critérios e Pesos do Algoritmo de Correspondência do WeFIND} \\ \hline
 \label{quadro:matching}
-\textbf{Critério Avaliado} & \textbf{Condição Lógica e Regra de Negócio} & \textbf{Pontuação} \\ \hline
+Critério Avaliado & Condição Lógica e Regra de Negócio & Pontuação \\ \hline
 \endfirsthead
 
 \hline
-\multicolumn{3}{|c|}{\textbf{Quadro 4: Critérios e Pesos do Algoritmo de Correspondência (Continuação)}} \\ \hline
-\textbf{Critério Avaliado} & \textbf{Condição Lógica e Regra de Negócio} & \textbf{Pontuação} \\ \hline
+\multicolumn{3}{|c|}{Quadro 4: Critérios e Pesos do Algoritmo de Correspondência (Continuação)} \\ \hline
+Critério Avaliado & Condição Lógica e Regra de Negócio & Pontuação \\ \hline
 \endhead
 
 \hline
@@ -124,35 +124,35 @@ O WeFIND compara publicações não resolvidas de animais perdidos e encontrados
 \endfoot
 
 \hline
-\multicolumn{3}{|c|}{\textbf{Fonte:} Autoria própria (2026)} \\ \hline
+\multicolumn{3}{|c|}{Fonte: Autoria própria (2026)} \\ \hline
 \endlastfoot
 
-\textbf{Espécie} & Compatível e informada nos dois anúncios. & +20 pontos \\ \cline{2-3}
+Espécie & Compatível e informada nos dois anúncios. & +20 pontos \\ \cline{2-3}
 & Uma das espécies ausente ou genérica. & +10 pontos \\ \cline{2-3}
 & Espécies incompatíveis. & Par descartado \\ \hline
-\textbf{Sexo} & Mesmo sexo identificado nos dois registros. & +10 pontos \\ \cline{2-3}
+Sexo & Mesmo sexo identificado nos dois registros. & +10 pontos \\ \cline{2-3}
 & Sexo ausente ou não conclusivo em pelo menos um registro. & +3 pontos \\ \cline{2-3}
 & Sexos opostos informados. & Par descartado \\ \hline
-\textbf{Porte} & Mesmo porte nos dois anúncios. & +15 pontos \\ \cline{2-3}
+Porte & Mesmo porte nos dois anúncios. & +15 pontos \\ \cline{2-3}
 & Portes diferentes sem incompatibilidade extrema. & +6 pontos \\ \cline{2-3}
 & Porte ausente em um dos registros. & +5 pontos \\ \cline{2-3}
 & Porte pequeno/mini comparado a grande/gigante. & Par descartado \\ \hline
-\textbf{Raça} & Mesmo texto de raça após normalização. & +25 pontos \\ \cline{2-3}
+Raça & Mesmo texto de raça após normalização. & +25 pontos \\ \cline{2-3}
 & Um texto de raça contém o outro após normalização. & +18 pontos \\ \cline{2-3}
 & Ambos classificados como SRD, mestiços ou sem raça informada. & +8 pontos \\ \cline{2-3}
 & Duas raças informadas e diferentes. & -20 pontos \\ \cline{2-3}
 & Um registro classificado como SRD e o outro com raça informada. & +4 pontos \\ \hline
-\textbf{Cor da pelagem} & Duas ou mais palavras-chave de cor em comum. & +20 pontos \\ \cline{2-3}
+Cor da pelagem & Duas ou mais palavras-chave de cor em comum. & +20 pontos \\ \cline{2-3}
 & Uma palavra-chave de cor em comum. & +12 pontos \\ \cline{2-3}
 & Cores reconhecidas, sem palavra-chave em comum. & -25 pontos \\ \cline{2-3}
 & Cor ausente ou não reconhecida. & +4 pontos \\ \hline
-\textbf{Idade} & Mesma idade/faixa textual informada. & +5 pontos \\ \cline{2-3}
+Idade & Mesma idade/faixa textual informada. & +5 pontos \\ \cline{2-3}
 & Um filhote comparado a um animal idoso/sênior. & -15 pontos \\ \cline{2-3}
 & Demais casos. & Sem pontuação adicional \\ \hline
-\textbf{Distância com coordenadas} & Até 1,2~km; até 3,5~km; até 8~km. & +15; +10; +5 pontos \\ \cline{2-3}
+Distância com coordenadas & Até 1,2~km; até 3,5~km; até 8~km. & +15; +10; +5 pontos \\ \cline{2-3}
 & Acima de 8~km até 20~km. & +2 pontos \\ \cline{2-3}
 & Acima de 20~km. & -15 pontos \\ \hline
-\textbf{Localização sem GPS} & Mesma cidade e mesmo bairro; mesma cidade, sem bairro coincidente. & +12; +5 pontos \\ \cline{2-3}
+Localização sem GPS & Mesma cidade e mesmo bairro; mesma cidade, sem bairro coincidente. & +12; +5 pontos \\ \cline{2-3}
 & Cidades diferentes. & -20 pontos \\ \cline{2-3}
 & Sem coordenadas e sem cidade comparável. & Sem pontuação adicional \\ \hline
 \end{longtable}

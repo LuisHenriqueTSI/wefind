@@ -9,14 +9,14 @@ No projeto WeFIND, a análise dos requisitos funcionais priorizou os fluxos cent
 
 A especificação de requisitos define formalmente as funções do aplicativo e suas restrições operacionais (Sommerville, 2019). No WeFIND, os requisitos funcionais centrais foram formulados a partir das necessidades identificadas na pesquisa de campo e da análise de sistemas similares (Capítulo 3). Para tornar o escopo mais claro e os modelos mais legíveis, operações correlatas foram agrupadas em requisitos que descrevem resultados observáveis para os usuários. A matriz de rastreabilidade entre necessidades, requisitos centrais e funcionalidades é apresentada no Apêndice D, que também registra as verificações funcionais manuais relatadas pelo autor.
 
-O escopo funcional central abrange criação e acesso à conta; atualização do perfil; consulta e gestão do ciclo de vida das publicações de animais perdidos ou encontrados; busca geográfica em lista e mapa; correspondência entre publicações; registro de avistamentos; comunicação entre participantes; notificações relacionadas à busca; geração e compartilhamento de cartazes de divulgação; comprovação de tutela antes da devolução de um animal encontrado; e denúncia e moderação básica de conteúdo.
+O escopo funcional central abrange criação e acesso à conta; atualização do perfil; consulta e gestão do ciclo de vida das publicações de animais perdidos ou encontrados; busca geográfica em lista e mapa; correspondência entre publicações; registro de avistamentos; comunicação entre participantes; notificações relacionadas à busca; geração e compartilhamento de cartazes de divulgação; comprovação de tutela antes da devolução de um animal encontrado; cadastro preventivo dos animais de estimação do tutor, com carteirinha digital; disponibilização de animais para adoção responsável; e denúncia e moderação básica de conteúdo.
 
 Outros recursos complementares do aplicativo não integram o escopo central nem os resultados avaliados neste trabalho.
 
 
 \subsubsection{Requisitos Funcionais}
 
-O \hyperref[quadro:funcionais]{Quadro 2} consolida os 18 requisitos funcionais centrais do WeFIND. Cada requisito apresenta um identificador, uma denominação baseada em ação observável e o comportamento esperado. Operações correlatas, como criar, editar e encerrar uma publicação, são reunidas para evitar fragmentação excessiva.
+O \hyperref[quadro:funcionais]{Quadro 2} consolida os 20 requisitos funcionais centrais do WeFIND. Cada requisito apresenta um identificador, uma denominação baseada em ação observável e o comportamento esperado. Operações correlatas, como criar, editar e encerrar uma publicação, são reunidas para evitar fragmentação excessiva.
 
 \vspace{0.3cm}
 {
@@ -25,13 +25,13 @@ O \hyperref[quadro:funcionais]{Quadro 2} consolida os 18 requisitos funcionais c
 \renewcommand{\arraystretch}{1.18}
 \begin{longtable}{|>{\centering\arraybackslash}p{1.3cm}|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{8.8cm}|}
 \hline
-\multicolumn{3}{|c|}{\textbf{Quadro 2: Requisitos Funcionais do Sistema WeFIND}} \\ \hline
-\textbf{ID} & \textbf{Nome do Requisito} & \textbf{Descrição do Comportamento Esperado} \\ \hline
+\multicolumn{3}{|c|}{Quadro 2: Requisitos Funcionais do Sistema WeFIND} \\ \hline
+ID & Nome do Requisito & Descrição do Comportamento Esperado \\ \hline
 \endfirsthead
 
 \hline
-\multicolumn{3}{|c|}{\textbf{Quadro 2: Requisitos Funcionais do Sistema WeFIND (Continuação)}} \\ \hline
-\textbf{ID} & \textbf{Nome do Requisito} & \textbf{Descrição do Comportamento Esperado} \\ \hline
+\multicolumn{3}{|c|}{Quadro 2: Requisitos Funcionais do Sistema WeFIND (Continuação)} \\ \hline
+ID & Nome do Requisito & Descrição do Comportamento Esperado \\ \hline
 \endhead
 
 \hline
@@ -39,27 +39,29 @@ O \hyperref[quadro:funcionais]{Quadro 2} consolida os 18 requisitos funcionais c
 \endfoot
 
 \hline
-\multicolumn{3}{|c|}{\textbf{Fonte:} Autoria própria (2026)} \\ \hline
+\multicolumn{3}{|c|}{Fonte: Autoria própria (2026)} \\ \hline
 \endlastfoot
 
-\textbf{RF01} & Criar e acessar conta & Permitir cadastro, autenticação, recuperação de senha e encerramento de sessão de usuários. \\ \hline
-\textbf{RF02} & Atualizar perfil & Permitir ao usuário consultar e atualizar seus dados básicos de perfil e contato. \\ \hline
-\textbf{RF03} & Consultar publicações & Exibir publicações ativas de animais perdidos ou encontrados em lista, ordenada por padrão das mais próximas para as mais distantes da localização do usuário, e apresentar seus detalhes, incluindo imagens, características e local informado. \\ \hline
-\textbf{RF04} & Publicar anúncio de animal & Permitir a usuários autenticados criar uma publicação sobre um animal perdido ou encontrado, informando características, descrição, imagens e localização selecionada ou confirmada no mapa; em publicações de animais perdidos, o autor pode indicar opcionalmente uma recompensa, com valor e descrição. \\ \hline
-\textbf{RF05} & Atualizar publicação própria & Permitir ao autor editar ou excluir sua publicação e atualizar sua situação quando o animal for reencontrado. \\ \hline
-\textbf{RF06} & Visualizar publicações no mapa & Apresentar em mapa as publicações ativas de animais perdidos ou encontrados, posicionadas conforme o local registrado. \\ \hline
-\textbf{RF07} & Pesquisar e filtrar publicações & Permitir localizar publicações por espécie, situação, características, distância e oferta de recompensa, considerando a localização informada pelo usuário, e alterar a ordenação da lista para as publicações mais próximas, mais recentes ou mais antigas. \\ \hline
-\textbf{RF08} & Traçar rota até o local informado & Apresentar uma rota até o local associado à publicação, quando houver dados de localização suficientes. \\ \hline
-\textbf{RF09} & Registrar avistamento & Permitir a usuário autenticado registrar um avistamento vinculado a uma publicação, com local, data ou horário, descrição e imagem opcional. \\ \hline
-\textbf{RF10} & Consultar e atualizar avistamentos próprios & Exibir os avistamentos associados à publicação e permitir que seu autor edite ou remova o próprio relato. \\ \hline
-\textbf{RF11} & Trocar mensagens sobre publicação & Permitir que usuários autenticados iniciem e mantenham conversa privada relacionada a uma publicação, com envio e recebimento de mensagens. \\ \hline
-\textbf{RF12} & Receber e consultar notificações & Informar o usuário sobre eventos relevantes da busca, como novos avistamentos, mensagens, possíveis correspondências, publicações próximas e lembretes de renovação, por meio da central de notificações e, quando houver permissão e suporte do dispositivo, de notificações locais ou push, e, para os usuários que autorizarem, por mensagem no WhatsApp. \\ \hline
-\textbf{RF13} & Denunciar conteúdo & Permitir ao usuário autenticado enviar denúncia sobre uma publicação ou conteúdo suspeito para análise administrativa. \\ \hline
-\textbf{RF14} & Analisar denúncias e moderar conteúdo & Permitir ao administrador consultar denúncias, analisar o conteúdo reportado e aplicar medidas de moderação disponíveis. \\ \hline
-\textbf{RF15} & Gerar e compartilhar cartaz de divulgação & Permitir gerar e compartilhar uma imagem da publicação nos formatos A4, vertical 9:16 ou quadrado 1:1. No formato A4, incluir código QR que direcione à página pública da publicação. \\ \hline
-\textbf{RF16} & Expirar e remover publicação não renovada & Manter a publicação ativa por 30 dias a partir do cadastro ou da renovação e avisar o responsável três dias antes do vencimento. Sem renovação, ocultá-la do mural e do mapa, permitindo renová-la durante 30 dias de carência. Após esse período, ao carregar o mural, a rotina de limpeza pode remover permanentemente as publicações vencidas do usuário autenticado. \\ \hline
-\textbf{RF17} & Sugerir correspondências entre publicações & Permitir que o sistema compare publicações ativas de animais perdidos e encontrados com base na espécie, nas características físicas e na distância geográfica, apresentando sugestões de possíveis correspondências sem confirmar automaticamente que se trata do mesmo animal. \\ \hline
-\textbf{RF18} & Solicitar e analisar comprovação de tutela & Permitir que o usuário que se identifica como tutor de um animal anunciado como encontrado envie uma solicitação de devolução com relato e fotografias, e que o autor da publicação analise, aprove ou recuse a solicitação; a aprovação libera ao solicitante o endereço exato do local onde o animal está acolhido, e o resultado é notificado. \\ \hline
+RF01 & Criar e acessar conta & Permitir cadastro, autenticação, recuperação de senha e encerramento de sessão de usuários. \\ \hline
+RF02 & Atualizar perfil & Permitir ao usuário consultar e atualizar seus dados básicos de perfil e contato. \\ \hline
+RF03 & Consultar publicações & Exibir publicações ativas de animais perdidos, encontrados ou disponíveis para adoção em lista, ordenada por padrão das mais próximas para as mais distantes da localização do usuário, e apresentar seus detalhes, incluindo imagens, características e local informado. \\ \hline
+RF04 & Publicar anúncio de animal & Permitir a usuários autenticados criar uma publicação sobre um animal perdido ou encontrado, informando características, descrição, imagens e localização selecionada ou confirmada no mapa; em publicações de animais perdidos, o autor pode indicar opcionalmente uma recompensa, com valor e descrição. \\ \hline
+RF05 & Atualizar publicação própria & Permitir ao autor editar ou excluir sua publicação e atualizar sua situação quando o animal for reencontrado. \\ \hline
+RF06 & Visualizar publicações no mapa & Apresentar em mapa as publicações ativas de animais perdidos ou encontrados, posicionadas conforme o local registrado. \\ \hline
+RF07 & Pesquisar e filtrar publicações & Permitir localizar publicações por espécie, situação, características, distância e oferta de recompensa, considerando a localização informada pelo usuário, e alterar a ordenação da lista para as publicações mais próximas, mais recentes ou mais antigas. \\ \hline
+RF08 & Traçar rota até o local informado & Apresentar uma rota até o local associado à publicação, quando houver dados de localização suficientes. \\ \hline
+RF09 & Registrar avistamento & Permitir a usuário autenticado registrar um avistamento vinculado a uma publicação, com local, data ou horário, descrição e imagem opcional. \\ \hline
+RF10 & Consultar e atualizar avistamentos próprios & Exibir os avistamentos associados à publicação e permitir que seu autor edite ou remova o próprio relato. \\ \hline
+RF11 & Trocar mensagens sobre publicação & Permitir que usuários autenticados iniciem e mantenham conversa privada relacionada a uma publicação, com envio e recebimento de mensagens. \\ \hline
+RF12 & Receber e consultar notificações & Informar o usuário sobre eventos relevantes da busca, como novos avistamentos, mensagens, possíveis correspondências, publicações próximas e lembretes de renovação, por meio da central de notificações e, quando houver permissão e suporte do dispositivo, de notificações locais ou push, e, para os usuários que autorizarem, por mensagem no WhatsApp. \\ \hline
+RF13 & Denunciar conteúdo & Permitir ao usuário autenticado enviar denúncia sobre uma publicação ou conteúdo suspeito para análise administrativa. \\ \hline
+RF14 & Analisar denúncias e moderar conteúdo & Permitir ao administrador consultar denúncias, analisar o conteúdo reportado e aplicar medidas de moderação disponíveis. \\ \hline
+RF15 & Gerar e compartilhar cartaz de divulgação & Permitir gerar e compartilhar uma imagem da publicação nos formatos A4, vertical 9:16 ou quadrado 1:1. No formato A4, incluir código QR que direcione à página pública da publicação. \\ \hline
+RF16 & Expirar e remover publicação não renovada & Manter a publicação ativa por 30 dias a partir do cadastro ou da renovação e avisar o responsável três dias antes do vencimento. Sem renovação, ocultá-la do mural e do mapa, permitindo renová-la durante 30 dias de carência. Após esse período, ao carregar o mural, a rotina de limpeza pode remover permanentemente as publicações vencidas do usuário autenticado. \\ \hline
+RF17 & Sugerir correspondências entre publicações & Permitir que o sistema compare publicações ativas de animais perdidos e encontrados com base na espécie, nas características físicas e na distância geográfica, apresentando sugestões de possíveis correspondências sem confirmar automaticamente que se trata do mesmo animal. \\ \hline
+RF18 & Solicitar e analisar comprovação de tutela & Permitir que o usuário que se identifica como tutor de um animal anunciado como encontrado envie uma solicitação de devolução com relato e fotografias, e que o autor da publicação analise, aprove ou recuse a solicitação; a aprovação libera ao solicitante o endereço exato do local onde o animal está acolhido, e o resultado é notificado. \\ \hline
+RF19 & Manter animais de estimação e carteirinha digital & Permitir ao usuário autenticado cadastrar, editar e excluir seus animais de estimação, com foto, espécie, raça, porte, cor, sexo, idade ou data de nascimento, microchip, castração, vacinação e observações médicas; gerar uma carteirinha digital com esses dados e o contato do tutor; e, se o animal desaparecer, transformá-lo em uma publicação de animal perdido com os dados já preenchidos. \\ \hline
+RF20 & Disponibilizar animal para adoção & Permitir publicar um animal para adoção responsável e permitir que o autor de uma publicação de animal encontrado, que esteja sob seus cuidados, o disponibilize para adoção depois de pelo menos sete dias de busca pelo tutor; o contato com os interessados ocorre pelo chat da publicação. \\ \hline
 \end{longtable}
 }
 
@@ -79,13 +81,13 @@ O \hyperref[quadro:nao_funcionais]{Quadro 3} sintetiza quatro requisitos não fu
 \renewcommand{\arraystretch}{1.18}
 \begin{longtable}{|>{\centering\arraybackslash}p{1.4cm}|>{\raggedright\arraybackslash}p{3.8cm}|>{\raggedright\arraybackslash}p{9.2cm}|}
 \hline
-\multicolumn{3}{|c|}{\textbf{Quadro 3: Requisitos Não Funcionais do Sistema WeFIND}} \\ \hline
-\textbf{ID} & \textbf{Requisito / Categoria} & \textbf{Critério Objetivo de Aceitação} \\ \hline
+\multicolumn{3}{|c|}{Quadro 3: Requisitos Não Funcionais do Sistema WeFIND} \\ \hline
+ID & Requisito / Categoria & Critério Objetivo de Aceitação \\ \hline
 \endfirsthead
 
 \hline
-\multicolumn{3}{|c|}{\textbf{Quadro 3: Requisitos Não Funcionais do Sistema WeFIND (Continuação)}} \\ \hline
-\textbf{ID} & \textbf{Requisito / Categoria} & \textbf{Critério Objetivo de Aceitação} \\ \hline
+\multicolumn{3}{|c|}{Quadro 3: Requisitos Não Funcionais do Sistema WeFIND (Continuação)} \\ \hline
+ID & Requisito / Categoria & Critério Objetivo de Aceitação \\ \hline
 \endhead
 
 \hline
@@ -93,13 +95,13 @@ O \hyperref[quadro:nao_funcionais]{Quadro 3} sintetiza quatro requisitos não fu
 \endfoot
 
 \hline
-\multicolumn{3}{|c|}{\textbf{Fonte:} Autoria própria (2026)} \\ \hline
+\multicolumn{3}{|c|}{Fonte: Autoria própria (2026)} \\ \hline
 \endlastfoot
 
-\textbf{RNF01} & Autenticação e controle de acesso & O acesso às operações restritas deve exigir sessão válida gerenciada pelo Supabase Auth. Políticas RLS devem impedir que usuários alterem ou excluam registros pertencentes a outras contas. \\ \hline
-\textbf{RNF02} & Privacidade da localização & Nas telas públicas do mural e do mapa, o sistema não deve exibir endereço residencial exato; a localização residencial deve ser apresentada de forma aproximada. \\ \hline
-\textbf{RNF03} & Comunicação segura & As requisições entre o aplicativo e os serviços em nuvem devem utilizar conexões HTTPS. \\ \hline
-\textbf{RNF04} & Compressão de imagens & As imagens devem ser comprimidas no dispositivo antes do envio, reduzindo seu tamanho sem comprometer a identificação visual do animal. \\ \hline
+RNF01 & Autenticação e controle de acesso & O acesso às operações restritas deve exigir sessão válida gerenciada pelo Supabase Auth. Políticas RLS devem impedir que usuários alterem ou excluam registros pertencentes a outras contas. \\ \hline
+RNF02 & Privacidade da localização & Nas telas públicas do mural e do mapa, o sistema não deve exibir endereço residencial exato; a localização residencial deve ser apresentada de forma aproximada. \\ \hline
+RNF03 & Comunicação segura & As requisições entre o aplicativo e os serviços em nuvem devem utilizar conexões HTTPS. \\ \hline
+RNF04 & Compressão de imagens & As imagens devem ser comprimidas no dispositivo antes do envio, reduzindo seu tamanho sem comprometer a identificação visual do animal. \\ \hline
 \end{longtable}
 }
 
@@ -123,27 +125,27 @@ Para representar o sistema de forma clara, elaborou-se um diagrama geral de caso
     \centering
     \caption{Diagrama de Casos de Uso Geral da Plataforma WeFIND}
     \label{fig:diagrama_casos_de_uso}
-    \includegraphics[width=0.94\textwidth]{imagens/02_modelagem/figura06_diagrama_casos_de_uso_v2.png}
+    \includegraphics[width=0.94\textwidth]{imagens/02_modelagem/figura06_diagrama_casos_de_uso_v3.png}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-O diagrama apresenta três atores em uma hierarquia: o usuário autenticado especializa o usuário visitante e, por isso, herda suas funções; o administrador, por sua vez, especializa o usuário autenticado e também pode executar as ações disponíveis a esse perfil. O visitante pode consultar, pesquisar e filtrar publicações, visualizar o mapa e os detalhes dos anúncios, realizar o cadastro e efetuar login. Ao se autenticar, passa a poder manter seu perfil, cadastrar publicações, manter as próprias publicações e os próprios avistamentos, registrar avistamentos, enviar mensagens, consultar notificações e sugestões de correspondência e denunciar publicações. Também pode solicitar a comprovação de tutela de um animal encontrado e, quando for o autor da publicação, analisar as solicitações recebidas. O administrador, além dessas funções, mantém a moderação e analisa as denúncias.
+O diagrama apresenta três atores em uma hierarquia: o usuário autenticado especializa o usuário visitante e, por isso, herda suas funções; o administrador, por sua vez, especializa o usuário autenticado e também pode executar as ações disponíveis a esse perfil. O visitante pode consultar, pesquisar e filtrar publicações, visualizar o mapa e os detalhes dos anúncios, realizar o cadastro e efetuar login. Ao se autenticar, passa a poder manter seu perfil e os seus animais de estimação, cadastrar publicações, manter as próprias publicações e os próprios avistamentos, registrar avistamentos, enviar mensagens, consultar notificações e sugestões de correspondência e denunciar publicações. Também pode solicitar a comprovação de tutela de um animal encontrado e, quando for o autor da publicação, analisar as solicitações recebidas. O administrador, além dessas funções, mantém a moderação e analisa as denúncias.
 
-As relações de inclusão indicam etapas obrigatórias: o cadastro de uma publicação e o registro de um avistamento incluem a seleção da localização no mapa, e o cadastro de conta inclui a verificação do código enviado pelo WhatsApp. As relações de extensão indicam comportamentos opcionais: a visualização dos detalhes pode ser estendida pelo traçado de rota e pelo compartilhamento da publicação, o login pode ser estendido pela redefinição de senha e o cadastro de uma publicação pode ser estendido pela oferta de recompensa. O diagrama resume as funções centrais; regras de negócio e fluxos alternativos são especificados no Quadro 2 e no Apêndice A.
+As relações de inclusão indicam etapas obrigatórias: o cadastro de uma publicação e o registro de um avistamento incluem a seleção da localização no mapa, e o cadastro de conta inclui a verificação do código enviado pelo WhatsApp. As relações de extensão indicam comportamentos opcionais: a visualização dos detalhes pode ser estendida pelo traçado de rota e pelo compartilhamento da publicação, o login pode ser estendido pela redefinição de senha o cadastro de uma publicação pode ser estendido pela oferta de recompensa, a manutenção de uma publicação pode ser estendida pela disponibilização do animal para adoção, e a manutenção dos animais de estimação pode ser estendida pela geração da carteirinha digital e pela declaração de que o animal está perdido. O diagrama resume as funções centrais; regras de negócio e fluxos alternativos são especificados no Quadro 2 e no Apêndice A.
 
 \subsubsection{Diagrama de Classes de Domínio}
 
-O diagrama de classes de domínio organiza as entidades da aplicação, seus atributos e relações. A Figura~\ref{fig:diagrama_classes}, apresentada em página inteira para melhor legibilidade, traz uma visão resumida das entidades relacionadas aos fluxos centrais de publicação, avistamento, comunicação e moderação.
+O diagrama de classes de domínio organiza as entidades da aplicação, seus atributos e relações. A Figura~\ref{fig:diagrama_classes}, apresentada em página inteira para melhor legibilidade, traz uma visão resumida das entidades relacionadas aos fluxos centrais de publicação, avistamento, comunicação, cadastro de animais de estimação e moderação.
 
 \begin{figure}[p]
     \centering
     \caption{Diagrama de Classes de Domínio do Sistema Proposto}
     \label{fig:diagrama_classes}
-    \includegraphics[width=\textwidth, height=0.86\textheight, keepaspectratio]{imagens/02_modelagem/figura08_diagrama_classes_v5.png}
+    \includegraphics[width=\textwidth, height=0.86\textheight, keepaspectratio]{imagens/02_modelagem/figura08_diagrama_classes_v6.png}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-No modelo, \textit{Usuario} representa as contas e concentra os dados e operações de autenticação, perfil e participação na plataforma. \textit{Publicacao} representa os registros de animais, reunindo categoria, situação, descrição, características, localização, prazo de expiração e operações de criação, edição, encerramento, renovação e compartilhamento. A classe \textit{FotoPublicacao} organiza as fotografias de cada publicação, com até seis imagens por anúncio, e \textit{Recompensa} guarda o valor e a descrição da recompensa opcional oferecida pelo autor. A classe \textit{Avistamento} registra relatos associados a uma publicação, com local, descrição e foto.
+No modelo, \textit{Usuario} representa as contas e concentra os dados e operações de autenticação, perfil e participação na plataforma. \textit{Publicacao} representa os registros de animais, reunindo categoria, situação, descrição, características, localização, prazo de expiração e operações de criação, edição, encerramento, renovação e compartilhamento. A classe \textit{FotoPublicacao} organiza as fotografias de cada publicação, com até seis imagens por anúncio, e \textit{Recompensa} guarda o valor e a descrição da recompensa opcional oferecida pelo autor. A classe \textit{Avistamento} registra relatos associados a uma publicação, com local, descrição e foto. A classe \textit{AnimalEstimacao} reúne os animais cadastrados pelo tutor de forma preventiva, com as características, a identificação por microchip e os dados de saúde usados na carteirinha digital; quando o animal desaparece, a operação \textit{declararPerdido} gera uma \textit{Publicacao} com esses dados. Em \textit{Publicacao}, o atributo \textit{disponivelAdocao} indica os animais oferecidos para adoção.
 
 A comunicação privada é representada pelas classes \textit{Conversa} e \textit{Mensagem}: cada conversa liga dois usuários a uma publicação e reúne as mensagens trocadas entre eles, com registro de leitura e eventual foto anexada. A classe \textit{Notificacao} registra os avisos destinados a cada usuário, como possíveis correspondências, novos avistamentos, mensagens e lembretes de renovação, guardando o tipo do aviso, o título, a mensagem, a publicação relacionada e a indicação de leitura. A classe \textit{Denuncia} apoia o envio e o tratamento administrativo de denúncias, e \textit{SolicitacaoDevolucao} registra o pedido de comprovação de tutela, com o relato, a foto enviada, a situação do pedido e o eventual motivo de recusa; a aprovação dessa solicitação libera ao solicitante o endereço exato onde o animal está acolhido.
 

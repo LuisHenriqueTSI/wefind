@@ -513,11 +513,13 @@ export const registerItem = async (itemData, photos = []) => {
 
     await trySetItemExpiry(itemId, new Date());
 
-    // Upload photos if provided
+    const uploadedPhotos = [];
     for (const photo of photos) {
-      await saveItemPhoto(itemId, photo);
+      const url = await saveItemPhoto(itemId, photo);
+      uploadedPhotos.push({ url });
     }
 
+    createdItem.item_photos = uploadedPhotos;
     return createdItem;
   } catch (error) {
     console.log('[registerItem] Exceção:', error.message);
@@ -1461,4 +1463,28 @@ export const toggleItemAdoption = async (itemId, currentExtraFields = {}, availa
     console.error('[toggleItemAdoption] Erro ao alterar status de adoção:', error);
     throw error;
   }
+};
+
+/**
+ * Autorização do tutor para o WhatsApp aparecer nos cartazes da publicação.
+ * Fica gravada na própria publicação e vale para qualquer pessoa que gerar o cartaz.
+ */
+export const isFlyerPhoneAllowed = (item) => Boolean(item?.extra_fields?.share_phone_on_flyer);
+
+export const setFlyerPhoneAllowed = async (itemId, currentExtraFields = {}, allowed = false) => {
+  const updatedExtraFields = {
+    ...(currentExtraFields || {}),
+    share_phone_on_flyer: Boolean(allowed),
+  };
+  const { data, error } = await supabase
+    .from('items')
+    .update({ extra_fields: updatedExtraFields })
+    .eq('id', itemId)
+    .select('id, extra_fields')
+    .single();
+  if (error) {
+    console.error('[setFlyerPhoneAllowed] Erro ao salvar autorização do WhatsApp:', error);
+    throw error;
+  }
+  return data;
 };

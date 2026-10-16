@@ -5,7 +5,7 @@ Um aplicativo que funciona no aparelho do desenvolvedor ainda precisa ser examin
 
 \subsection{Verificação Funcional Manual}
 
-Antes da avaliação com participantes, o autor realizou verificações manuais dos fluxos funcionais descritos no Capítulo 4, incluindo acesso à conta, consulta e publicação de anúncios, busca no mapa, filtros, registro de avistamentos, mensagens, avisos e moderação. As verificações ocorreram entre 10 e 25 de setembro de 2026, em um aparelho Xiaomi Redmi Note 13 com Android 15 (versão/build informada: AQ3A.240829.003). Durante os fluxos percorridos, não foram observados erros que impedissem a conclusão das operações. O fluxo de comprovação de tutela (RF18) também foi verificado manualmente, desde o envio da solicitação até a análise pelo autor da publicação e a liberação do endereço após a aprovação, sem erros observados. A geração e o compartilhamento do cartaz (RF15) também foram incluídos na terceira tarefa do roteiro aplicado aos participantes; como o questionário avaliou a conclusão do conjunto de tarefas, não houve registro isolado do resultado dessa funcionalidade.
+Antes da avaliação com participantes, o autor realizou verificações manuais dos fluxos funcionais descritos no Capítulo 4, incluindo acesso à conta, consulta e publicação de anúncios, busca no mapa, filtros, registro de avistamentos, mensagens, avisos e moderação. As verificações ocorreram entre 10 e 25 de setembro de 2026, em um aparelho Xiaomi Redmi Note 13 com Android 15 (versão/build informada: AQ3A.240829.003). Durante os fluxos percorridos, não foram observados erros que impedissem a conclusão das operações. O fluxo de comprovação de tutela (RF18) também foi verificado manualmente, desde o envio da solicitação até a análise pelo autor da publicação e a liberação do endereço após a aprovação, sem erros observados. Também foram verificados o cadastro de animais de estimação com a geração da carteirinha digital e a conversão em publicação de animal perdido (RF19), além da disponibilização de animais para adoção (RF20), igualmente sem erros observados. A geração e o compartilhamento do cartaz (RF15) também foram incluídos na terceira tarefa do roteiro aplicado aos participantes; como o questionário avaliou a conclusão do conjunto de tarefas, não houve registro isolado do resultado dessa funcionalidade.
 
 Além das verificações funcionais, foi realizada uma inspeção estática manual do código e das migrações, na qual foram identificadas práticas relacionadas à proteção da comunicação e dos dados, à autenticação e ao controle de acesso. O detalhamento dos controles observados está no Apêndice E.
 
@@ -69,15 +69,7 @@ A Figura~\ref{fig:landing_page_wefind} apresenta a página utilizada para dispon
     \fonte{Captura de tela da página do WeFIND, hospedada no GitHub Pages (2026).}
 \end{figure}
 
-Cada voluntário recebeu a instrução de acessar o aplicativo WeFIND e percorrer cinco tarefas operacionais representativas das funcionalidades centrais do aplicativo:
-
-\begin{enumerate}
-    \item Acessar o WeFIND e atualizar o endereço cadastrado na conta de usuário;
-    \item Localizar um animal anunciado no sistema e traçar uma rota viária até o local indicado pelo mapa interativo, sem necessidade de deslocamento físico;
-    \item Cadastrar uma nova publicação de animal (perdido ou encontrado) utilizando informações e fotos fictícias, e em seguida gerar e compartilhar o cartaz digital de divulgação;
-    \item Iniciar contato com outro usuário pelo canal de bate-papo privativo da plataforma para solicitar informações sobre um animal anunciado;
-    \item Acessar e conferir as notificações e avisos recebidos na central do aplicativo.
-\end{enumerate}
+Cada voluntário recebeu a instrução de acessar o aplicativo WeFIND e percorrer cinco tarefas operacionais representativas das funcionalidades centrais do aplicativo. Na primeira, o participante acessava o WeFIND e atualizava o endereço cadastrado na conta de usuário. Na segunda, localizava um animal anunciado no sistema e traçava uma rota viária até o local indicado pelo mapa interativo, sem necessidade de deslocamento físico. Na terceira, cadastrava uma nova publicação de animal, perdido ou encontrado, com informações e fotos fictícias, e em seguida gerava e compartilhava o cartaz digital de divulgação. Na quarta, iniciava contato com outro usuário pelo bate-papo privativo da plataforma para pedir informações sobre um animal anunciado. Na quinta, acessava e conferia as notificações e avisos recebidos na central do aplicativo.
 
 Após o roteiro, os participantes responderam ao formulário, organizado em quatro seções: validação do perfil do respondente quanto à tutela de animais; questão conjunta avaliando a autopercepção sobre a conclusão das cinco tarefas; bloco das dez afirmações da escala SUS, apresentado em português conforme a redação de Teixeira (2015) e avaliado em escala Likert de cinco pontos; e três perguntas abertas de caráter qualitativo para registro livre de pontos positivos, dificuldades vivenciadas e sugestões de aprimoramento.
 
@@ -98,13 +90,13 @@ Todos os 12 participantes confirmaram ser tutores de animais domésticos, perfil
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|p{8.4cm}|r|r|}
         \hline
-        \multicolumn{3}{|c|}{\textbf{Quadro 5: Autopercepção dos participantes sobre a conclusão das tarefas}} \\ \hline
-        \textbf{Resposta} & \textbf{Participantes} & \textbf{Percentual} \\ \hline
+        \multicolumn{3}{|c|}{Quadro 5: Autopercepção dos participantes sobre a conclusão das tarefas} \\ \hline
+        Resposta & Participantes & Percentual \\ \hline
         Concluíram todas as cinco tarefas com facilidade & 12 & 100\% \\ \hline
         Concluíram todas, mas tiveram dúvida em alguma etapa & 0 & 0\% \\ \hline
         Concluíram apenas algumas tarefas & 0 & 0\% \\ \hline
         Não conseguiram concluir as tarefas & 0 & 0\% \\ \hline
-        \textbf{Total} & \textbf{12} & \textbf{100\%} \\ \hline
+        Total & 12 & 100\% \\ \hline
     \end{tabular}
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{table}
@@ -120,15 +112,15 @@ Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo S
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|c|r|c|r|c|r|}
         \hline
-        \multicolumn{6}{|c|}{\textbf{Quadro 6: Escores individuais da Escala de Usabilidade do Sistema}} \\ \hline
-        \textbf{Participante} & \textbf{Escore} &
-        \textbf{Participante} & \textbf{Escore} &
-        \textbf{Participante} & \textbf{Escore} \\ \hline
+        \multicolumn{6}{|c|}{Quadro 6: Escores individuais da Escala de Usabilidade do Sistema} \\ \hline
+        Participante & Escore &
+        Participante & Escore &
+        Participante & Escore \\ \hline
         P1 & 95,0 & P5 & 87,5 & P9 & 87,5 \\ \hline
         P2 & 90,0 & P6 & 97,5 & P10 & 97,5 \\ \hline
         P3 & 92,5 & P7 & 87,5 & P11 & 85,0 \\ \hline
         P4 & 100,0 & P8 & 100,0 & P12 & 100,0 \\ \hline
-        \multicolumn{5}{|r|}{\textbf{Média Geral}} & \textbf{93,33} \\ \hline
+        \multicolumn{5}{|r|}{Média Geral} & 93,33 \\ \hline
     \end{tabular}
     \fonte{Dados da pesquisa (Google Forms, 2026)}
 \end{table}
@@ -144,8 +136,8 @@ Para identificar as dimensões específicas da experiência que mais se destacar
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|c|p{9.0cm}|r|}
         \hline
-        \multicolumn{3}{|c|}{\textbf{Quadro 7: Média das respostas por afirmação do questionário}} \\ \hline
-        \textbf{Item} & \textbf{Aspecto avaliado} & \textbf{Média} \\ \hline
+        \multicolumn{3}{|c|}{Quadro 7: Média das respostas por afirmação do questionário} \\ \hline
+        Item & Aspecto avaliado & Média \\ \hline
         1 & Intenção de utilizar o sistema com frequência & 4,50 \\ \hline
         2 & Complexidade desnecessária (negativo) & 1,50 \\ \hline
         3 & Facilidade de uso & 4,92 \\ \hline

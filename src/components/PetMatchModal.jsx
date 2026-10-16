@@ -3,18 +3,24 @@ import {
   Modal,
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Dimensions,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import COLORS from '../constants/theme';
 import OptimizedImage from './OptimizedImage';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const getItemPhotoUrl = (item) => {
+  const photo = item?.item_photos?.[0]
+    || item?.photoUrl
+    || item?.photo_urls?.[0]
+    || item?.photos?.[0]
+    || item?.photo_url;
+
+  return typeof photo === 'string' ? photo : photo?.url || photo?.uri || null;
+};
 
 /**
  * Modal visual que exibe uma lista de possíveis correspondências e comparador lado a lado
@@ -48,13 +54,12 @@ export default function PetMatchModal({
 
   const currentMatch = candidates[Math.min(currentIndex, candidates.length - 1)] || candidates[0];
   const matchData = currentMatch?.match || {};
-  const percentage = matchData.percentage || 75;
-  const matchLevel = matchData.level || 'Grande Chance 🔍';
-  const badgeColor = matchData.badgeColor || '#10B981';
+  const percentage = matchData.percentage ?? 75;
+  const badgeColor = matchData.badgeColor || COLORS.primary;
 
   const isNewItemLost = newItem?.status === 'lost';
-  const newItemPhoto = newItem?.photo_urls?.[0] || newItem?.photos?.[0] || null;
-  const currentMatchPhoto = currentMatch.photoUrl || currentMatch.photo_urls?.[0] || null;
+  const newItemPhoto = getItemPhotoUrl(newItem);
+  const currentMatchPhoto = getItemPhotoUrl(currentMatch);
 
   const handlePrev = () => {
     if (currentIndex > 0) {
@@ -77,22 +82,19 @@ export default function PetMatchModal({
     >
       <View style={styles.overlay}>
         <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
-          {/* Topo / Header com Ícone, Contador e Fechar */}
           <View style={styles.header}>
             <View style={styles.headerTitleRow}>
-              <View style={[styles.iconBox, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#DCFCE7' }]}>
-                <MaterialIcons name="auto-awesome" size={22} color="#10B981" />
+              <View style={[styles.iconBox, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
+                <MaterialIcons name="compare-arrows" size={21} color={colors.primary} />
               </View>
               <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={[styles.title, { color: colors.text }]}>
-                  {candidates.length > 1
-                    ? `Correspondências (${candidates.length})`
-                    : 'Match Inteligente!'}
+                  Possível correspondência
                 </Text>
                 <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
                   {candidates.length > 1
-                    ? `${candidates.length} animais compatíveis encontrados na região`
-                    : 'Encontramos um pet com alta probabilidade'}
+                    ? `${candidates.length} anúncios parecidos encontrados`
+                    : 'Encontramos um anúncio com características parecidas'}
                 </Text>
               </View>
             </View>
@@ -106,111 +108,52 @@ export default function PetMatchModal({
             </TouchableOpacity>
           </View>
 
-          {/* Seletor Rápido de Abas de Candidatos quando houver mais de 1 */}
-          {candidates.length > 1 && (
-            <View style={styles.tabSelectorContainer}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-                {candidates.map((cand, idx) => {
-                  const isSelected = idx === currentIndex;
-                  const candScore = cand.match?.percentage || 70;
-                  const candBadgeColor = cand.match?.badgeColor || '#10B981';
-                  const candPhoto = cand.photoUrl || cand.photo_urls?.[0];
-
-                  return (
-                    <TouchableOpacity
-                      key={cand.id || idx}
-                      style={[
-                        styles.tabChip,
-                        {
-                          backgroundColor: isSelected
-                            ? (isDark ? 'rgba(16, 185, 129, 0.25)' : '#DCFCE7')
-                            : (isDark ? '#1E293B' : '#F1F5F9'),
-                          borderColor: isSelected ? candBadgeColor : (isDark ? '#334155' : '#E2E8F0'),
-                        },
-                      ]}
-                      onPress={() => setCurrentIndex(idx)}
-                      activeOpacity={0.8}
-                    >
-                      <View style={styles.tabChipImageWrapper}>
-                        {candPhoto ? (
-                          <OptimizedImage uri={candPhoto} style={styles.tabChipImage} resizeMode="cover" />
-                        ) : (
-                          <MaterialIcons name="pets" size={14} color={colors.primary} />
-                        )}
-                      </View>
-                      <Text
-                        style={[
-                          styles.tabChipText,
-                          {
-                            color: isSelected ? (isDark ? '#34D399' : '#065F46') : colors.textSecondary,
-                            fontWeight: isSelected ? '800' : '600',
-                          },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {cand.animal_name || cand.title || `Opção ${idx + 1}`}
-                      </Text>
-                      <View style={[styles.tabChipBadge, { backgroundColor: candBadgeColor }]}>
-                        <Text style={styles.tabChipBadgeText}>{candScore}%</Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
-
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
-            {/* Controles de Navegação Anterior / Próximo */}
             {candidates.length > 1 && (
               <View style={styles.paginationRow}>
                 <TouchableOpacity
                   onPress={handlePrev}
                   disabled={currentIndex === 0}
-                  style={[styles.pageNavBtn, { opacity: currentIndex === 0 ? 0.35 : 1, backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+                  style={[styles.pageNavBtn, { opacity: currentIndex === 0 ? 0.35 : 1 }]}
+                  accessibilityLabel="Correspondência anterior"
                 >
-                  <MaterialIcons name="chevron-left" size={20} color={colors.text} />
-                  <Text style={[styles.pageNavText, { color: colors.text }]}>Anterior</Text>
+                  <MaterialIcons name="chevron-left" size={24} color={colors.text} />
                 </TouchableOpacity>
 
-                <Text style={[styles.pageCounterText, { color: colors.textMuted }]}>
-                  {currentIndex + 1} de {candidates.length}
+                <Text style={[styles.pageCounterText, { color: colors.textSecondary }]}>
+                  Correspondência {currentIndex + 1} de {candidates.length}
                 </Text>
 
                 <TouchableOpacity
                   onPress={handleNext}
                   disabled={currentIndex === candidates.length - 1}
-                  style={[styles.pageNavBtn, { opacity: currentIndex === candidates.length - 1 ? 0.35 : 1, backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+                  style={[styles.pageNavBtn, { opacity: currentIndex === candidates.length - 1 ? 0.35 : 1 }]}
+                  accessibilityLabel="Próxima correspondência"
                 >
-                  <Text style={[styles.pageNavText, { color: colors.text }]}>Próximo</Text>
-                  <MaterialIcons name="chevron-right" size={20} color={colors.text} />
+                  <MaterialIcons name="chevron-right" size={24} color={colors.text} />
                 </TouchableOpacity>
               </View>
             )}
 
-            {/* Badge de Porcentagem em Destaque */}
-            <View style={[styles.percentageBadgeCard, { backgroundColor: isDark ? '#132218' : '#ECFDF5', borderColor: badgeColor }]}>
-              <View style={styles.percentageRow}>
+            <View style={styles.matchSummary}>
+              <View>
+                <Text style={[styles.matchLabel, { color: colors.textSecondary }]}>Semelhança</Text>
+                {matchData.distanceKm != null && (
+                  <Text style={[styles.distanceText, { color: colors.textMuted }]}>
+                    Cerca de {matchData.distanceKm} km de distância
+                  </Text>
+                )}
+              </View>
+              <View style={[styles.percentagePill, { backgroundColor: isDark ? '#17352B' : '#E8F5EE' }]}>
                 <Text style={[styles.percentageNumber, { color: badgeColor }]}>{percentage}%</Text>
-                <View style={{ marginLeft: 10, flex: 1 }}>
-                  <Text style={[styles.percentageLabel, { color: badgeColor }]}>DE PROBABILIDADE</Text>
-                  <Text style={[styles.percentageLevel, { color: isDark ? '#E2E8F0' : '#1E3E24' }]}>{matchLevel}</Text>
-                  {matchData.distanceKm != null && (
-                    <Text style={[styles.distanceText, { color: colors.primary }]}>
-                      📍 Aprox. {matchData.distanceKm} km de distância
-                    </Text>
-                  )}
-                </View>
               </View>
             </View>
 
-            {/* Comparação Lado a Lado dos Dois Animais */}
             <View style={styles.compareContainer}>
-              {/* Pet 1 (Cadastrado Agora) */}
               <View style={[styles.petCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.cardBorder }]}>
                 <View style={styles.imageWrapper}>
                   {newItemPhoto ? (
-                    <Image source={{ uri: newItemPhoto }} style={styles.petImage} resizeMode="cover" />
+                    <OptimizedImage uri={newItemPhoto} style={styles.petImage} resizeMode="cover" />
                   ) : (
                     <View style={[styles.placeholderImage, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]}>
                       <MaterialIcons name="pets" size={32} color={colors.primary} />
@@ -225,17 +168,11 @@ export default function PetMatchModal({
                   {newItem?.animal_name || newItem?.title || 'Seu Cadastro'}
                 </Text>
                 <Text style={[styles.petCardDetails, { color: colors.textSecondary }]} numberOfLines={2}>
-                  {newItem?.species || 'Animal'} • {newItem?.breed || 'SRD'}{'\n'}
-                  {newItem?.neighborhood || newItem?.city || ''}
+                  {[newItem?.species, newItem?.breed].filter(Boolean).join(' • ') || 'Animal'}
+                  {(newItem?.neighborhood || newItem?.city) ? `\n${newItem.neighborhood || newItem.city}` : ''}
                 </Text>
               </View>
 
-              {/* Ícone de Conexão Central */}
-              <View style={[styles.connectionCircle, { backgroundColor: badgeColor }]}>
-                <MaterialIcons name="sync-alt" size={18} color="#FFFFFF" />
-              </View>
-
-              {/* Pet 2 (Correspondente Atual) */}
               <View style={[styles.petCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.cardBorder }]}>
                 <View style={styles.imageWrapper}>
                   {currentMatchPhoto ? (
@@ -254,105 +191,25 @@ export default function PetMatchModal({
                   {currentMatch.animal_name || currentMatch.title || 'Pet Correspondente'}
                 </Text>
                 <Text style={[styles.petCardDetails, { color: colors.textSecondary }]} numberOfLines={2}>
-                  {currentMatch.species || 'Animal'} • {currentMatch.breed || 'SRD'}{'\n'}
-                  {currentMatch.neighborhood || currentMatch.city || ''}
+                  {[currentMatch.species, currentMatch.breed].filter(Boolean).join(' • ') || 'Animal'}
+                  {(currentMatch.neighborhood || currentMatch.city) ? `\n${currentMatch.neighborhood || currentMatch.city}` : ''}
                 </Text>
               </View>
             </View>
 
-            {/* Motivos e Fatores de Compatibilidade */}
-            {matchData.reasons && matchData.reasons.length > 0 && (
-              <View style={[styles.reasonsBox, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: colors.cardBorder }]}>
-                <Text style={[styles.reasonsTitle, { color: colors.text }]}>Fatores de Semelhança:</Text>
-                {matchData.reasons.map((reason, idx) => (
-                  <View key={idx} style={styles.reasonRow}>
-                    <MaterialIcons name="check-circle" size={15} color="#10B981" style={{ marginRight: 6 }} />
-                    <Text style={[styles.reasonText, { color: isDark ? '#CBD5E1' : '#334155' }]}>{reason}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Lista com todas as opções se houver mais de 1 candidato */}
-            {candidates.length > 1 && (
-              <View style={[styles.fullListSection, { borderTopColor: colors.cardBorder }]}>
-                <Text style={[styles.fullListTitle, { color: colors.text }]}>
-                  Todas as Correspondências Encontradas ({candidates.length}):
-                </Text>
-
-                {candidates.map((cand, idx) => {
-                  const isSelected = idx === currentIndex;
-                  const candScore = cand.match?.percentage || 70;
-                  const candBadgeColor = cand.match?.badgeColor || '#10B981';
-                  const candPhoto = cand.photoUrl || cand.photo_urls?.[0];
-
-                  return (
-                    <TouchableOpacity
-                      key={cand.id || idx}
-                      style={[
-                        styles.listItemRow,
-                        {
-                          backgroundColor: isSelected
-                            ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#F0FDF4')
-                            : (isDark ? '#1E293B' : '#FFFFFF'),
-                          borderColor: isSelected ? candBadgeColor : colors.cardBorder,
-                        },
-                      ]}
-                      onPress={() => setCurrentIndex(idx)}
-                      activeOpacity={0.85}
-                    >
-                      <View style={styles.listItemImageWrapper}>
-                        {candPhoto ? (
-                          <OptimizedImage uri={candPhoto} style={styles.listItemImage} resizeMode="cover" />
-                        ) : (
-                          <View style={[styles.listItemPlaceholder, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]}>
-                            <MaterialIcons name="pets" size={20} color={colors.primary} />
-                          </View>
-                        )}
-                        <View style={[styles.listItemScoreBadge, { backgroundColor: candBadgeColor }]}>
-                          <Text style={styles.listItemScoreText}>{candScore}%</Text>
-                        </View>
-                      </View>
-
-                      <View style={styles.listItemContent}>
-                        <Text style={[styles.listItemName, { color: colors.text }]} numberOfLines={1}>
-                          {cand.animal_name || cand.title || 'Pet'}
-                        </Text>
-                        <Text style={[styles.listItemSub, { color: colors.textSecondary }]} numberOfLines={1}>
-                          {cand.species || 'Animal'} • {cand.breed || 'SRD'} • {cand.gender || ''}
-                        </Text>
-                        <Text style={[styles.listItemLoc, { color: colors.textMuted }]} numberOfLines={1}>
-                          📍 {cand.neighborhood || cand.city || 'Região'}
-                          {cand.match?.distanceKm != null ? ` (${cand.match.distanceKm} km)` : ''}
-                        </Text>
-                      </View>
-
-                      <TouchableOpacity
-                        style={[styles.listItemDetailBtn, { backgroundColor: isSelected ? candBadgeColor : colors.primaryLight }]}
-                        onPress={() => {
-                          onClose();
-                          if (typeof onViewDetails === 'function') {
-                            onViewDetails(cand.id);
-                          }
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.listItemDetailBtnText,
-                            { color: isSelected ? '#FFFFFF' : colors.primary },
-                          ]}
-                        >
-                          Ver
-                        </Text>
-                      </TouchableOpacity>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+            {matchData.reasons?.length > 0 && (
+              <Text
+                style={[
+                  styles.commonTraits,
+                  { color: colors.textSecondary, borderTopColor: colors.cardBorder },
+                ]}
+                numberOfLines={2}
+              >
+                Em comum: {matchData.reasons.slice(0, 2).join(' · ')}
+              </Text>
             )}
           </ScrollView>
 
-          {/* Botões de Ação no Rodapé */}
           <View style={styles.footer}>
             <TouchableOpacity
               style={[styles.primaryActionBtn, { backgroundColor: COLORS.primary }]}
@@ -364,8 +221,8 @@ export default function PetMatchModal({
               }}
               activeOpacity={0.85}
             >
-              <MaterialIcons name="visibility" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
-              <Text style={styles.primaryActionBtnText}>Ver Detalhes deste Pet</Text>
+              <MaterialIcons name="visibility" size={19} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Text style={styles.primaryActionBtnText}>Ver publicação</Text>
             </TouchableOpacity>
 
             {currentMatch.owner_id && (
@@ -391,7 +248,7 @@ export default function PetMatchModal({
               onPress={onClose}
               activeOpacity={0.7}
             >
-              <Text style={[styles.dismissBtnText, { color: colors.textMuted }]}>Continuar e ver depois</Text>
+              <Text style={[styles.dismissBtnText, { color: colors.textMuted }]}>Fechar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -458,73 +315,23 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 
-  // Abas de Candidatos
-  tabSelectorContainer: {
-    paddingHorizontal: 14,
-    paddingBottom: 10,
-  },
-  tabsScroll: {
-    gap: 8,
-    paddingVertical: 2,
-  },
-  tabChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    gap: 6,
-  },
-  tabChipImageWrapper: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabChipImage: {
-    width: '100%',
-    height: '100%',
-  },
-  tabChipText: {
-    fontSize: 12,
-  },
-  tabChipBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 6,
-  },
-  tabChipBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '900',
-  },
-
-  // Paginação
   paginationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingHorizontal: 2,
+    marginBottom: 8,
   },
   pageNavBtn: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
-    gap: 2,
-  },
-  pageNavText: {
-    fontSize: 11.5,
-    fontWeight: '700',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   pageCounterText: {
-    fontSize: 11.5,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
   },
 
   body: {
@@ -532,58 +339,50 @@ const styles = StyleSheet.create({
     maxHeight: 460,
   },
 
-  percentageBadgeCard: {
-    borderRadius: 16,
-    borderWidth: 1.5,
-    padding: 12,
-    marginBottom: 14,
-  },
-  percentageRow: {
+  matchSummary: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   percentageNumber: {
-    fontSize: 34,
-    fontWeight: '900',
-    letterSpacing: -1,
-  },
-  percentageLabel: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.8,
-  },
-  percentageLevel: {
-    fontSize: 13.5,
+    fontSize: 16,
     fontWeight: '800',
-    marginTop: 2,
+  },
+  matchLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  percentagePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   distanceText: {
     fontSize: 11,
-    fontWeight: '700',
-    marginTop: 2,
+    marginTop: 3,
   },
 
   compareContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
-    position: 'relative',
+    marginBottom: 4,
   },
   petCard: {
-    width: '47%',
-    borderRadius: 16,
+    width: '48.5%',
+    borderRadius: 14,
     borderWidth: 1,
-    padding: 8,
+    padding: 7,
     alignItems: 'center',
   },
   imageWrapper: {
     width: '100%',
-    height: 105,
-    borderRadius: 12,
+    height: 132,
+    borderRadius: 10,
     overflow: 'hidden',
     position: 'relative',
-    marginBottom: 8,
+    marginBottom: 7,
   },
   petImage: {
     width: '100%',
@@ -599,177 +398,72 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     left: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 5,
   },
   statusTagText: {
     color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 0.3,
+    fontSize: 8,
+    fontWeight: '700',
   },
   petCardName: {
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 12.5,
+    fontWeight: '700',
     textAlign: 'center',
     width: '100%',
     marginBottom: 2,
   },
   petCardDetails: {
-    fontSize: 11,
+    fontSize: 10.5,
     textAlign: 'center',
     lineHeight: 14,
   },
-  connectionCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-  },
-
-  reasonsBox: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 12,
-    marginBottom: 14,
-  },
-  reasonsTitle: {
-    fontSize: 12.5,
-    fontWeight: '800',
-    marginBottom: 8,
-  },
-  reasonRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-  reasonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    flex: 1,
-  },
-
-  // Lista Completa de Correspondências
-  fullListSection: {
-    borderTopWidth: 1,
-    paddingTop: 12,
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  fullListTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 10,
-  },
-  listItemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    marginBottom: 8,
-  },
-  listItemImageWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  listItemImage: {
-    width: '100%',
-    height: '100%',
-  },
-  listItemPlaceholder: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  listItemScoreBadge: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  listItemScoreText: {
-    color: '#FFFFFF',
-    fontSize: 8,
-    fontWeight: '900',
-  },
-  listItemContent: {
-    flex: 1,
-    marginLeft: 10,
-    marginRight: 8,
-  },
-  listItemName: {
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  listItemSub: {
+  commonTraits: {
     fontSize: 11,
-    marginTop: 1,
-  },
-  listItemLoc: {
-    fontSize: 10,
-    marginTop: 2,
-  },
-  listItemDetailBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  listItemDetailBtnText: {
-    fontSize: 11.5,
-    fontWeight: '800',
+    lineHeight: 16,
+    marginTop: 8,
+    paddingTop: 9,
+    borderTopWidth: 1,
+    borderTopColor: '#CBD5E1',
   },
 
   footer: {
     paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 16,
-    gap: 8,
+    paddingTop: 8,
+    paddingBottom: 12,
+    gap: 6,
   },
   primaryActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
-    paddingVertical: 12,
+    borderRadius: 12,
+    paddingVertical: 11,
   },
   primaryActionBtnText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 13.5,
+    fontWeight: '700',
   },
   secondaryActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
-    paddingVertical: 11,
-    borderWidth: 1.5,
+    borderRadius: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
   },
   secondaryActionBtnText: {
-    fontSize: 13.5,
-    fontWeight: '800',
+    fontSize: 12.5,
+    fontWeight: '700',
   },
   dismissBtn: {
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 5,
   },
   dismissBtnText: {
-    fontSize: 12.5,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });

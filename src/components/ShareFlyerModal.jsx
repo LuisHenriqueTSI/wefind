@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Alert,
   StyleSheet,
   Share,
+  Switch,
 } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +18,7 @@ import * as Sharing from 'expo-sharing';
 import * as itemsService from '../services/items';
 import ShareCardFlyer from './ShareCardFlyer';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import COLORS from '../constants/theme';
 import {
   getPrivateLocationSummary,
@@ -34,8 +36,36 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
   const flyerRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState('a4'); // 'a4' | 'stories' | 'feed'
+  const { user } = useAuth();
+  // Privacidade por padrão: o telefone fica fora do cartaz até o autor autorizar.
+  // A autorização fica gravada na publicação e vale para quem compartilhar depois.
+  const [phoneAllowed, setPhoneAllowed] = useState(itemsService.isFlyerPhoneAllowed(item));
+  const [savingPhone, setSavingPhone] = useState(false);
+
+  useEffect(() => {
+    setPhoneAllowed(itemsService.isFlyerPhoneAllowed(item));
+  }, [item?.id, item?.extra_fields?.share_phone_on_flyer]);
 
   if (!item) return null;
+
+  const isOwner = Boolean(user?.id && item.owner_id === user.id);
+  const includePhone = phoneAllowed;
+
+  const handleTogglePhone = async (value) => {
+    if (!isOwner || savingPhone) return;
+    setPhoneAllowed(value);
+    setSavingPhone(true);
+    try {
+      const saved = await itemsService.setFlyerPhoneAllowed(item.id, item.extra_fields, value);
+      // mantém o objeto da publicação em memória igual ao que foi salvo
+      item.extra_fields = saved?.extra_fields || { ...(item.extra_fields || {}), share_phone_on_flyer: value };
+    } catch (error) {
+      setPhoneAllowed(!value);
+      Alert.alert('Não foi possível salvar', 'Tente novamente em alguns instantes.');
+    } finally {
+      setSavingPhone(false);
+    }
+  };
 
   const FORMATS = [
     { id: 'a4', label: 'Cartaz com QR', icon: 'description', desc: 'Impressão e Postes' },
@@ -67,7 +97,7 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
     const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? new Date(`${rawDate}T12:00:00`) : new Date(rawDate);
     const formattedDate = item.date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('pt-BR') : 'Não informada';
     const phone = item.profiles?.whatsapp || item.profiles?.phone || item.contact_phone || '';
-    const phoneInfo = phone ? `\n📞 Contato direto: ${phone}` : '';
+    const phoneInfo = includePhone && phone ? `\n📞 Contato direto: ${phone}` : '\n💬 Contato pelo chat do WeFIND';
     
     const details = [
       item.species || item.extra_fields?.species ? `🐾 ${item.species || item.extra_fields?.species}` : '',
@@ -190,6 +220,34 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
             })}
           </View>
 
+          {/* Escolha do autor sobre mostrar o WhatsApp no cartaz */}
+          {isOwner ? (
+            <View style={[styles.phoneToggleRow, { borderColor: colors.cardBorder }]}>
+              <View style={{ flex: 1, marginRight: 12 }}>
+                <Text style={[styles.phoneToggleTitle, { color: colors.text }]}>Mostrar meu WhatsApp nos cartazes</Text>
+                <Text style={[styles.phoneToggleDesc, { color: colors.textSecondary }]}>
+                  {phoneAllowed
+                    ? 'Ligado, o número aparece também nos cartazes que outras pessoas gerarem desta publicação. Cartazes já compartilhados continuam com o número.'
+                    : 'Desligado, quem vir o cartaz fala com você pelo chat do app, através do código QR.'}
+                </Text>
+              </View>
+              <Switch
+                value={phoneAllowed}
+                onValueChange={handleTogglePhone}
+                disabled={savingPhone}
+                trackColor={{ false: '#CBD5E1', true: colors.primary }}
+                thumbColor="#FFFFFF"
+                accessibilityLabel="Mostrar meu WhatsApp nos cartazes"
+              />
+            </View>
+          ) : (
+            <Text style={[styles.phoneToggleNote, { color: colors.textMuted }]}>
+              {phoneAllowed
+                ? 'O autor autorizou mostrar o WhatsApp no cartaz.'
+                : 'O autor preferiu não mostrar o telefone. O contato é pelo chat do WeFIND.'}
+            </Text>
+          )}
+
           {/* Área de Pré-Visualização com Rolagem */}
           <ScrollView
             style={styles.previewScrollView}
@@ -202,6 +260,7 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
                 item={item}
                 imageUrl={imageUrl}
                 format={selectedFormat}
+                showPhone={includePhone}
               />
             </View>
           </ScrollView>
@@ -241,6 +300,19 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
 };
 
 const styles = StyleSheet.create({
+  phoneToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderRadius: 12,
+  },
+  phoneToggleTitle: { fontSize: 14, fontWeight: '800' },
+  phoneToggleDesc: { fontSize: 12, lineHeight: 17, marginTop: 2 },
+  phoneToggleNote: { fontSize: 12, marginHorizontal: 16, marginTop: 10, textAlign: 'center' },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.65)',
