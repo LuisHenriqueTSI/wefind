@@ -49,7 +49,7 @@ const getOwnerProfileSelection = async () => {
   if (error) throw error;
 
   return session?.user
-    ? 'profiles!owner_id(name, email, whatsapp, phone, avatar_url, avatar_path)'
+    ? 'profiles!owner_id(name, avatar_url, avatar_path)'
     : '';
 };
 
@@ -191,7 +191,7 @@ export const getItems = async (filters = {}) => {
   try {
     let query = supabase
       .from('items')
-      .select('*, profiles!owner_id(name, email, whatsapp, phone, avatar_url, avatar_path), item_photos(id, url), rewards(id, amount, currency, status, description)')
+      .select('*, profiles!owner_id(name, avatar_url, avatar_path), item_photos(id, url), rewards(id, amount, currency, status, description)')
       .order('created_at', { ascending: false });
 
     if (filters.limit) {
@@ -751,7 +751,7 @@ export const getItemById = async (itemId) => {
     // Get owner profile separately
     const { data: ownerProfile } = await supabase
       .from('profiles')
-      .select('id, name, avatar_url, email, created_at')
+      .select('id, name, avatar_url, created_at')
       .eq('id', itemData.owner_id)
       .single();
 
@@ -868,7 +868,7 @@ export const getItemDetails = async (itemId) => {
     if (!isPublicRequest) {
       const { data: ownerProfile } = await supabase
         .from('profiles')
-        .select('id, name, avatar_url, email, whatsapp, phone, created_at')
+        .select('id, name, avatar_url, created_at')
         .eq('id', item.owner_id)
         .single();
       profile = ownerProfile;
@@ -922,7 +922,7 @@ export const searchItems = async (searchTerm) => {
       .filter((item) => !shouldHideItem(item))
       .map((item) => ({
         ...item,
-        owner_name: item.profiles?.name || item.profiles?.email || 'Usuário',
+        owner_name: item.profiles?.name || 'Usuário',
         item_photos: Array.isArray(item.item_photos) ? item.item_photos.filter((p) => p && p.url) : [],
         rewards: normalizeItemRewards({ ...item, rewards: item.rewards || [] }),
         renewalInfo: getRenewalInfo(item),
@@ -1316,7 +1316,7 @@ export const listRecoveredPets = async (limit = 10) => {
   try {
     let query = supabase
       .from('items')
-      .select('*, profiles!owner_id(name, email, whatsapp, phone, avatar_url, avatar_path)')
+      .select('*, profiles!owner_id(name, avatar_url, avatar_path)')
       .eq('resolved', true)
       .order('updated_at', { ascending: false })
       .limit(limit);
@@ -1352,7 +1352,7 @@ export const listRecoveredPets = async (limit = 10) => {
 
     return (data || []).map(item => ({
       ...item,
-      owner_name: item.profiles?.name || item.profiles?.email || 'Tutor',
+      owner_name: item.profiles?.name || 'Tutor',
       item_photos: item.item_photos || [],
     }));
   } catch (error) {
@@ -1487,4 +1487,18 @@ export const setFlyerPhoneAllowed = async (itemId, currentExtraFields = {}, allo
     throw error;
   }
   return data;
+};
+
+/**
+ * WhatsApp do autor para o cartaz. A função no banco só devolve o número quando
+ * o autor autorizou ou quando quem pede é o próprio autor.
+ */
+export const getFlyerContact = async (itemId) => {
+  if (!itemId) return null;
+  const { data, error } = await supabase.rpc('get_flyer_contact', { p_item_id: Number(itemId) });
+  if (error) {
+    console.warn('[getFlyerContact] Não foi possível obter o contato do cartaz:', error.message);
+    return null;
+  }
+  return data || null;
 };
