@@ -3,197 +3,157 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Baixe o WeFIND e ajude a encontrar animais perdidos na sua região.">
-    <meta name="theme-color" content="#0d6b62">
-    <title>WeFIND — Encontre. Compartilhe. Reencontre.</title>
+    <meta name="description" content="WeFIND: aplicativo para Android que reúne publicações, mapa, avistamentos e conversas na busca por animais perdidos e encontrados.">
+    <meta name="theme-color" content="#2E5634">
+    <title>WeFIND — Animais perdidos e encontrados</title>
     <link rel="icon" href="assets/favicon.png" type="image/png">
-    <link rel="preload" href="assets/logo.png" as="image">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="preload" href="assets/fonts/BricolageGrotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="home.css">
   </head>
   <body>
-    <header class="site-header">
-      <nav class="nav container" aria-label="Navegação principal">
-        <a class="brand" href="#inicio" aria-label="WeFIND - início">
-          <img src="assets/logo.png" alt="" width="42" height="42">
+    <header class="topo">
+      <nav class="topo-nav wrap" aria-label="Navegação principal">
+        <a class="marca" href="#inicio">
+          <img src="assets/logo.png" alt="" width="40" height="40">
           <span>WeFIND</span>
         </a>
-        <a class="nav-link" href="#como-funciona">Como funciona</a>
-        <a class="nav-link" href="#instalacao">Instalação</a>
-        <a class="nav-download" href="https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.1/WeFIND_v2.1.apk" download>Baixar aplicativo</a>
+        <a class="topo-link" href="#como-funciona">Como funciona</a>
+        <a class="topo-link" href="#instalar">Instalar</a>
+        <a class="botao botao-pequeno" href="https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.1/WeFIND_v2.1.apk" download>Baixar APK</a>
       </nav>
     </header>
 
     <main>
-      <section class="hero container" id="inicio">
-        <div class="hero-copy">
-          <p class="eyebrow">Uma rede para cuidar e reencontrar</p>
-          <h1>Seu próximo reencontro pode começar aqui.</h1>
-          <p class="hero-text">
-            O WeFIND conecta tutores e pessoas dispostas a ajudar na busca por
-            animais perdidos ou encontrados, reunindo informações, localização
-            e relatos em um só lugar.
+      <section class="hero wrap" id="inicio">
+        <div class="hero-texto">
+          <h1>Perdeu ou encontrou um animal? Avise quem está perto.</h1>
+          <p class="hero-lead">
+            No WeFIND, a publicação fica no mapa, recebe avistamentos da vizinhança
+            e é comparada com anúncios parecidos. Tudo no mesmo lugar, sem expor
+            o seu telefone.
           </p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.1/WeFIND_v2.1.apk" download>
-              <span class="button-icon" aria-hidden="true">↓</span>
-              Baixar arquivo
-            </a>
-            <a class="text-link" href="#como-funciona">Conheça o WeFIND <span aria-hidden="true">→</span></a>
+          <div class="hero-acoes">
+            <a class="botao" href="https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.1/WeFIND_v2.1.apk" download>Baixar para Android</a>
+            <a class="link-forte" href="#instalar">Como instalar</a>
           </div>
-          <p class="download-note">Aplicativo para Android · Download gratuito · v2.1</p>
+          <p class="hero-nota">Versão 2.1, gratuita. O arquivo é instalado direto, fora da Play Store.</p>
         </div>
-        <div class="hero-visual" aria-label="Ilustração do aplicativo WeFIND">
-          <div class="glow"></div>
-          <img src="assets/app-mapa-real.jpeg" alt="Tela real do mapa do aplicativo WeFIND com marcadores de animais">
+
+        <div class="mural" aria-hidden="true">
+          <figure class="cartaz">
+            <span class="fita fita-a"></span><span class="fita fita-b"></span>
+            <img src="assets/app-cartaz-poster.jpeg" alt="">
+          </figure>
+          <figure class="celular celular-mapa">
+            <img src="assets/app-mapa-real.jpeg" alt="">
+          </figure>
         </div>
       </section>
 
-      <section class="trust-strip" aria-label="Principais benefícios">
-        <div class="container trust-grid">
-          <div><strong>Busca local</strong><span>Encontre ocorrências próximas</span></div>
-          <div><strong>Ajuda colaborativa</strong><span>Compartilhe pistas e avistamentos</span></div>
-          <div><strong>Informação organizada</strong><span>Acompanhe cada atualização</span></div>
-        </div>
-      </section>
-
-      <section class="section container" id="como-funciona">
-        <div class="section-heading">
-          <p class="eyebrow">Como funciona</p>
-          <h2>Menos ruído. Mais chances de reencontro.</h2>
-          <p>O WeFIND foi pensado para transformar a mobilização da comunidade em uma busca mais clara e coordenada.</p>
-        </div>
-        <div class="feature-grid">
-          <article class="feature-card">
-            <span class="feature-number">01</span>
-            <h3>Encontre ocorrências</h3>
-            <p>Pesquise animais perdidos, encontrados e disponíveis para adoção.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-number">02</span>
-            <h3>Filtre por proximidade</h3>
-            <p>Use o mapa, o raio de busca e filtros por espécie, status e porte.</p>
-          </article>
-          <article class="feature-card">
-            <span class="feature-number">03</span>
-            <h3>Ajude em tempo real</h3>
-            <p>Compartilhe pistas, registre avistamentos e mantenha o tutor informado.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="capabilities-section section">
-        <div class="container">
-          <div class="section-heading">
-            <p class="eyebrow">Recursos do WeFIND</p>
-            <h2>Uma jornada completa para cuidar, buscar e reencontrar.</h2>
-            <p>Do primeiro cadastro ao reencontro, o aplicativo reúne ferramentas para tutores, pessoas que encontram animais e toda a comunidade.</p>
-          </div>
-          <div class="capability-grid">
-            <article class="capability-card">
-              <span class="capability-icon">⌕</span>
-              <div><h3>Feed e busca inteligente</h3><p>Consulte publicações com busca por nome, raça, espécie ou cidade e filtre por situação, categoria, porte e distância.</p></div>
-            </article>
-            <article class="capability-card">
-              <span class="capability-icon">⌖</span>
-              <div><h3>Mapa de ocorrências</h3><p>Visualize animais próximos, selecione pontos no mapa, confira detalhes do local e trace uma rota até a ocorrência.</p></div>
-            </article>
-            <article class="capability-card">
-              <span class="capability-icon">＋</span>
-              <div><h3>Publicação de animais</h3><p>Cadastre casos perdidos, encontrados ou para adoção com fotos, características, localização e informações do tutor.</p></div>
-            </article>
-            <article class="capability-card">
-              <span class="capability-icon">◉</span>
-              <div><h3>Avistamentos e pistas</h3><p>Use “Vi esse Pet” para informar onde o animal foi visto, adicionar observações, localização e, quando necessário, uma foto.</p></div>
-            </article>
-            <article class="capability-card">
-              <span class="capability-icon">▣</span>
-              <div><h3>Cartaz de divulgação</h3><p>Gere e compartilhe um cartaz com foto, dados da ocorrência e QR Code para ampliar a divulgação nas redes.</p></div>
-            </article>
-            <article class="capability-card">
-              <span class="capability-icon">♡</span>
-              <div><h3>Carteirinha digital</h3><p>Cadastre seus pets, registre cuidados e vacinas e tenha uma identificação digital com QR Code para facilitar a identificação.</p></div>
-            </article>
-            <article class="capability-card">
-              <span class="capability-icon">✉</span>
-              <div><h3>Mensagens privadas</h3><p>Converse com outras pessoas sobre uma ocorrência sem expor seu número de telefone e acompanhe as notificações.</p></div>
-            </article>
-            <article class="capability-card">
-              <span class="capability-icon">★</span>
-              <div><h3>Comunidade ativa</h3><p>Acompanhe reencontros, participe da rede de ajuda, compartilhe histórias e fortaleça a colaboração local.</p></div>
-            </article>
-            <article class="capability-card">
-              <span class="capability-icon">✓</span>
-              <div><h3>Reencontros e histórico</h3><p>Atualize o status da publicação quando o animal for localizado e mantenha o histórico da ocorrência organizado.</p></div>
-            </article>
-            <article class="capability-card">
-              <span class="capability-icon">♡</span>
-              <div><h3>Adoção e acolhimento</h3><p>Encontre animais disponíveis para adoção ou divulgue situações que precisam de acolhimento e lar temporário.</p></div>
-            </article>
+      <section class="porque" aria-labelledby="porque-titulo">
+        <div class="wrap">
+          <h2 id="porque-titulo">O que ouvimos de quem já procurou um animal</h2>
+          <p class="secao-lead">Antes de criar o app, 20 pessoas responderam a uma pesquisa sobre como divulgam e procuram animais perdidos. Cada recurso do WeFIND responde a uma dessas queixas.</p>
+          <div class="achados">
+            <div class="achado">
+              <p class="achado-queixa">Todos os 19 que responderam a essa pergunta disseram que a publicação perde alcance depois de algumas horas.</p>
+              <p class="achado-resposta">No WeFIND o anúncio fica ativo por 30 dias, aparece no mapa e gera notificações para quem está por perto.</p>
+            </div>
+            <div class="achado">
+              <p class="achado-queixa">17 de 19 sentiram falta de um mapa para saber onde o animal sumiu ou foi visto.</p>
+              <p class="achado-resposta">Cada publicação e cada avistamento tem um ponto no mapa, com rota até o local.</p>
+            </div>
+            <div class="achado">
+              <p class="achado-queixa">14 de 19 se preocupam em deixar o telefone pessoal exposto em grupos.</p>
+              <p class="achado-resposta">As conversas acontecem dentro do app, ligadas à publicação, sem mostrar o seu número.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="app-section">
-        <div class="container app-grid">
-          <div class="app-image">
-            <img src="assets/app-feed-real.jpeg" alt="Tela real do feed do WeFIND com busca, filtros e publicação de animal">
-          </div>
-          <div class="app-copy">
-            <p class="eyebrow">Tudo em um só lugar</p>
-            <h2>Informação clara para transformar ajuda em ação.</h2>
-            <p>
-              Encontre uma ocorrência, veja os detalhes do animal, compartilhe
-              um cartaz, envie uma pista ou converse com quem está acompanhando
-              o caso. O feed organiza cada etapa da busca.
-            </p>
-            <a class="button button-secondary" href="https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.1/WeFIND_v2.1.apk" download>Baixar aplicativo <span aria-hidden="true">→</span></a>
-          </div>
-        </div>
-      </section>
-
-      <section class="install-section container" id="instalacao">
-        <div class="section-heading">
-          <p class="eyebrow">Instalação</p>
-          <h2>Baixe, instale e comece a ajudar.</h2>
-          <p>Como o aplicativo ainda não está na Google Play Store, o Android pode solicitar uma confirmação adicional durante a instalação.</p>
-        </div>
-        <ol class="steps">
-          <li><span>1</span><div><strong>Baixe o arquivo ZIP</strong><p>Toque em “Baixar arquivo” nesta página.</p></div></li>
-          <li><span>2</span><div><strong>Extraia o APK</strong><p>Abra o arquivo ZIP e extraia o arquivo <code>wefind.apk</code> para a pasta Downloads.</p></div></li>
-          <li><span>3</span><div><strong>Autorize a instalação</strong><p>Abra o APK extraído. Se o Android bloquear a instalação, ative “Permitir desta fonte” nas Configurações.</p></div></li>
-          <li><span>4</span><div><strong>Confirme e abra o WeFIND</strong><p>Leia o aviso do Play Protect, prossiga se confiar na origem e conceda as permissões solicitadas.</p></div></li>
+      <section class="jornada wrap" id="como-funciona" aria-labelledby="jornada-titulo">
+        <h2 id="jornada-titulo">Do sumiço ao reencontro</h2>
+        <p class="secao-lead">É assim que uma busca anda dentro do aplicativo.</p>
+        <ol class="etapas">
+          <li class="etapa">
+            <img src="assets/app-publicar.jpeg" alt="Tela de cadastro de um animal perdido no WeFIND" loading="lazy">
+            <div>
+              <h3>Publique o caso</h3>
+              <p>Informe espécie, porte, cor e outras características, adicione até seis fotos e marque no mapa onde o animal sumiu ou foi encontrado. Se quiser, ofereça uma recompensa.</p>
+            </div>
+          </li>
+          <li class="etapa">
+            <img src="assets/app-avistamento.jpeg" alt="Formulário de avistamento com local marcado no mapa" loading="lazy">
+            <div>
+              <h3>A vizinhança avisa onde viu</h3>
+              <p>Quem cruzar com o animal registra um avistamento com local, horário, descrição e foto. O autor da publicação recebe o aviso na hora.</p>
+            </div>
+          </li>
+          <li class="etapa">
+            <img src="assets/app-correspondencias.jpeg" alt="Sugestão de correspondência entre um animal perdido e um encontrado" loading="lazy">
+            <div>
+              <h3>O app sugere animais parecidos</h3>
+              <p>O WeFIND compara anúncios de perdidos e encontrados pela espécie, pelas características e pela distância, e mostra os mais prováveis. A confirmação fica sempre com as pessoas.</p>
+            </div>
+          </li>
+          <li class="etapa">
+            <img src="assets/app-conversa.jpeg" alt="Conversa privada dentro do aplicativo" loading="lazy">
+            <div>
+              <h3>Converse sem expor seu número</h3>
+              <p>O contato entre quem procura e quem encontrou acontece em um chat privado, com dica de segurança e envio de fotos.</p>
+            </div>
+          </li>
+          <li class="etapa">
+            <img src="assets/app-tutela.jpeg" alt="Formulário de comprovação de tutela com fotos do animal" loading="lazy">
+            <div>
+              <h3>Comprove que o animal é seu</h3>
+              <p>Em animais encontrados, o endereço exato fica protegido. O tutor envia fotos ou documentos, quem acolheu analisa e, ao aprovar, o endereço é liberado para combinar a devolução.</p>
+            </div>
+          </li>
         </ol>
-        <div class="test-access">
-          <div>
-            <p class="eyebrow">Acesso para avaliação</p>
-            <h3>Use a conta de teste ou crie a sua</h3>
-            <p>Para conhecer o aplicativo sem precisar fazer um cadastro, utilize os dados abaixo:</p>
-          </div>
+      </section>
+
+      <section class="extras" aria-labelledby="extras-titulo">
+        <div class="wrap extras-grade">
+          <h2 id="extras-titulo">E mais</h2>
+          <dl class="extras-lista">
+            <div><dt>Cartaz com QR code</dt><dd>Gere a imagem para imprimir ou postar, nos formatos A4, stories e feed.</dd></div>
+            <div><dt>Filtros e raio de busca</dt><dd>Veja só cães ou gatos, perdidos ou encontrados, dentro da distância que você escolher.</dd></div>
+            <div><dt>Central de notificações</dt><dd>Avistamentos, mensagens, possíveis correspondências e lembretes de renovação.</dd></div>
+            <div><dt>Denúncias e moderação</dt><dd>Conteúdo suspeito pode ser denunciado e é analisado pela administração.</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="instalar wrap" id="instalar" aria-labelledby="instalar-titulo">
+        <div class="instalar-texto">
+          <h2 id="instalar-titulo">Como instalar</h2>
+          <p class="secao-lead">O WeFIND ainda não está na Play Store. Por isso o Android pede uma confirmação a mais.</p>
+          <ol class="passos">
+            <li><strong>Baixe o APK</strong> pelo botão desta página.</li>
+            <li><strong>Abra o arquivo</strong> na pasta Downloads do celular.</li>
+            <li><strong>Permita a instalação</strong> se o Android pedir: ative “Permitir desta fonte”.</li>
+            <li><strong>Confirme no Play Protect</strong> e conceda a permissão de localização para usar o mapa.</li>
+          </ol>
+          <a class="link-forte" href="instrucoes.html">Ver o passo a passo com imagens</a>
+        </div>
+        <aside class="conta-teste" aria-labelledby="conta-titulo">
+          <h3 id="conta-titulo">Só quer conhecer?</h3>
+          <p>Entre com a conta de teste, sem precisar se cadastrar.</p>
           <dl>
             <div><dt>Usuário</dt><dd>usuario-teste</dd></div>
-            <div><dt>E-mail alternativo</dt><dd>usuario-teste@gmail.com</dd></div>
+            <div><dt>E-mail</dt><dd>usuario-teste@gmail.com</dd></div>
             <div><dt>Senha</dt><dd>Teste123</dd></div>
           </dl>
-          <p class="test-access-note">Se o formulário exigir e-mail, use o e-mail alternativo. Você também pode criar uma conta própria pelo botão “Cadastre-se”.</p>
-        </div>
-        <div class="install-help">
-          <div class="install-help-image">
-            <img src="assets/instalacao-play-protect.jpeg" alt="Tela do Google Play Protect com a opção Instalar sem análise destacada">
-          </div>
-          <div class="install-help-copy">
-            <p class="eyebrow">Guia de instalação</p>
-            <h3>Precisa de ajuda para instalar?</h3>
-            <p>Veja o passo a passo completo, incluindo o aviso do Play Protect e as permissões necessárias para usar o mapa.</p>
-            <a class="button button-secondary" href="instrucoes.html">Ver instruções completas <span aria-hidden="true">→</span></a>
-          </div>
-        </div>
+          <p class="conta-nota">Se a tela pedir e-mail, use o e-mail acima. Você também pode criar a sua conta em “Cadastre-se”.</p>
+        </aside>
       </section>
     </main>
 
-    <footer class="footer">
-      <div class="container footer-content">
-        <a class="brand" href="#inicio"><img src="assets/logo.png" alt="" width="34" height="34"><span>WeFIND</span></a>
-        <p>Uma iniciativa para aproximar pessoas e animais.</p>
+    <footer class="rodape">
+      <div class="wrap rodape-grade">
+        <a class="marca" href="#inicio"><img src="assets/logo.png" alt="" width="32" height="32"><span>WeFIND</span></a>
+        <p>Desenvolvido por Luis Henrique Fonseca Victoria como Trabalho de Conclusão do Curso Superior de Tecnologia em Sistemas para Internet, IFSul Câmpus Pelotas.</p>
         <small>© <span id="year"></span> WeFIND</small>
       </div>
     </footer>

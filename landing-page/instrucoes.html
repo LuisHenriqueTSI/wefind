@@ -3,75 +3,101 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Instruções para instalar e testar o aplicativo WeFIND.">
-    <meta name="theme-color" content="#0d6b62">
-    <title>Instruções de instalação — WeFIND</title>
+    <meta name="description" content="Como instalar o WeFIND no Android e o que testar no aplicativo.">
+    <meta name="theme-color" content="#2E5634">
+    <title>Como instalar — WeFIND</title>
     <link rel="icon" href="assets/favicon.png" type="image/png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="preload" href="assets/fonts/BricolageGrotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="home.css">
   </head>
   <body>
-    <header class="site-header">
-      <nav class="nav container" aria-label="Navegação principal">
-        <a class="brand" href="index.html"><img src="assets/logo.png" alt="" width="42" height="42"><span>WeFIND</span></a>
-        <a class="nav-download" href="https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.1/WeFIND_v2.1.apk" download>Baixar APK</a>
+    <header class="topo">
+      <nav class="topo-nav wrap" aria-label="Navegação principal">
+        <a class="marca" href="index.html">
+          <img src="assets/logo.png" alt="" width="40" height="40">
+          <span>WeFIND</span>
+        </a>
+        <a class="topo-link" href="index.html#como-funciona">Como funciona</a>
+        <a class="topo-link" href="#roteiro">O que testar</a>
+        <a class="botao botao-pequeno" href="https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.1/WeFIND_v2.1.apk" download>Baixar APK</a>
       </nav>
     </header>
-    <main class="instructions container">
-      <a class="back-link" href="index.html">← Voltar para a página inicial</a>
-      <p class="eyebrow">Guia de instalação e teste</p>
-      <h1>Instale o WeFIND no Android</h1>
-      <p class="lead">O aplicativo é distribuído como APK para fins de avaliação. Baixe o arquivo diretamente no celular Android e siga os passos abaixo para instalar e explorar os principais recursos.</p>
 
-      <section class="instruction-block instruction-card">
-        <h2>Como instalar</h2>
-        <ol class="instruction-list">
-          <li><strong>Baixe o APK</strong><span>Use o botão “Baixar APK” nesta página pelo próprio celular Android.</span></li>
-          <li><strong>Abra o arquivo baixado</strong><span>Acesse a notificação do download ou a pasta Downloads do aparelho e toque no arquivo.</span></li>
-          <li><strong>Permita a instalação</strong><span>Se aparecer a mensagem de segurança, abra Configurações e ative “Permitir desta fonte” para o navegador ou gerenciador de arquivos.</span></li>
-          <li><strong>Confirme a instalação</strong><span>Se o Play Protect recomendar uma verificação, leia o aviso e prossiga somente se você confia na origem do APK.</span></li>
-          <li><strong>Conceda as permissões</strong><span>Ao abrir o aplicativo, permita o acesso à localização e às notificações para utilizar o mapa e receber avisos.</span></li>
+    <main class="guia wrap">
+      <a class="voltar" href="index.html">Voltar para a página inicial</a>
+      <h1>Instale o WeFIND no seu Android</h1>
+      <p class="guia-lead">O app é distribuído como arquivo APK, fora da Play Store. A instalação leva poucos minutos; faça tudo pelo próprio celular.</p>
+
+      <section class="guia-bloco" aria-labelledby="passos-titulo">
+        <h2 id="passos-titulo">Passo a passo</h2>
+        <ol class="guia-passos">
+          <li>
+            <h3>Baixe o APK</h3>
+            <p>Toque em “Baixar APK” no topo desta página. O arquivo se chama <code>WeFIND_v2.1.apk</code>.</p>
+          </li>
+          <li>
+            <h3>Abra o arquivo</h3>
+            <p>Toque na notificação de download ou procure o arquivo na pasta Downloads.</p>
+          </li>
+          <li>
+            <h3>Permita a instalação</h3>
+            <p>Se o Android bloquear, ele mostra um atalho para as configurações. Ative “Permitir desta fonte” para o navegador ou para o gerenciador de arquivos e volte.</p>
+          </li>
+          <li>
+            <h3>Passe pelo Play Protect</h3>
+            <p>O Android pode avisar que o app não foi verificado. Veja como seguir no quadro abaixo.</p>
+          </li>
+          <li>
+            <h3>Conceda as permissões</h3>
+            <p>Na primeira abertura, permita localização e notificações. Sem a localização, o mapa e o raio de busca não funcionam.</p>
+          </li>
         </ol>
       </section>
 
-      <section class="instruction-block protect-card">
+      <section class="guia-bloco protect" aria-labelledby="protect-titulo">
         <div>
-          <p class="eyebrow">Atenção durante a instalação</p>
-          <h2>Sobre o aviso do Play Protect</h2>
-          <p>Como o WeFIND é distribuído diretamente por APK e ainda não está na Google Play Store, o Android pode exibir um aviso de segurança. Essa mensagem é esperada nesse tipo de instalação.</p>
-          <p>Leia a mensagem com atenção e prossiga somente quando tiver certeza de que o arquivo foi baixado da fonte correta.</p>
+          <h2 id="protect-titulo">Sobre o aviso do Play Protect</h2>
+          <p>Esse aviso aparece em qualquer app instalado fora da Play Store, então é esperado aqui. Na tela “A verificação do app é recomendada”, toque em “Instalar sem análise”.</p>
+          <p>Só faça isso com o arquivo baixado por esta página, que aponta para a versão publicada no GitHub do projeto.</p>
         </div>
         <figure>
-          <img src="assets/instalacao-play-protect.jpeg" alt="Exemplo de aviso do Google Play Protect durante a instalação">
-          <figcaption>Exemplo de tela exibida pelo Play Protect.</figcaption>
+          <img src="assets/instalacao-play-protect.jpeg" alt="Tela do Google Play Protect com a opção Instalar sem análise destacada">
+          <figcaption>Tela do Play Protect durante a instalação.</figcaption>
         </figure>
       </section>
 
-      <section class="instruction-block feature-list">
-        <h2>O que testar no aplicativo</h2>
-        <ul>
-          <li>Mapa interativo com ocorrências próximas e filtros de busca.</li>
-          <li>Cadastro de publicações com foto e localização.</li>
-          <li>Visualização de detalhes e compartilhamento de cartaz.</li>
-          <li>Registro de avistamentos vinculados às publicações.</li>
-          <li>Mensagens privadas entre usuários e notificações.</li>
-        </ul>
-        <div class="test-access">
-          <div>
-            <p class="eyebrow">Acesso para avaliação</p>
-            <h3>Credenciais da conta de teste</h3>
-            <p>Use estes dados para explorar o aplicativo sem precisar criar uma conta:</p>
-          </div>
+      <section class="guia-bloco roteiro" id="roteiro" aria-labelledby="roteiro-titulo">
+        <div>
+          <h2 id="roteiro-titulo">O que testar</h2>
+          <p class="guia-texto">Este é o mesmo roteiro usado na avaliação com os participantes da pesquisa.</p>
+          <ol class="roteiro-lista">
+            <li>Entre no app e atualize o endereço da sua conta.</li>
+            <li>Encontre um animal no mapa e trace a rota até o local, sem precisar ir até lá.</li>
+            <li>Publique um animal perdido ou encontrado com dados e fotos de teste, e gere o cartaz de divulgação.</li>
+            <li>Mande uma mensagem pelo chat para o autor de uma publicação.</li>
+            <li>Abra a central de notificações e confira os avisos.</li>
+          </ol>
+        </div>
+        <aside class="conta-teste" aria-labelledby="conta-titulo">
+          <h3 id="conta-titulo">Conta de teste</h3>
+          <p>Use estes dados para entrar sem criar cadastro.</p>
           <dl>
             <div><dt>Usuário</dt><dd>usuario-teste</dd></div>
-            <div><dt>E-mail alternativo</dt><dd>usuario-teste@gmail.com</dd></div>
+            <div><dt>E-mail</dt><dd>usuario-teste@gmail.com</dd></div>
             <div><dt>Senha</dt><dd>Teste123</dd></div>
           </dl>
-          <p class="test-access-note">Se preferir, crie uma conta própria pelo botão “Cadastre-se”.</p>
-        </div>
+          <p class="conta-nota">Se a tela pedir e-mail, use o e-mail acima. Você também pode criar a sua conta em “Cadastre-se”.</p>
+        </aside>
       </section>
-
     </main>
-    <footer class="footer"><div class="container footer-content"><a class="brand" href="index.html"><img src="assets/logo.png" alt="" width="34" height="34"><span>WeFIND</span></a><p>Uma iniciativa para aproximar pessoas e animais.</p><small>© <span id="year"></span> WeFIND</small></div></footer>
+
+    <footer class="rodape">
+      <div class="wrap rodape-grade">
+        <a class="marca" href="index.html"><img src="assets/logo.png" alt="" width="32" height="32"><span>WeFIND</span></a>
+        <p>Desenvolvido por Luis Henrique Fonseca Victoria como Trabalho de Conclusão do Curso Superior de Tecnologia em Sistemas para Internet, IFSul Câmpus Pelotas.</p>
+        <small>© <span id="year"></span> WeFIND</small>
+      </div>
+    </footer>
     <script src="script.js"></script>
   </body>
 </html>
