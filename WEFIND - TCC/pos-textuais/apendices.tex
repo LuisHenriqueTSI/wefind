@@ -139,7 +139,7 @@ Identificador & UC04 \\ \hline
 Nome do Caso de Uso & Registrar Avistamento \\ \hline
 Ator Principal & Usuário (Autenticado) \\ \hline
 Atores Secundários & Banco de Dados (PostgreSQL) e Serviço de Notificações \\ \hline
-Resumo & Permite a um membro da comunidade informar novas coordenadas e fotos do local onde viu um animal perdido na rua, atualizando o rastro de busca. \\ \hline
+Resumo & Permite a um membro da comunidade informar o local, a foto e a situação de um animal perdido que viu, acrescentando uma pista ao histórico da busca. \\ \hline
 Pré-Condições & O animal deve estar publicado com status ``Perdido''. \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
@@ -148,7 +148,7 @@ Pré-Condições & O animal deve estar publicado com status ``Perdido''. \\ \hli
 3. O usuário captura ou anexa uma fotografia do animal avistado.\par
 4. O sistema inclui obrigatoriamente (\textit{<<include>>}) o caso de uso Selecionar Localização no Mapa, capturando o ponto GPS do avistamento.\par
 5. O usuário confirma o envio do avistamento.\par
-6. O sistema atualiza o marcador principal do animal para as novas coordenadas e grava o histórico em \textit{sightings}.\par
+6. O sistema grava o avistamento em \textit{sightings}, com a indicação de que o animal estava na rua ou em uma casa ou quintal; neste último caso, o ponto é guardado de forma aproximada.\par
 7. O sistema registra uma notificação para o autor da publicação informando o novo avistamento e, quando houver permissão do dispositivo, envia um aviso ao celular.
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos Alternativos:} \\
@@ -160,7 +160,7 @@ Pré-Condições & O animal deve estar publicado com status ``Perdido''. \\ \hli
 4b. Coordenadas geográficas ausentes: o sistema impede a gravação do avistamento enquanto o ponto no mapa não for confirmado.\par
 5a. Falha temporária de rede: o sistema retém os dados digitados e sugere nova tentativa de envio.
 } \\ \hline
-Pós-Condições & Marcador do animal reposicionado no mapa, tutor alertado e histórico de rastro atualizado. \\ \hline
+Pós-Condições & Avistamento incluído no histórico do animal, tutor alertado e, se o animal estava na rua, rota disponível até a área do avistamento. \\ \hline
 \end{tabular}
 \end{table}
 
@@ -288,7 +288,7 @@ Identificador & UC08 \\ \hline
 Nome do Caso de Uso & Solicitar Comprovação de Tutela \\ \hline
 Ator Principal & Usuário Autenticado (solicitante) \\ \hline
 Atores Secundários & Autor da publicação (quem acolheu o animal) \\ \hline
-Resumo & Permite ao usuário que se identifica como tutor de um animal anunciado como encontrado comprovar a tutela para obter o endereço exato e combinar a devolução. \\ \hline
+Resumo & Permite ao usuário que se identifica como tutor de um animal anunciado como encontrado comprovar a tutela e combinar com quem o acolheu um encontro de devolução em local público. \\ \hline
 Pré-Condições & Usuário autenticado; publicação do tipo ``Encontrado'' ativa, com endereço exato protegido. \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
@@ -296,19 +296,25 @@ Pré-Condições & Usuário autenticado; publicação do tipo ``Encontrado'' ati
 2. O sistema solicita a forma de comprovação (fotos do animal, carteira de vacinação ou marcas ocultas).\par
 3. O usuário anexa as imagens pela galeria ou pela câmera e escreve uma mensagem ao autor da publicação.\par
 4. O usuário confirma o envio.\par
-5. O sistema registra a solicitação como pendente e notifica o autor da publicação por notificação e mensagem privada.\par
-6. O autor analisa o relato e as imagens e aprova a solicitação.\par
-7. O sistema libera ao solicitante o endereço exato do local onde o animal está acolhido e o notifica da aprovação.
+5. O sistema registra a solicitação como pendente e avisa o autor da publicação por notificação e por uma mensagem automática no chat.\par
+6. O autor analisa o relato e as imagens no chat e, se conferirem, aciona ``Liberar Local''.\par
+7. O autor escolhe no mapa um ponto público de encontro, o dia, o horário e uma observação opcional, e envia a proposta (\textit{<<extend>>} Combinar Encontro de Devolução).\par
+8. O sistema aprova a solicitação, fixa a proposta no alto da conversa e notifica o solicitante.\par
+9. O solicitante confirma o encontro.\par
+10. O sistema marca o encontro como confirmado, registra a resposta no chat e notifica o autor.
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos Alternativos:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-6a. Recusa da solicitação: o autor recusa o pedido e pode registrar o motivo; o sistema notifica o solicitante, e o endereço permanece protegido.
+6a. Recusa da solicitação: o autor recusa o pedido e pode registrar o motivo; o sistema notifica o solicitante.\par
+9a. Outro horário: o solicitante sugere outro dia, horário ou ponto; a proposta anterior é substituída e o autor passa a responder à nova.\par
+9b. Não posso: o solicitante recusa o horário proposto e pode deixar um motivo; as partes combinam uma nova proposta pelo chat.\par
+10a. Remarcação ou cancelamento: depois de confirmado, qualquer uma das partes pode remarcar ou cancelar o encontro, e a outra é notificada.
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos de Exceção:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
 3a. Mensagem vazia: o sistema exige a descrição de como o usuário comprova ser o tutor antes de permitir o envio.
 } \\ \hline
-Pós-Condições & Solicitação registrada e analisada; em caso de aprovação, endereço exato liberado ao solicitante. \\ \hline
+Pós-Condições & Solicitação registrada e analisada; em caso de aprovação, encontro de devolução combinado em local público, sem liberação do endereço residencial. \\ \hline
 \end{tabular}
 \end{table}
 
@@ -764,7 +770,7 @@ Após o ingresso no aplicativo, o usuário pode consultar no mapa as publicaçõ
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-A visualização da Figura~C2 evidencia a convergência entre geolocalização e mobilidade urbana. Na Figura~C2.a, o mapa renderiza marcadores georreferenciados diferenciados por cores e ícones conforme a espécie (cães, gatos, aves e outros animais domésticos), circundados por um raio de busca semitransparente ajustável pelo usuário. Ao tocar sobre qualquer marcador, o sistema exibe um cartão rápido com foto, nome e distância em quilômetros. Ao acionar o botão de navegação, a interface exibida na Figura~C2.b traça automaticamente a rota viária otimizada até as coordenadas do animal, informando o tempo estimado de deslocamento e a distância a percorrer para apoiar a ação imediata do voluntário ou tutor.
+A visualização da Figura~C2 evidencia a convergência entre geolocalização e mobilidade urbana. Na Figura~C2.a, cada animal aparece no mapa com a sua foto em um círculo, contornado pela cor da situação da publicação. Ao tocar em um marcador, o sistema exibe um cartão com foto, nome e distância. Quando há uma pista recente na rua, o botão de rota mostra o caminho até a área onde o animal foi visto (Figura~C2.b), com tempo e distância estimados, a escolha entre ir a pé, de bicicleta, de carro ou de ônibus e a opção de abrir o trajeto no Google Maps.
 
 \clearpage
 
@@ -794,7 +800,7 @@ Ao avistar ou resgatar um animal desorientado em vias públicas, o cidadão inic
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-O procedimento de registro documentado na Figura~C3 busca organizar as informações disponibilizadas à comunidade. Na Figura~C3.a, o usuário define a categoria da publicação (animal encontrado na rua), anexa fotografias capturadas na hora pela câmera ou selecionadas da galeria, e seleciona espécie, sexo, porte e cores predominantes da pelagem. Na etapa seguinte, exibida na Figura~C3.b, o sistema captura a posição atual do aparelho via GPS ou permite ao colaborador ajustar manualmente o pino sobre o endereço exato onde o animal foi visto, acionando rotinas de geocodificação reversa para preencher automaticamente o endereço antes da publicação no mural geral.
+O procedimento de registro documentado na Figura~C3 busca organizar as informações disponibilizadas à comunidade. Na Figura~C3.a, o usuário define a categoria da publicação (animal encontrado na rua), anexa fotografias capturadas na hora pela câmera ou selecionadas da galeria, e seleciona espécie, sexo, porte e cores predominantes da pelagem. Na etapa seguinte, exibida na Figura~C3.b, o sistema captura a posição atual do aparelho via GPS ou permite ao colaborador ajustar manualmente o pino sobre o local onde o animal foi visto e preenche automaticamente a rua, o bairro e a cidade, sem o número da casa, antes da publicação no mural geral.
 
 \clearpage
 
@@ -824,7 +830,7 @@ Para permitir a identificação precisa de um animal anunciado, o sistema dispon
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-A articulação entre a ficha descritiva e a divulgação externa visualiza-se na Figura~C4. Na Figura~C4.a, a tela de detalhes consolida a galeria fotográfica com paginação deslizante, a descrição detalhada de marcas características e cicatrizes, o mapa de localização aproximada e os botões de ação comunitária (``Vi o Pet'', ``Entrar em Contato'' e ``Compartilhar Cartaz''). Ao tocar na opção de compartilhamento, o componente nativo renderiza a tela exibida na Figura~C4.b, diagramando automaticamente o cartaz de busca com fotografia destacada, dados essenciais e, no formato A4, código QR que direciona à página pública da publicação; também há versões nos formatos 9:16 e 1:1 para redes sociais. Como o cartaz pode conter dados informados pelo autor, seu compartilhamento deve considerar essas informações.
+A articulação entre a ficha descritiva e a divulgação externa visualiza-se na Figura~C4. Na Figura~C4.a, a tela de detalhes mostra a foto do animal, com o botão de compartilhamento, o tipo da publicação e as características em cartões; mais abaixo ficam a região do desaparecimento, a situação da pista e os botões de ação, como ``Vi o Pet''. Ao tocar na opção de compartilhamento, o componente nativo renderiza a tela exibida na Figura~C4.b, diagramando automaticamente o cartaz de busca com fotografia destacada, dados essenciais e, no formato A4, código QR que direciona à página pública da publicação; também há versões nos formatos 9:16 e 1:1 para redes sociais. O telefone do autor só aparece no cartaz quando ele autoriza.
 
 \clearpage
 
@@ -904,7 +910,7 @@ Participantes relataram recorrer a redes sociais para divulgar animais perdidos.
 Uma publicação precisa poder ser corrigida e encerrada quando a busca termina. & RF05 & Edição, encerramento e exclusão da própria publicação pelo autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 17 dos 19 respondentes indicaram ausência de mapas interativos como dificuldade nos meios atuais. & RF06 & Mapa interativo com marcadores das publicações de animais perdidos e encontrados. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 A busca em canais generalistas não oferece filtros próprios por características e distância. & RF07 & Pesquisa e filtros por espécie, situação, características, oferta de recompensa e raio de proximidade. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-A localização associada à publicação deve orientar a procura em campo. & RF08 & Exibição de rota até o local informado na publicação, quando disponível. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+A localização associada à publicação deve orientar a procura em campo. & RF08 & Rota a pé, de bicicleta, de carro ou de ônibus até a área da pista pública mais recente, com indicação de pista quente, morna ou fria. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Relatos comunitários podem fornecer pistas sobre onde e quando o animal foi visto. & RF09 & Registro de avistamento vinculado à publicação, com local, data/horário, descrição e imagem opcional. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Relatos incorretos ou desatualizados precisam ser consultáveis e corrigíveis pelo autor. & RF10 & Linha do tempo de avistamentos e edição ou remoção do relato pelo seu autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 14 dos 19 respondentes relataram preocupação com a exposição de telefones pessoais. & RF11 & Conversa privada entre usuários associada à publicação, com envio e recebimento de mensagens. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
@@ -914,9 +920,11 @@ Denúncias exigem análise e ação administrativa para apoiar a integridade das
 80\% dos respondentes avaliaram com nota máxima e 20\% com nota 4 a geração automatizada de cartazes. & RF15 & Geração de cartaz digital com informações da publicação e código QR para exportação ou compartilhamento. & Incluído na tarefa 3 da avaliação com participantes; resultado individual não registrado. \\ \hline
 Publicações sem atualização podem permanecer visíveis após o fim da busca. & RF16 & Vigência de 30 dias, aviso três dias antes do vencimento, ocultação após expirar, renovação durante 30 dias de carência e remoção definitiva, após esse prazo, pela rotina local para publicações do usuário autenticado. & Verificação individual não registrada. \\ \hline
 A comparação entre anúncios perdidos e encontrados pode apoiar a identificação de possíveis correspondências. & RF17 & Comparação automática de publicações por espécie, características físicas e distância, com apresentação de sugestões de correspondência e confirmação final pelos usuários. & Teste com 20 pares fictícios (Seção 8.3): 8 de 10 pares do mesmo animal sugeridos e 6 de 10 pares diferentes sugeridos por engano. \\ \hline
-70\% dos participantes aprovaram a exigência de comprovação antes da devolução do animal, para prevenir golpes. & RF18 & Solicitação de devolução com relato e fotos, análise pelo autor da publicação, aprovação ou recusa, liberação do endereço exato após a aprovação e notificação do solicitante. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+70\% dos participantes aprovaram a exigência de comprovação antes da devolução do animal, para prevenir golpes. & RF18 & Solicitação de devolução com relato e fotos, análise pelo autor da publicação, aprovação ou recusa e encontro de devolução em local público combinado pelo chat, com confirmação, remarcação ou cancelamento e notificação a cada etapa. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Observação do autor em grupos de Facebook: quem anuncia ter encontrado um animal recebe julgamentos nos comentários (sem estudo formal). & RF04 & Opção de publicar o relato de animal encontrado anonimamente, com ``Relato anônimo da comunidade'' no lugar do nome e da foto do autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 70\% dos respondentes declararam que seus animais não têm microchip de identificação. & RF19 & Cadastro preventivo dos animais de estimação, carteirinha digital com código QR e contato do tutor, e conversão do cadastro em publicação de animal perdido. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 70\% dos respondentes afirmaram que usariam uma seção para adoção e lar temporário. & RF20 & Publicação para adoção e disponibilização de animal encontrado para adoção após sete dias de busca pelo tutor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+70\% dos participantes apontaram a prevenção de golpes como motivo para exigir comprovação antes da devolução, o que indica a necessidade de confiança entre desconhecidos. & RF21 & Classificação entre membros após uma conversa, com estrelas, etiquetas e comentário, e média exibida no perfil público. & Verificação ainda não registrada. \\ \hline
 \end{longtable}
 }
 

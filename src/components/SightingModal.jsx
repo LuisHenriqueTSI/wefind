@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Modal,
   View,
@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
@@ -19,6 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Button from './Button';
 import MapLocationPicker from './MapLocationPicker';
 import COLORS from '../constants/theme';
+import { removeHouseNumberFromAddress } from '../utils/locationPrivacy';
 
 const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
   const [description, setDescription] = useState('');
@@ -26,6 +26,8 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
   const [coordinate, setCoordinate] = useState(null);
   const [locationDetails, setLocationDetails] = useState(null);
   const [mapPickerVisible, setMapPickerVisible] = useState(false);
+  // 'street' = solto na rua (pode virar rota) | 'private' = em casa/quintal (nunca vira rota)
+  const [animalPlace, setAnimalPlace] = useState(null);
 
   const [instagram, setInstagram] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
@@ -35,28 +37,34 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
   const [photoUrl, setPhotoUrl] = useState('');
   const [uploading, setUploading] = useState(false);
 
-  // Força o retorno do modal à posição centralizada quando o teclado fecha
-  useEffect(() => {
-    const subscription = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        Keyboard.dismiss();
-      }
-    );
-    return () => subscription.remove();
-  }, []);
+  const scrollRef = useRef(null);
+  const sectionOffsetsRef = useRef({});
+
+  // Ao focar um campo, rola até a seção dele depois que o teclado abre
+  const scrollToSection = (key) => {
+    setTimeout(() => {
+      const y = sectionOffsetsRef.current[key];
+      if (key === 'contacts') scrollRef.current?.scrollToEnd({ animated: true });
+      else if (y != null) scrollRef.current?.scrollTo({ y: Math.max(0, y - 8), animated: true });
+    }, 250);
+  };
+  const rememberOffset = (key) => (e) => {
+    sectionOffsetsRef.current[key] = e?.nativeEvent?.layout?.y;
+  };
 
   const handleSend = () => {
-    if (!description.trim()) return;
+    if (!description.trim() || !animalPlace) return;
     onSubmit({
       description: description.trim(),
-      location: location.trim(),
+      location: removeHouseNumberFromAddress(location.trim()),
+      animal_place: animalPlace,
       coordinate,
       location_details: locationDetails,
       contact_info: {
         instagram: instagram.trim(),
         whatsapp: whatsapp.trim(),
         facebook: facebook.trim(),
+        animal_place: animalPlace,
         coordinate,
         location_details: locationDetails,
       },
@@ -70,6 +78,7 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
     setLocation('');
     setCoordinate(null);
     setLocationDetails(null);
+    setAnimalPlace(null);
     setInstagram('');
     setWhatsapp('');
     setFacebook('');
@@ -117,13 +126,16 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
   return (
     <>
       <Modal visible={visible && !mapPickerVisible} animationType="slide" transparent statusBarTranslucent onRequestClose={handleClose}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.overlay}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-              style={{ width: '100%', maxWidth: 440, alignItems: 'center' }}
-            >
-              <TouchableWithoutFeedback onPress={() => {}}>
+        {/* Com o edge-to-edge do Android (app.json) a janela do modal não
+            encolhe sozinha com o teclado: o KeyboardAvoidingView reserva o
+            espaço nas duas plataformas e o cartão encolhe (com rolagem). */}
+        <KeyboardAvoidingView behavior="padding" style={styles.overlay}>
+          {/* Fundo: toque fora do cartão fecha o teclado. Fica ATRÁS do cartão
+              (e não em volta dele) para não disputar o gesto de rolagem. */}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={StyleSheet.absoluteFill} />
+          </TouchableWithoutFeedback>
+
                 <View style={styles.modal}>
                   {/* Header */}
                   <View style={styles.header}>
@@ -141,7 +153,17 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
                     </TouchableOpacity>
                   </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            {/* flexShrink: o conteúdo rola dentro do cartão em vez de vazar
+                para fora dele (antes, ao marcar o local, a prévia do endereço
+                empurrava foto, contatos e botões para fora da tela). */}
+            <ScrollView
+              ref={scrollRef}
+              style={styles.scroll}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+            >
               {/* Campo de Descrição */}
               <Text style={styles.inputLabel}>Detalhes e Informações *</Text>
               <TextInput
@@ -154,9 +176,50 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
                 numberOfLines={3}
               />
 
+              {/* Onde o animal está: define se o local pode virar rota */}
+              <Text style={styles.inputLabel}>Onde o animal está? *</Text>
+              <View style={styles.placeRow}>
+                {[
+                  { key: 'street', icon: 'directions-walk', title: 'Solto na rua', hint: 'calçada, praça, terreno aberto' },
+                  { key: 'private', icon: 'home', title: 'Em casa ou quintal', hint: 'comigo ou dentro de um imóvel' },
+                ].map((opt) => {
+                  const active = animalPlace === opt.key;
+                  return (
+                    <TouchableOpacity
+                      key={opt.key}
+                      style={[styles.placeOption, active && styles.placeOptionActive]}
+                      onPress={() => setAnimalPlace(opt.key)}
+                      activeOpacity={0.8}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: active }}
+                    >
+                      <MaterialIcons name={opt.icon} size={20} color={active ? COLORS.primary : '#64748B'} />
+                      <Text style={[styles.placeTitle, active && { color: COLORS.primary }]}>{opt.title}</Text>
+                      <Text style={styles.placeHint}>{opt.hint}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              {animalPlace === 'street' && (
+                <View style={styles.placeNotice}>
+                  <MaterialIcons name="info-outline" size={15} color="#0369A1" />
+                  <Text style={styles.placeNoticeText}>
+                    Marque a rua onde viu o animal, não o seu endereço. A rota mostra só uma área aproximada.
+                  </Text>
+                </View>
+              )}
+              {animalPlace === 'private' && (
+                <View style={[styles.placeNotice, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
+                  <MaterialIcons name="lock-outline" size={15} color="#15803D" />
+                  <Text style={[styles.placeNoticeText, { color: '#166534' }]}>
+                    O tutor recebe sua informação, mas este local não vira rota e o endereço fica protegido.
+                  </Text>
+                </View>
+              )}
+
               {/* Seção de Localização com Mapa */}
               <Text style={styles.inputLabel}>Onde foi visto?</Text>
-              <View style={styles.locationCard}>
+              <View style={styles.locationCard} onLayout={rememberOffset('location')}>
                 <View style={styles.locationCardHeader}>
                   <MaterialIcons name="location-on" size={20} color={COLORS.primary} />
                   <Text style={styles.locationCardTitle}>
@@ -193,6 +256,7 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
                   placeholderTextColor="#9CA3AF"
                   value={location}
                   onChangeText={setLocation}
+                  onFocus={() => scrollToSection('location')}
                 />
               </View>
 
@@ -235,6 +299,7 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
                     <FontAwesome name="whatsapp" size={16} color="#25D366" style={{ width: 22 }} />
                     <TextInput
                       style={styles.contactInput}
+                      onFocus={() => scrollToSection('contacts')}
                       placeholder="WhatsApp (apenas números com DDD)"
                       placeholderTextColor="#9CA3AF"
                       value={whatsapp}
@@ -248,6 +313,7 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
                     <FontAwesome name="instagram" size={16} color="#C13584" style={{ width: 22 }} />
                     <TextInput
                       style={styles.contactInput}
+                      onFocus={() => scrollToSection('contacts')}
                       placeholder="Instagram (ex: @seunome)"
                       placeholderTextColor="#9CA3AF"
                       value={instagram}
@@ -260,6 +326,7 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
                     <FontAwesome name="facebook-square" size={16} color="#1877F3" style={{ width: 22 }} />
                     <TextInput
                       style={styles.contactInput}
+                      onFocus={() => scrollToSection('contacts')}
                       placeholder="Facebook (opcional)"
                       placeholderTextColor="#9CA3AF"
                       value={facebook}
@@ -277,17 +344,14 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
               <Button
                 title={loading ? 'Enviando...' : 'Enviar Informação'}
                 onPress={handleSend}
-                disabled={loading || !description.trim()}
+                disabled={loading || !description.trim() || !animalPlace}
                 style={styles.button}
               />
             </View>
             {loading && <ActivityIndicator style={{ marginTop: 8 }} color={COLORS.primary} />}
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </View>
-  </TouchableWithoutFeedback>
-</Modal>
+                </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
       {/* Seletor de Mapa Interativo Integrado */}
       <MapLocationPicker
@@ -304,12 +368,61 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
 };
 
 const styles = StyleSheet.create({
+  placeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  placeOption: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  placeOptionActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: '#F0FDF4',
+  },
+  placeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#334155',
+    marginTop: 4,
+  },
+  placeHint: {
+    fontSize: 10.5,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 1,
+  },
+  placeNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    backgroundColor: '#F0F9FF',
+    borderColor: '#BAE6FD',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 8,
+    marginBottom: 10,
+  },
+  placeNoticeText: {
+    flex: 1,
+    fontSize: 11.5,
+    lineHeight: 16,
+    color: '#075985',
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.65)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+    paddingTop: 40,
   },
   modal: {
     backgroundColor: '#FFFFFF',
@@ -317,7 +430,9 @@ const styles = StyleSheet.create({
     padding: 16,
     width: '100%',
     maxWidth: 440,
-    maxHeight: '82%',
+    maxHeight: '88%',
+    // Encolhe para caber entre o topo e o teclado (paddingBottom do overlay)
+    flexShrink: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
@@ -362,6 +477,10 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 16,
     backgroundColor: '#F8FAFC',
+  },
+  scroll: {
+    flexGrow: 0,
+    flexShrink: 1,
   },
   scrollContent: {
     paddingBottom: 8,

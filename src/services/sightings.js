@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase';
 import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { roundPublicCoordinate } from '../utils/locationPrivacy';
+import { removeHouseNumberFromAddress, roundPublicCoordinate } from '../utils/locationPrivacy';
 
 const DELETED_SIGHTINGS_KEY = '@wefind_deleted_sightings_store';
 let inMemoryDeletedSightings = new Set();
@@ -35,7 +35,7 @@ export const resolveReadableAddress = async (locationInput) => {
   if (typeof locationInput === 'string') {
     const trimmed = locationInput.trim();
     if (!trimmed.startsWith('{') && !trimmed.startsWith('[') && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(trimmed)) {
-      return trimmed;
+      return removeHouseNumberFromAddress(trimmed);
     }
   }
 
@@ -69,7 +69,7 @@ export const resolveReadableAddress = async (locationInput) => {
   }
 
   if (explicitAddress) {
-    return explicitAddress;
+    return removeHouseNumberFromAddress(explicitAddress);
   }
 
   if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) {
@@ -79,14 +79,13 @@ export const resolveReadableAddress = async (locationInput) => {
       const addresses = await Location.reverseGeocodeAsync({ latitude: Number(lat), longitude: Number(lng) });
       const addr = addresses?.[0];
       if (addr) {
-        const st = addr.street || addr.name || '';
-        const num = (addr.name && /^\d+$/.test(String(addr.name))) ? addr.name : (addr.streetNumber || '');
+        const st = addr.street || (addr.name && !/^\d+$/.test(String(addr.name)) ? addr.name : '');
         const dist = addr.district || addr.subregion || '';
         const ct = addr.city || addr.subregion || '';
         const state = addr.region || '';
 
         const parts = [];
-        if (st) parts.push(num ? `${st}, ${num}` : st);
+        if (st) parts.push(st);
         if (dist && dist !== st) parts.push(dist);
         if (ct && state) parts.push(`${ct} - ${state}`);
         else if (ct) parts.push(ct);
@@ -113,13 +112,12 @@ export const resolveReadableAddress = async (locationInput) => {
         const a = data?.address;
         if (a) {
           const road = a.road || a.pedestrian || a.suburb || '';
-          const houseNumber = a.house_number || '';
           const suburb = a.suburb || a.neighbourhood || '';
           const city = a.city || a.town || a.municipality || a.village || '';
           const state = a.state || '';
 
           const parts = [];
-          if (road) parts.push(houseNumber ? `${road}, ${houseNumber}` : road);
+          if (road) parts.push(road);
           if (suburb && suburb !== road) parts.push(suburb);
           if (city && state) parts.push(`${city} - ${state}`);
           else if (city) parts.push(city);
@@ -262,6 +260,25 @@ export const getSightings = async (itemId) => {
   } catch (error) {
     console.log('[getSightings] Exceção:', error.message);
     return [];
+  }
+};
+
+/** Quantos avistamentos um membro já compartilhou (para o perfil). */
+export const countUserSightings = async (userId) => {
+  if (!userId) return 0;
+  try {
+    const { count, error } = await supabase
+      .from('sightings')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    if (error) {
+      console.log('[countUserSightings] Erro:', error.message);
+      return 0;
+    }
+    return count || 0;
+  } catch (error) {
+    console.log('[countUserSightings] Exceção:', error.message);
+    return 0;
   }
 };
 
@@ -515,9 +532,18 @@ export const findNearbyPotentialMatches = async ({
 /**
  * Registra novo avistamento e move o pin do animal no mapa para a localização mais recente
  */
-export const recordSightingAndUpdateItemLocation = async ({ itemId, userId, location, description, photoUrl, contactInfo }) => {
+/**
+ * Registra um avistamento feito pela comunidade.
+ *
+ * O avistamento é gravado apenas na tabela `sightings`. A publicação do animal
+ * (tabela `items`) NÃO é alterada: ela mantém o local original (onde o animal
+ * sumiu ou foi visto pela primeira vez) e só o autor pode editá-la. O rastro no
+ * mapa, a contagem e o "último local visto" são calculados a partir dos
+ * avistamentos (ver `attachSightingSummaries`).
+ */
+export const recordSighting = async ({ itemId, userId, location, description, photoUrl, contactInfo, animalPlace = 'street' }) => {
   try {
-    console.log('[recordSightingAndUpdateItemLocation] Processando avistamento para o item:', itemId);
+    console.log('[recordSighting] Processando avistamento para o item:', itemId);
 
     // 1. Extração robusta de coordenadas (latitude e longitude)
     let lat = location?.latitude ?? location?.coords?.latitude ?? location?.lat ?? location?.coordinate?.latitude ?? contactInfo?.coordinate?.latitude ?? contactInfo?.location_details?.latitude;
@@ -535,14 +561,14 @@ export const recordSightingAndUpdateItemLocation = async ({ itemId, userId, loca
           lng = geoResults[0].longitude;
         }
       } catch (geoErr) {
-        console.warn('[recordSightingAndUpdateItemLocation] Erro no geocoding do texto:', geoErr?.message);
+        console.warn('[recordSighting] Erro no geocoding do texto:', geoErr?.message);
       }
     }
 
     // 2. Resolve o endereço completo humanizado e partes estruturadas
     let resolvedAddress = rawAddressText;
     let street = contactInfo?.location_details?.street || location?.street || '';
-    let number = contactInfo?.location_details?.number || location?.number || location?.house_number || '';
+    // O WeFIND não guarda número de casa em avistamentos
     let district = contactInfo?.location_details?.district || location?.district || location?.neighborhood || '';
     let city = contactInfo?.location_details?.city || location?.city || '';
     let state = contactInfo?.location_details?.state || location?.state || '';
@@ -554,13 +580,12 @@ export const recordSightingAndUpdateItemLocation = async ({ itemId, userId, loca
         const addr = addresses?.[0];
         if (addr) {
           if (!street) street = addr.street || addr.name || '';
-          if (!number) number = (addr.name && /^\d+$/.test(String(addr.name))) ? addr.name : (addr.streetNumber || '');
           if (!district) district = addr.district || addr.subregion || '';
           if (!city) city = addr.city || addr.subregion || '';
           if (!state) state = addr.region || '';
 
           const parts = [];
-          if (street) parts.push(number ? `${street}, ${number}` : street);
+          if (street) parts.push(street);
           if (district && district !== street) parts.push(district);
           if (city && state) parts.push(`${city} - ${state}`);
           else if (city) parts.push(city);
@@ -570,12 +595,24 @@ export const recordSightingAndUpdateItemLocation = async ({ itemId, userId, loca
           if (humanized.trim()) resolvedAddress = humanized.trim();
         }
       } catch (revErr) {
-        console.warn('[recordSightingAndUpdateItemLocation] Erro no reverse geocoding:', revErr?.message);
+        console.warn('[recordSighting] Erro no reverse geocoding:', revErr?.message);
       }
     }
 
+    street = removeHouseNumberFromAddress(street);
+    resolvedAddress = removeHouseNumberFromAddress(resolvedAddress);
     if (!resolvedAddress) {
       resolvedAddress = 'Localização marcada no mapa';
+    }
+
+    // Animal dentro de casa/quintal: o ponto não é público, então é guardado
+    // só de forma aproximada (~1 km) e nunca vira destino de rota.
+    const isPrivatePlace = animalPlace === 'private';
+    if (isPrivatePlace && lat != null && lng != null) {
+      lat = roundPublicCoordinate(lat);
+      lng = roundPublicCoordinate(lng);
+      resolvedAddress = [district, city].filter(Boolean).join(' - ') || 'Local privado (endereço protegido)';
+      street = '';
     }
 
     // 3. Cria o avistamento no histórico (tabela 'sightings')
@@ -587,10 +624,10 @@ export const recordSightingAndUpdateItemLocation = async ({ itemId, userId, loca
       photo_url: photoUrl,
       contact_info: {
         ...(typeof contactInfo === 'object' ? contactInfo : {}),
+        animal_place: isPrivatePlace ? 'private' : 'street',
         coordinate: (lat != null && lng != null) ? { latitude: Number(lat), longitude: Number(lng) } : null,
         location_details: {
           street,
-          number,
           district,
           city,
           state,
@@ -599,76 +636,19 @@ export const recordSightingAndUpdateItemLocation = async ({ itemId, userId, loca
       },
     });
 
-    // 4. Atualiza os dados completos de localização do animal na tabela 'items'
-    const { data: currentItem } = await supabase
-      .from('items')
-      .select('extra_fields, city, state, neighborhood, street, latitude, longitude, owner_id, title')
-      .eq('id', itemId)
-      .maybeSingle();
-
-    const currentExtra = currentItem?.extra_fields || {};
-    const newCount = (currentExtra.sighting_count || 0) + 1;
-
-    const updatePayload = {
-      updated_at: new Date().toISOString(),
-      extra_fields: {
-        ...currentExtra,
-        sighting_count: newCount,
-        last_sighting_at: new Date().toISOString(),
-        last_sighting_by: userId,
-        last_sighting_address: resolvedAddress,
-        last_sighting_lat: lat != null ? Number(lat) : currentItem?.latitude,
-        last_sighting_lng: lng != null ? Number(lng) : currentItem?.longitude,
-        location_details: {
-          ...(currentExtra.location_details || {}),
-          latitude: lat != null ? Number(lat) : (currentExtra.location_details?.latitude || currentItem?.latitude),
-          longitude: lng != null ? Number(lng) : (currentExtra.location_details?.longitude || currentItem?.longitude),
-          street: street || currentItem?.street || currentExtra.location_details?.street || '',
-          number: number || currentExtra.location_details?.number || '',
-          district: district || currentItem?.neighborhood || currentExtra.location_details?.district || '',
-          city: city || currentItem?.city || currentExtra.location_details?.city || '',
-          state: state || currentItem?.state || currentExtra.location_details?.state || '',
-          text: resolvedAddress,
-        },
-      },
-    };
-
-    if (lat != null && lng != null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
-      updatePayload.latitude = Number(lat);
-      updatePayload.longitude = Number(lng);
-    }
-    if (resolvedAddress && resolvedAddress !== 'Localização marcada no mapa') {
-      updatePayload.address = resolvedAddress;
-    }
-    if (street) updatePayload.street = street;
-    if (number) updatePayload.house_number = number;
-    if (district) updatePayload.neighborhood = district;
-    if (city) updatePayload.city = city;
-    if (state) updatePayload.state = state;
-
-    const { error: updateError } = await supabase
-      .from('items')
-      .update(updatePayload)
-      .eq('id', itemId);
-
-    if (updateError) {
-      console.warn('[recordSightingAndUpdateItemLocation] Erro ao atualizar item:', updateError.message);
-      throw new Error(`O avistamento foi registrado, mas a localização da publicação não pôde ser atualizada: ${updateError.message}`);
-    } else {
-      console.log('[recordSightingAndUpdateItemLocation] Localização do item atualizada com sucesso no banco!');
-    }
-
-    // 5. Credita pontos de gamificação ao usuário que registrou o avistamento
+    // 4. Credita pontos de gamificação ao usuário que registrou o avistamento
     try {
       const { awardGamificationXp } = await import('./gamification');
       await awardGamificationXp(userId, 'sighting_report', 40);
     } catch (gamiErr) {}
 
+    const hasCoordinates = lat != null && lng != null && !isNaN(Number(lat)) && !isNaN(Number(lng));
+
     return {
       sighting,
-      updatedLocation: {
-        latitude: updatePayload.latitude,
-        longitude: updatePayload.longitude,
+      sightingLocation: {
+        latitude: hasCoordinates ? Number(lat) : null,
+        longitude: hasCoordinates ? Number(lng) : null,
         address: resolvedAddress,
         street,
         neighborhood: district,
@@ -677,8 +657,100 @@ export const recordSightingAndUpdateItemLocation = async ({ itemId, userId, loca
       },
     };
   } catch (err) {
-    console.error('[recordSightingAndUpdateItemLocation] Erro:', err);
+    console.error('[recordSighting] Erro:', err);
     throw err;
+  }
+};
+
+/**
+ * Resume uma lista de avistamentos de UM animal: quantidade e último local visto.
+ * Retorna os mesmos campos que antes eram gravados em `items.extra_fields`.
+ */
+export const summarizeSightings = (rows) => {
+  const list = (Array.isArray(rows) ? rows : [])
+    .filter((s) => s && s.created_at)
+    .slice()
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  const readInfo = (s) => {
+    let info = s.contact_info;
+    if (typeof info === 'string') {
+      try { info = JSON.parse(info); } catch { info = {}; }
+    }
+    return info || {};
+  };
+  const readCoordinate = (s) => {
+    const info = readInfo(s);
+    const lat = Number(info?.coordinate?.latitude ?? info?.location_details?.latitude);
+    const lng = Number(info?.coordinate?.longitude ?? info?.location_details?.longitude);
+    return Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0 ? { lat, lng } : null;
+  };
+
+  const latest = list[0];
+  const latestWithCoordinate = list.find((s) => readCoordinate(s));
+  const coordinate = latestWithCoordinate ? readCoordinate(latestWithCoordinate) : null;
+
+  // Avistamentos "na rua" (os antigos, sem a informação, contam como na rua)
+  const latestPublic = list.find((s) => readInfo(s).animal_place !== 'private' && readCoordinate(s));
+  const publicCoordinate = latestPublic ? readCoordinate(latestPublic) : null;
+
+  return {
+    last_public_sighting_at: latestPublic?.created_at || null,
+    last_public_sighting_address: latestPublic?.location || null,
+    last_public_sighting_lat: publicCoordinate ? publicCoordinate.lat : null,
+    last_public_sighting_lng: publicCoordinate ? publicCoordinate.lng : null,
+    sighting_count: list.length,
+    last_sighting_at: latest?.created_at || null,
+    last_sighting_by: latest?.user_id || null,
+    last_sighting_address: latest?.location || null,
+    last_sighting_lat: coordinate ? coordinate.lat : null,
+    last_sighting_lng: coordinate ? coordinate.lng : null,
+  };
+};
+
+/**
+ * Acrescenta aos itens o resumo dos avistamentos (contagem e último local visto),
+ * calculado a partir da tabela `sightings`. Se a consulta falhar, devolve os
+ * itens como vieram.
+ */
+export const attachSightingSummaries = async (items) => {
+  const list = Array.isArray(items) ? items : [];
+  const ids = [...new Set(list.map((item) => item?.id).filter((id) => id != null))];
+  if (ids.length === 0) return items;
+
+  try {
+    await loadDeletedSightingsSet();
+
+    const rows = [];
+    for (let i = 0; i < ids.length; i += 100) {
+      const { data, error } = await supabase
+        .from('sightings')
+        .select('id, item_id, user_id, location, description, contact_info, created_at')
+        .in('item_id', ids.slice(i, i + 100));
+      if (error) {
+        console.log('[attachSightingSummaries] Erro:', error.message);
+        return items;
+      }
+      rows.push(...(data || []));
+    }
+
+    const byItem = {};
+    rows.forEach((s) => {
+      if (!s || !s.id) return;
+      if (inMemoryDeletedSightings.has(String(s.id))) return;
+      if (s.description === '[DELETED_BY_ADMIN]') return;
+      const key = String(s.item_id);
+      (byItem[key] = byItem[key] || []).push(s);
+    });
+
+    return list.map((item) => {
+      if (!item || item.id == null) return item;
+      const summary = summarizeSightings(byItem[String(item.id)] || []);
+      return { ...item, extra_fields: { ...(item.extra_fields || {}), ...summary } };
+    });
+  } catch (err) {
+    console.log('[attachSightingSummaries] Exceção:', err?.message || err);
+    return items;
   }
 };
 
@@ -760,6 +832,7 @@ export const getItemSightingTrail = async (item) => {
           date: s.created_at,
           description: s.description || 'Visto nesta região.',
           photo_url: s.photo_url,
+          animal_place: s.contact_info?.animal_place === 'private' ? 'private' : 'street',
           user_name: s.profiles?.name || 'Membro da Comunidade',
           isLatest,
         });

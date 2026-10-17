@@ -131,8 +131,8 @@ export const submitOwnershipProof = async ({
         await createNotification({
           user_id: finderId,
           type: 'claim_received',
-          title: `🛡️ Nova solicitação de devolução`,
-          message: `Um usuário enviou uma solicitação de devolução de ${itemTitle}. Toque para revisar a comprovação.`,
+          title: 'Nova solicitação de devolução',
+          message: `Um usuário enviou uma solicitação de devolução de ${itemTitle}. Abra o WeFIND para revisar a comprovação.`,
           item_id: itemId,
         });
       } catch (notifErr) {
@@ -258,7 +258,7 @@ export const approveVerification = async (claimId, { itemId, claimantId, itemTit
       createNotification({
         user_id: claimantId,
         type: 'claim_approved',
-        title: `✅ Comprovação de Tutor Aprovada!`,
+        title: 'Comprovação de tutela aprovada',
         message: `Sua comprovação de posse para ${itemTitle} foi aprovada. Combine a devolução pelo chat em um ponto público seguro; o endereço residencial continua protegido.`,
         item_id: itemId,
       }).catch((notificationError) => {
@@ -302,7 +302,7 @@ export const rejectVerification = async (claimId, reason = '', { itemId, claiman
       createNotification({
         user_id: claimantId,
         type: 'claim_rejected',
-        title: `❌ Comprovação não aprovada`,
+        title: 'Comprovação de tutela não aprovada',
         message: `Sua solicitação de comprovação de tutor para ${itemTitle} não pôde ser aprovada.${reason ? ` Motivo: ${reason}` : ''}`,
         item_id: itemId,
       }).catch((notificationError) => {

@@ -27,6 +27,17 @@ export const removeHouseNumberFromStreet = (street) =>
     .replace(/\s+\d+\s*$/, '')
     .trim();
 
+/**
+ * Remove o número da casa de um endereço completo, mantendo o resto.
+ * "Rua das Flores, 123 - Centro - Pelotas - RS" -> "Rua das Flores - Centro - Pelotas - RS"
+ */
+export const removeHouseNumberFromAddress = (address) =>
+  String(address || '')
+    .replace(/\s*,\s*(?:n[ºo°]\.?\s*)?\d+[a-zA-Z]?(?=\s*(?:-\s|,|;|$))/gi, '')
+    .replace(/\s+n[ºo°]\.?\s*\d+[a-zA-Z]?(?=\s*(?:-\s|,|;|$))/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
 export const getPrivateLocationSummary = (item, { includeCityState = true } = {}) => {
   const extraFields = item?.extra_fields && typeof item.extra_fields === 'object'
     ? item.extra_fields

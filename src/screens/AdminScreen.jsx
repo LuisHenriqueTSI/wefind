@@ -136,7 +136,7 @@ const AdminScreen = ({ navigation }) => {
               setVerifications((prev) =>
                 prev.map((v) => (v.id === verif.id ? { ...v, status: 'approved' } : v))
               );
-              Alert.alert('Sucesso! 🎉', 'Comprovação aprovada. O tutor poderá combinar a devolução em um ponto público pelo chat.');
+              Alert.alert('Comprovação aprovada', 'Comprovação aprovada. O tutor poderá combinar a devolução em um ponto público pelo chat.');
             } catch (err) {
               Alert.alert('Erro ao aprovar', err.message || 'Não foi possível concluir.');
             } finally {
@@ -285,11 +285,11 @@ const AdminScreen = ({ navigation }) => {
       await notificationsService.createNotification({
         user_id: user.id,
         type: 'test',
-        title: '🐾 Teste de Notificação WeFIND',
+        title: 'Teste de notificação WeFIND',
         message: 'Esta é uma notificação de teste enviada a partir do Painel Administrativo WeFIND para validação do webhook e disparo WhatsApp.',
         item_id: null,
       });
-      Alert.alert('Teste Disparado! 📲', 'A notificação de teste foi gravada no banco e encaminhada para os disparadores configurados.');
+      Alert.alert('Teste enviado', 'A notificação de teste foi gravada no banco e encaminhada para os disparadores configurados.');
     } catch (error) {
       Alert.alert('Erro ao disparar teste', error?.message || 'Não foi possível processar o teste.');
     }
@@ -297,7 +297,7 @@ const AdminScreen = ({ navigation }) => {
 
   const handleTestPushNotification = async () => {
     Alert.alert(
-      '🧪 Testar Notificação Push no Celular',
+      'Testar notificação no celular',
       'Como você deseja disparar o alerta de teste?',
       [
         {
@@ -316,8 +316,8 @@ const AdminScreen = ({ navigation }) => {
   const executeAdminPushTest = async (delaySeconds = 0) => {
     try {
       await triggerLocalNotification({
-        title: '🚨 Alerta WeFIND: Cão Perdido',
-        body: '🐾 Cão ("Thor", Labrador) perdido no seu bairro. Toque para abrir detalhes e fotos.',
+        title: 'Cão perdido perto de você',
+        body: 'Cão ("Thor", Labrador) perdido no seu bairro. Abra o WeFIND para ver as fotos e os detalhes.',
         data: {
           type: 'nearby_lost_pet',
         },
@@ -327,8 +327,8 @@ const AdminScreen = ({ navigation }) => {
       await notificationsService.createNotification({
         user_id: user.id,
         type: 'nearby_lost_pet',
-        title: '🚨 Alerta WeFIND: Cão Perdido',
-        message: '🐾 Cão ("Thor", Labrador) perdido nas proximidades. Toque para abrir detalhes e fotos.',
+        title: 'Cão perdido perto de você',
+        message: 'Cão ("Thor", Labrador) perdido nas proximidades. Abra o WeFIND para ver as fotos e os detalhes.',
         item_id: null,
       });
 
@@ -339,7 +339,7 @@ const AdminScreen = ({ navigation }) => {
         );
       } else {
         Alert.alert(
-          '🔔 Notificação Disparada!',
+          'Notificação enviada',
           'Verifique a barra de notificações no topo do seu celular e a sua central de alertas!'
         );
       }

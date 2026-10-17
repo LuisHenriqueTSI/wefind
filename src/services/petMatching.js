@@ -258,13 +258,13 @@ export const calculatePetMatchScore = (petA, petB) => {
   let badgeColor = '#94A3B8';
 
   if (percentage >= 85) {
-    level = 'Altíssima Probabilidade 🎯';
+    level = 'Altíssima Probabilidade';
     badgeColor = '#10B981'; // Verde Sucesso
   } else if (percentage >= 70) {
-    level = 'Grande Chance 🔍';
+    level = 'Grande Chance';
     badgeColor = '#2E5634'; // Verde Floresta
   } else if (percentage >= 55) {
-    level = 'Possível Semelhança 🐾';
+    level = 'Possível Semelhança';
     badgeColor = '#FEA937'; // Dourado
   }
 
@@ -369,16 +369,16 @@ export const processAndNotifyPetMatches = async (newItem) => {
       const locationInfo = matchedPet.neighborhood || matchedPet.city || 'sua região';
 
       // 1. Notificação para quem cadastrou o novo item (usuário atual)
-      const notifyTitleForCreator = `🎯 Possível Match (${matchScore}% de Semelhança)!`;
+      const notifyTitleForCreator = `Possível correspondência (${matchScore}% de semelhança)`;
       const notifyMessageForCreator = isNewItemLost
-        ? `Encontramos um animal compatível registrado como ENCONTRADO em ${locationInfo}. Toque para comparar as fotos!`
-        : `Encontramos um relato de pet PERDIDO em ${locationInfo} com características parecidas. Toque para conferir!`;
+        ? `Um animal registrado como encontrado em ${locationInfo} tem características parecidas com o seu. Abra o WeFIND para comparar as fotos.`
+        : `Um animal registrado como perdido em ${locationInfo} tem características parecidas com o que você encontrou. Abra o WeFIND para comparar as fotos.`;
 
       // 2. Notificação para o dono do pet já existente na base
-      const notifyTitleForExistingOwner = `🎯 Alerta de Match (${matchScore}% de Semelhança)!`;
+      const notifyTitleForExistingOwner = `Possível correspondência com sua publicação (${matchScore}% de semelhança)`;
       const notifyMessageForExistingOwner = isNewItemLost
-        ? `Um animal PERDIDO muito parecido com a sua publicação foi registrado em ${locationInfo}. Compare as fotos!`
-        : `Um animal compatível foi registrado como ENCONTRADO em ${locationInfo}. Confira se é o seu pet!`;
+        ? `Foi registrado um animal perdido em ${locationInfo} parecido com o que você publicou. Abra o WeFIND para comparar as fotos.`
+        : `Foi registrado um animal encontrado em ${locationInfo} parecido com o seu. Abra o WeFIND para conferir se é ele.`;
 
       // Insere no banco para o dono do pet existente
       if (matchedPet.owner_id && matchedPet.owner_id !== newItem.owner_id) {

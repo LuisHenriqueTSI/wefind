@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
   ScrollView,
   StyleSheet,
@@ -15,6 +17,7 @@ import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 import { states } from '../lib/br-locations';
 import COLORS from '../constants/theme';
+import { removeHouseNumberFromAddress } from '../utils/locationPrivacy';
 
 const BRAZIL_REGION = {
   latitude: -14.235,
@@ -64,12 +67,23 @@ const MapLocationPicker = ({
 
   // Campos de endereço editáveis
   const [street, setStreet] = useState('');
-  const [houseNumber, setHouseNumber] = useState('');
+  // O WeFIND não pede nem guarda número de casa (privacidade)
   const [district, setDistrict] = useState('');
   const [city, setCity] = useState('');
   const [stateUf, setStateUf] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [fullAddressText, setFullAddressText] = useState('');
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  // Com o teclado aberto, o rodapé não precisa da margem da barra de navegação
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardOpen(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardOpen(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (radiusKm) {
@@ -81,7 +95,6 @@ const MapLocationPicker = ({
   const updateAddressFields = (newFields) => {
     const updated = {
       street: newFields.street !== undefined ? newFields.street : street,
-      houseNumber: newFields.houseNumber !== undefined ? newFields.houseNumber : houseNumber,
       district: newFields.district !== undefined ? newFields.district : district,
       city: newFields.city !== undefined ? newFields.city : city,
       stateUf: newFields.stateUf !== undefined ? newFields.stateUf : stateUf,
@@ -89,7 +102,6 @@ const MapLocationPicker = ({
     };
 
     if (newFields.street !== undefined) setStreet(newFields.street);
-    if (newFields.houseNumber !== undefined) setHouseNumber(newFields.houseNumber);
     if (newFields.district !== undefined) setDistrict(newFields.district);
     if (newFields.city !== undefined) setCity(newFields.city);
     if (newFields.stateUf !== undefined) setStateUf(newFields.stateUf);
@@ -97,7 +109,7 @@ const MapLocationPicker = ({
 
     const parts = [];
     if (updated.street) {
-      parts.push(updated.houseNumber ? `${updated.street}, ${updated.houseNumber}` : updated.street);
+      parts.push(updated.street);
     }
     if (updated.district) parts.push(updated.district);
     if (updated.city && updated.stateUf) parts.push(`${updated.city} - ${updated.stateUf}`);
@@ -120,16 +132,13 @@ const MapLocationPicker = ({
           ? rawRegion.toUpperCase()
           : (normalizedRegionToUf[normRegion] || rawRegion);
 
-        const st = addr.street || addr.name || '';
-        const num = (addr.name && /^\d+$/.test(String(addr.name)))
-          ? addr.name
-          : (addr.streetNumber || addr.houseNumber || '');
+        // Só o nome da rua: o número da casa nunca é preenchido
+        const st = addr.street || (addr.name && !/^\d+$/.test(String(addr.name)) ? addr.name : '');
         const dist = addr.district || addr.subregion || '';
         const ct = addr.city || addr.subregion || '';
         const cep = addr.postalCode || '';
 
         setStreet(st);
-        setHouseNumber(num);
         setDistrict(dist);
         setCity(ct);
         setStateUf(resolvedUf);
@@ -137,14 +146,14 @@ const MapLocationPicker = ({
 
         const parts = [];
         if (st) {
-          parts.push(num ? `${st}, ${num}` : st);
+          parts.push(st);
         }
         if (dist) parts.push(dist);
         if (ct && resolvedUf) parts.push(`${ct} - ${resolvedUf}`);
         else if (ct) parts.push(ct);
         else if (resolvedUf) parts.push(resolvedUf);
 
-        setFullAddressText(parts.join(' - ') || [st, num, dist, ct, resolvedUf].filter(Boolean).join(', '));
+        setFullAddressText(parts.join(' - ') || [st, dist, ct, resolvedUf].filter(Boolean).join(', '));
       }
     } catch (error) {
       console.warn('[MapLocationPicker] Não foi possível identificar o endereço reverso:', error.message);
@@ -239,11 +248,12 @@ const MapLocationPicker = ({
   const handleConfirm = () => {
     if (!coordinate) return;
 
-    const formatted = fullAddressText.trim() || [street, houseNumber, district, city, stateUf].filter(Boolean).join(', ');
+    const safeStreet = removeHouseNumberFromAddress(street.trim());
+    const formatted = removeHouseNumberFromAddress(fullAddressText.trim()) || [safeStreet, district, city, stateUf].filter(Boolean).join(', ');
 
     const addressDetails = {
-      street: street.trim(),
-      number: houseNumber.trim(),
+      street: safeStreet,
+      number: '',
       district: district.trim(),
       city: city.trim(),
       state: stateUf.trim(),
@@ -252,9 +262,9 @@ const MapLocationPicker = ({
     };
 
     const address = {
-      street: street.trim(),
-      name: houseNumber.trim() || street.trim(),
-      houseNumber: houseNumber.trim(),
+      street: safeStreet,
+      name: safeStreet,
+      houseNumber: '',
       district: district.trim(),
       city: city.trim(),
       region: stateUf.trim(),
@@ -268,8 +278,8 @@ const MapLocationPicker = ({
         address,
         addressDetails,
         addressText: formatted,
-        street: street.trim(),
-        houseNumber: houseNumber.trim(),
+        street: safeStreet,
+        houseNumber: '',
         district: district.trim(),
         neighborhood: district.trim(),
         city: city.trim(),
@@ -282,7 +292,9 @@ const MapLocationPicker = ({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.container}>
+      {/* O teclado empurra o painel de endereço para cima (o mapa encolhe),
+          em vez de cobrir os campos de rua, bairro e cidade. */}
+      <KeyboardAvoidingView behavior="padding" style={styles.container}>
         {/* Cabeçalho Compacto */}
         <View style={[styles.header, { paddingTop: Math.max(insets.top, 14) }]}>
           <View style={{ flex: 1, paddingRight: 8 }}>
@@ -350,7 +362,7 @@ const MapLocationPicker = ({
         </View>
 
         {/* Painel Inferior de Endereço Editável (Mais Compacto e com Botão Fixo) */}
-        <View style={styles.bottomCard}>
+        <View style={[styles.bottomCard, keyboardOpen && { maxHeight: '72%' }]}>
           <View style={styles.bottomCardHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <MaterialIcons name="edit-location-alt" size={18} color={COLORS.primary} />
@@ -400,25 +412,15 @@ const MapLocationPicker = ({
 
             {coordinate ? (
               <>
-                {/* Linha 1: Rua e Número */}
+                {/* Linha 1: Rua (sem número da casa, por privacidade) */}
                 <View style={styles.inputRow}>
-                  <View style={{ flex: 2.2, marginRight: 6 }}>
-                    <Text style={styles.inputLabel}>Rua / Logradouro</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.inputLabel}>Rua / Logradouro (sem número)</Text>
                     <TextInput
                       style={styles.inputField}
                       value={street}
                       onChangeText={(t) => updateAddressFields({ street: t })}
                       placeholder="Ex: Rua das Flores"
-                      placeholderTextColor="#9CA3AF"
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.inputLabel}>Nº da Casa</Text>
-                    <TextInput
-                      style={styles.inputField}
-                      value={houseNumber}
-                      onChangeText={(t) => updateAddressFields({ houseNumber: t })}
-                      placeholder="Ex: 123"
                       placeholderTextColor="#9CA3AF"
                     />
                   </View>
@@ -485,7 +487,7 @@ const MapLocationPicker = ({
           </ScrollView>
 
           {/* Botão de Confirmação FIXO na Base (Com Safe Area Insets) */}
-          <View style={[styles.bottomCardFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+          <View style={[styles.bottomCardFooter, { paddingBottom: keyboardOpen ? 10 : Math.max(insets.bottom, 12) }]}>
             <TouchableOpacity
               style={[styles.confirmButton, !coordinate && styles.disabledButton]}
               onPress={handleConfirm}
@@ -497,7 +499,7 @@ const MapLocationPicker = ({
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -591,7 +593,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.primary,
   },
-  formScroll: { paddingHorizontal: 16 },
+  // flexShrink: os campos rolam dentro do painel em vez de empurrar o botão
+  // "Usar esta localização" para fora da tela
+  formScroll: { paddingHorizontal: 16, flexGrow: 0, flexShrink: 1 },
   radiusSelectorBox: {
     backgroundColor: '#EAF2EB',
     borderRadius: 8,

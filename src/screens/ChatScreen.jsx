@@ -13,7 +13,7 @@ import {
   Animated,
   Alert,
   Modal,
-  ScrollView,
+  Linking,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -27,6 +27,28 @@ import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import COLORS from '../constants/theme';
 import { getPrivateLocationSummary, isResidentialAddressPrivate } from '../utils/locationPrivacy';
+import MeetupProposalModal from '../components/MeetupProposalModal';
+import MeetupMapModal from '../components/MeetupMapModal';
+import {
+  MEETUP_ACTIVE_STATUSES,
+  MEETUP_MESSAGE_MARKERS,
+  approvePendingClaimForMeetup,
+  buildGoogleMapsUrl,
+  formatMeetupDate,
+  getLatestMeetup,
+  getMeetupMessageKind,
+  proposeMeetup,
+  respondToMeetup,
+} from '../services/returnMeetups';
+
+// Aparência das mensagens automáticas de encontro no chat
+const MEETUP_MESSAGE_STYLE = {
+  proposed: { label: 'PROPOSTA DE ENCONTRO', icon: 'event', color: '#B45309' },
+  countered: { label: 'NOVA SUGESTÃO DE ENCONTRO', icon: 'update', color: '#B45309' },
+  confirmed: { label: 'ENCONTRO CONFIRMADO', icon: 'event-available', color: '#2E5634' },
+  declined: { label: 'HORÁRIO RECUSADO', icon: 'event-busy', color: '#DC2626' },
+  cancelled: { label: 'ENCONTRO CANCELADO', icon: 'event-busy', color: '#DC2626' },
+};
 
 const ChatScreen = (props) => {
   const insets = useSafeAreaInsets();
@@ -65,12 +87,15 @@ const ChatScreen = (props) => {
   const [submittingProof, setSubmittingProof] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState(null);
 
-  // Estados para o Resgatista compartilhar o local de entrega / encontro
-  const [showShareLocationModal, setShowShareLocationModal] = useState(false);
-  const [locationType, setLocationType] = useState('registered'); // 'registered' | 'safe_point'
-  const [customSafeAddress, setCustomSafeAddress] = useState('');
-  const [pickupInstructions, setPickupInstructions] = useState('');
-  const [sharingLocation, setSharingLocation] = useState(false);
+  // Encontro de devolução combinado entre quem está com o animal e o tutor
+  const [meetup, setMeetup] = useState(null);
+  const [meetupsUnavailable, setMeetupsUnavailable] = useState(false);
+  const [meetupModal, setMeetupModal] = useState({ visible: false, mode: 'propose', base: null });
+  const [submittingMeetup, setSubmittingMeetup] = useState(false);
+  const [meetupMapVisible, setMeetupMapVisible] = useState(false);
+  const [meetupCollapsed, setMeetupCollapsed] = useState(false);
+  // Recusa/cancelamento com motivo opcional (Alert.prompt só existe no iOS)
+  const [meetupResponse, setMeetupResponse] = useState({ visible: false, action: null, note: '' });
 
   const flatListRef = useRef(null);
 
@@ -226,6 +251,35 @@ const ChatScreen = (props) => {
   const isMeFinder = itemData ? itemData.owner_id === user?.id : conversation?.itemOwnerId === user?.id;
   const hasUserSentMessage = messages.some(m => m.sender_id === user?.id);
 
+  // Participantes do encontro: o autor da publicação de "encontrado" e o tutor
+  const meetupFinderId = isMeFinder ? user?.id : (itemData?.owner_id || conversation?.itemOwnerId || null);
+  const meetupClaimantId = isMeFinder ? otherId : user?.id;
+  const meetupsEnabled = Boolean(
+    itemId && isFoundPet && !otherDeleted && meetupFinderId && meetupClaimantId && meetupFinderId !== meetupClaimantId
+  );
+  const isMeetupActive = Boolean(meetup && MEETUP_ACTIVE_STATUSES.includes(meetup.status));
+
+  const loadMeetup = async () => {
+    if (!meetupsEnabled) return;
+    try {
+      const result = await getLatestMeetup({ itemId, finderId: meetupFinderId, claimantId: meetupClaimantId });
+      setMeetupsUnavailable(result.unavailable);
+      setMeetup(result.meetup);
+    } catch (meetupError) {
+      console.warn('[ChatScreen] Erro ao carregar encontro:', meetupError.message);
+    }
+  };
+
+  useEffect(() => {
+    loadMeetup();
+  }, [meetupsEnabled, itemId, meetupFinderId, meetupClaimantId]);
+
+  // Cada mudança de status gera uma mensagem; ao receber uma, recarrega o encontro
+  const lastMeetupMessageId = [...messages].reverse().find((m) => getMeetupMessageKind(m.content))?.id;
+  useEffect(() => {
+    if (lastMeetupMessageId) loadMeetup();
+  }, [lastMeetupMessageId]);
+
   useEffect(() => {
     if (!itemId || !user?.id || isMeFinder || !requiresOwnershipProof) return;
     getVerificationStatus(itemId, user.id)
@@ -257,27 +311,14 @@ const ChatScreen = (props) => {
     requiresOwnershipProof &&
     !isMeFinder &&
     verificationStatus !== 'approved' &&
+    // Uma proposta de encontro só existe depois que quem está com o animal liberou o local
+    !meetup &&
     !loading
   );
-  const verificationPending = requiresOwnershipProof && verificationStatus === 'pending';
+  const verificationPending = requiresOwnershipProof && verificationStatus === 'pending' && !meetup;
 
-  // Resgatista pode confirmar o tutor e liberar o local de retirada
+  // Quem está com o animal confirma o tutor e libera o local propondo um encontro
   const canShareLocation = Boolean(itemId && !isItemDeleted && isFoundPet && isMeFinder);
-
-  // Endereço cadastrado do item
-  const registeredStreet = itemData?.extra_fields?.location_details?.street || itemData?.street || '';
-  const registeredNumber = itemData?.extra_fields?.location_details?.number || itemData?.house_number || '';
-  const registeredDistrict = itemData?.extra_fields?.location_details?.district || itemData?.neighborhood || '';
-  const registeredCity = itemData?.extra_fields?.location_details?.city || itemData?.city || '';
-  const registeredState = itemData?.extra_fields?.location_details?.state || itemData?.state || '';
-
-  const registeredAddressText = isPrivateResidentialLocation
-    ? getPrivateLocationSummary(itemData)
-    : [
-        [registeredStreet, registeredNumber ? `Nº ${registeredNumber}` : ''].filter(Boolean).join(', '),
-        registeredDistrict,
-        [registeredCity, registeredState].filter(Boolean).join(' - '),
-      ].filter(Boolean).join(', ') || itemData?.address || 'Endereço cadastrado no WeFIND';
 
   const itemLatitude = itemData?.latitude ?? itemData?.extra_fields?.location_details?.latitude ?? itemData?.extra_fields?.latitude;
   const itemLongitude = itemData?.longitude ?? itemData?.extra_fields?.location_details?.longitude ?? itemData?.extra_fields?.longitude;
@@ -451,7 +492,7 @@ const ChatScreen = (props) => {
       setProofPhoto(null);
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
       setVerificationStatus('pending');
-      Alert.alert('Solicitação enviada! 🛡️', 'Sua comprovação foi enviada ao dono da publicação. O chat será liberado assim que ele aprovar a devolução.');
+      Alert.alert('Solicitação enviada', 'Sua comprovação foi enviada ao dono da publicação. O chat será liberado assim que ele aprovar a devolução.');
     } catch (err) {
       Alert.alert('Erro ao enviar comprovação', err.message || 'Tente novamente.');
     } finally {
@@ -459,63 +500,101 @@ const ChatScreen = (props) => {
     }
   };
 
-  // Envio da Confirmação & Local de Retirada pelo Resgatista
-  const handleConfirmShareLocation = async () => {
-    setSharingLocation(true);
+  const appendSentMessage = (sentMsg) => {
+    setMessages((prev) => {
+      if (!sentMsg || !sentMsg.id) return prev;
+      if (prev.some(m => m.id === sentMsg.id)) return prev;
+      return [...prev, sentMsg].sort((a, b) => new Date(a.sent_at) - new Date(b.sent_at));
+    });
+    setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+  };
+
+  // Abre a proposta de encontro: 'propose' (liberar local), 'counter' ou 'reschedule'
+  const openMeetupModal = (mode, base = null) => {
+    if (meetupsUnavailable) {
+      Alert.alert('Indisponível no momento', 'O agendamento de encontros ainda não está disponível no servidor. Combine pelo chat por enquanto.');
+      return;
+    }
+    setMeetupModal({ visible: true, mode, base });
+  };
+
+  // Ponto inicial do mapa: nunca a casa quando o endereço é residencial protegido
+  const meetupInitialCoordinate = !isPrivateResidentialLocation && itemLatitude && itemLongitude
+    ? { latitude: Number(itemLatitude), longitude: Number(itemLongitude) }
+    : null;
+
+  const handleSubmitMeetup = async ({ meetingAt, coordinate, addressText, note }) => {
+    if (!meetupsEnabled) return;
+    setSubmittingMeetup(true);
     try {
-      if (isPrivateResidentialLocation && locationType !== 'safe_point') {
-        Alert.alert('Ponto seguro obrigatório', 'Para proteger o endereço residencial, escolha um ponto público de encontro.');
-        return;
+      // Liberar o local também aprova a comprovação pendente, desbloqueando o chat do tutor
+      if (isMeFinder && !meetup) {
+        await approvePendingClaimForMeetup({ itemId, claimantId: otherId, itemTitle: petTitle || 'o pet' });
       }
 
-      const finalAddress = locationType === 'registered' ? registeredAddressText : customSafeAddress.trim();
-      if (!finalAddress) {
-        Alert.alert('Endereço Obrigatório', 'Por favor, informe o local de encontro ou selecione o endereço cadastrado.');
-        return;
-      }
-
-      const instructions = pickupInstructions.trim() ? `\n📝 Orientações: ${pickupInstructions.trim()}` : '';
-      const coordsPart = !isPrivateResidentialLocation && itemLatitude && itemLongitude
-        ? `\n🗺️ Coordenadas: lat=${itemLatitude},lng=${itemLongitude}`
-        : '';
-      const safePointMarker = locationType === 'safe_point' ? '\n[PONTO_SEGURO_PUBLICO]' : '';
-      const content = `📍 [LOCAL DE RETIRADA LIBERADO]${safePointMarker}\n🏠 Local de Entrega: ${finalAddress}${instructions}${coordsPart}`;
-
-      const sentMsg = await sendMessage({
-        sender_id: user.id,
-        receiver_id: otherId,
-        item_id: itemId,
-        content,
+      const { meetup: created, message } = await proposeMeetup({
+        itemId,
+        finderId: meetupFinderId,
+        claimantId: meetupClaimantId,
+        proposerId: user.id,
+        meetingAt,
+        coordinate,
+        addressText,
+        note,
+        previousMeetup: isMeetupActive ? meetup : null,
+        itemTitle: petTitle || 'o pet',
       });
 
-      // Libera oficialmente no cache de verificação do usuário requerente
-      if (itemId && otherId) {
-        AsyncStorage.setItem(
-          `@wefind_proof_verification_${itemId}_${otherId}`,
-          JSON.stringify({ status: 'approved', approvedAt: new Date().toISOString() })
-        ).catch(() => {});
-      }
-
-      setMessages((prev) => {
-        if (!sentMsg || !sentMsg.id) return prev;
-        if (prev.some(m => m.id === sentMsg.id)) return prev;
-        return [...prev, sentMsg].sort((a, b) => new Date(a.sent_at) - new Date(b.sent_at));
-      });
-
-      setShowShareLocationModal(false);
-      setCustomSafeAddress('');
-      setPickupInstructions('');
+      setMeetup(created);
+      setMeetupCollapsed(false);
+      appendSentMessage(message);
+      setMeetupModal({ visible: false, mode: 'propose', base: null });
       Alert.alert(
-        'Local Enviado! 🎉',
-        isPrivateResidentialLocation
-          ? 'O ponto público de encontro foi compartilhado no chat. O endereço residencial e suas coordenadas permanecem protegidos.'
-          : 'O endereço de retirada foi compartilhado no chat e o traçado de rota GPS foi liberado para o tutor.'
+        'Proposta enviada! 📅',
+        `${otherName || 'A outra pessoa'} vai receber a proposta e pode confirmar, recusar ou sugerir outro horário.`
       );
     } catch (err) {
-      Alert.alert('Erro ao compartilhar local', err.message || 'Tente novamente.');
+      if (err?.code === 'MEETUPS_UNAVAILABLE') setMeetupsUnavailable(true);
+      Alert.alert('Erro ao propor encontro', err.message || 'Tente novamente.');
     } finally {
-      setSharingLocation(false);
+      setSubmittingMeetup(false);
     }
+  };
+
+  const runMeetupAction = async (action, responseNote = '') => {
+    if (!meetup) return;
+    setSubmittingMeetup(true);
+    try {
+      const { meetup: updated, message } = await respondToMeetup(meetup, action, {
+        userId: user.id,
+        responseNote,
+        itemTitle: petTitle || 'o pet',
+      });
+      setMeetup(updated);
+      appendSentMessage(message);
+      setMeetupResponse({ visible: false, action: null, note: '' });
+    } catch (err) {
+      Alert.alert('Não foi possível atualizar o encontro', err.message || 'Tente novamente.');
+      loadMeetup();
+    } finally {
+      setSubmittingMeetup(false);
+    }
+  };
+
+  const handleConfirmMeetup = () => {
+    Alert.alert(
+      'Confirmar encontro',
+      `${formatMeetupDate(meetup?.meeting_at)}\n${meetup?.address_text || 'Ponto marcado no mapa'}`,
+      [
+        { text: 'Voltar', style: 'cancel' },
+        { text: 'Confirmar', onPress: () => runMeetupAction('confirm') },
+      ]
+    );
+  };
+
+  const openGoogleMaps = (target) => {
+    const url = buildGoogleMapsUrl(target);
+    if (url) Linking.openURL(url).catch(() => Alert.alert('Erro', 'Não foi possível abrir o Google Maps.'));
   };
 
   // Navegar para o mapa com a rota GPS traçada
@@ -598,6 +677,11 @@ const ChatScreen = (props) => {
     const isHighlight = highlightMessageId && item.id === highlightMessageId;
     const isProofMsg = typeof item.content === 'string' && item.content.includes('[COMPROVAÇÃO DE TUTOR]');
     const isLocationReleaseMsg = typeof item.content === 'string' && item.content.includes('[LOCAL DE RETIRADA LIBERADO]');
+    const meetupKind = getMeetupMessageKind(item.content);
+    const meetupStyle = meetupKind ? MEETUP_MESSAGE_STYLE[meetupKind] : null;
+    const meetupBody = meetupKind
+      ? item.content.replace(MEETUP_MESSAGE_MARKERS[meetupKind], '').trim()
+      : '';
 
     // Extrai coordenadas e dados do card de localização caso presentes
     let parsedCoords = null;
@@ -643,6 +727,7 @@ const ChatScreen = (props) => {
               : { backgroundColor: colors.surface, borderColor: colors.border, borderBottomLeftRadius: 4 },
             isProofMsg && { borderWidth: 1.5, borderColor: isMe ? '#A7F3D0' : '#10B981' },
             isLocationReleaseMsg && { borderWidth: 1.5, borderColor: '#10B981', backgroundColor: isDark ? '#064E3B' : '#ECFDF5' },
+            meetupStyle && { borderWidth: 1.5, borderColor: meetupStyle.color, backgroundColor: isDark ? colors.surface : '#FFFFFF' },
             isHighlight && { borderWidth: 2, borderColor: '#F59E0B' },
           ]}
         >
@@ -691,11 +776,25 @@ const ChatScreen = (props) => {
             </View>
           )}
 
+          {meetupStyle && (
+            <View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 4 }}>
+                <MaterialIcons name={meetupStyle.icon} size={16} color={isDark && meetupKind === 'confirmed' ? '#A7F3D0' : meetupStyle.color} />
+                <Text style={{ fontSize: 11.5, fontWeight: '900', color: isDark && meetupKind === 'confirmed' ? '#A7F3D0' : meetupStyle.color, letterSpacing: 0.3 }}>
+                  {meetupStyle.label}
+                </Text>
+              </View>
+              {meetupBody ? (
+                <Text style={{ fontSize: 13.5, lineHeight: 19, color: colors.text }}>{meetupBody}</Text>
+              ) : null}
+            </View>
+          )}
+
           {item.photo_url ? (
             <Image source={{ uri: item.photo_url }} style={styles.messageImage} />
           ) : null}
 
-          {!isLocationReleaseMsg && item.content ? (
+          {!isLocationReleaseMsg && !meetupStyle && item.content ? (
             <Text style={[styles.messageText, { color: isMe ? '#FFFFFF' : colors.text }]}>
               {item.content}
             </Text>
@@ -704,7 +803,7 @@ const ChatScreen = (props) => {
           <Text
             style={[
               styles.messageMeta,
-              { color: isMe ? 'rgba(255,255,255,0.7)' : colors.textMuted, textAlign: isMe ? 'right' : 'left' },
+              { color: isMe && !meetupStyle ? 'rgba(255,255,255,0.7)' : colors.textMuted, textAlign: isMe ? 'right' : 'left' },
             ]}
           >
             {item.sent_at
@@ -712,6 +811,121 @@ const ChatScreen = (props) => {
               : ''}
           </Text>
         </View>
+      </View>
+    );
+  };
+
+  // Card fixado com o encontro atual e as ações de cada participante
+  const renderMeetupCard = () => {
+    if (!meetupsEnabled || !meetup) return null;
+
+    const status = meetup.status;
+    const iProposed = meetup.proposed_by === user?.id;
+    const otherLabel = otherName || (isMeFinder ? 'o tutor' : 'quem está com o pet');
+    const isClosed = status === 'declined' || status === 'cancelled';
+    const conversationOpen = conversationState.status !== 'encerrada';
+
+    const palette = status === 'confirmed'
+      ? { bg: isDark ? '#064E3B' : '#ECFDF5', border: '#10B981', title: isDark ? '#D1FAE5' : '#065F46', icon: 'event-available' }
+      : isClosed
+        ? { bg: isDark ? 'rgba(239, 68, 68, 0.12)' : '#FEF2F2', border: '#FCA5A5', title: isDark ? '#FCA5A5' : '#B91C1C', icon: 'event-busy' }
+        : { bg: isDark ? 'rgba(217, 119, 6, 0.14)' : '#FFFBEB', border: '#FCD34D', title: isDark ? '#FBBF24' : '#B45309', icon: 'event' };
+
+    const title = status === 'confirmed'
+      ? 'Encontro confirmado'
+      : status === 'declined'
+        ? 'Horário recusado'
+        : status === 'cancelled'
+          ? 'Encontro cancelado'
+          : iProposed
+            ? `Aguardando resposta de ${otherLabel}`
+            : 'Proposta de encontro recebida';
+
+    const actionButton = (label, icon, onPress, variant = 'outline') => (
+      <TouchableOpacity
+        key={label}
+        onPress={onPress}
+        disabled={submittingMeetup}
+        activeOpacity={0.85}
+        style={[
+          styles.meetupBtn,
+          variant === 'primary'
+            ? { backgroundColor: '#2E5634', borderColor: '#2E5634' }
+            : variant === 'danger'
+              ? { backgroundColor: 'transparent', borderColor: '#FCA5A5' }
+              : { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#FFFFFF', borderColor: colors.border },
+          submittingMeetup && { opacity: 0.6 },
+        ]}
+      >
+        <MaterialIcons
+          name={icon}
+          size={15}
+          color={variant === 'primary' ? '#FFFFFF' : variant === 'danger' ? '#DC2626' : colors.text}
+          style={{ marginRight: 4 }}
+        />
+        <Text style={[styles.meetupBtnText, { color: variant === 'primary' ? '#FFFFFF' : variant === 'danger' ? '#DC2626' : colors.text }]}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+
+    const actions = [];
+    if (conversationOpen) {
+      if (status === 'proposed' && !iProposed) {
+        actions.push(actionButton('Confirmar', 'check', handleConfirmMeetup, 'primary'));
+        actions.push(actionButton('Outro horário', 'update', () => openMeetupModal('counter', meetup)));
+        actions.push(actionButton('Não posso', 'event-busy', () => setMeetupResponse({ visible: true, action: 'decline', note: '' }), 'danger'));
+      } else if (status === 'proposed' && iProposed) {
+        actions.push(actionButton('Alterar', 'edit', () => openMeetupModal('counter', meetup)));
+        actions.push(actionButton('Cancelar', 'close', () => setMeetupResponse({ visible: true, action: 'cancel', note: '' }), 'danger'));
+      } else if (status === 'confirmed') {
+        actions.push(actionButton('Google Maps', 'directions', () => openGoogleMaps(meetup), 'primary'));
+        actions.push(actionButton('Remarcar', 'update', () => openMeetupModal('reschedule', meetup)));
+        actions.push(actionButton('Cancelar', 'close', () => setMeetupResponse({ visible: true, action: 'cancel', note: '' }), 'danger'));
+      } else if (isClosed) {
+        actions.push(actionButton('Propor novo horário', 'event', () => openMeetupModal('propose', meetup), 'primary'));
+      }
+    }
+
+    return (
+      <View style={[styles.meetupCard, { backgroundColor: palette.bg, borderColor: palette.border }]}>
+        <TouchableOpacity
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
+          onPress={() => setMeetupCollapsed((value) => !value)}
+          activeOpacity={0.8}
+          accessibilityLabel={meetupCollapsed ? 'Mostrar detalhes do encontro' : 'Recolher detalhes do encontro'}
+        >
+          <MaterialIcons name={palette.icon} size={18} color={palette.title} />
+          <Text style={{ flex: 1, fontSize: 12.5, fontWeight: '900', color: palette.title }} numberOfLines={1}>
+            {title}
+            {meetupCollapsed ? ` • ${formatMeetupDate(meetup.meeting_at)}` : ''}
+          </Text>
+          <MaterialIcons name={meetupCollapsed ? 'expand-more' : 'expand-less'} size={20} color={palette.title} />
+        </TouchableOpacity>
+
+        {!meetupCollapsed && (
+          <>
+            <TouchableOpacity onPress={() => setMeetupMapVisible(true)} activeOpacity={0.8} style={{ marginTop: 6 }}>
+              <Text style={[styles.meetupLine, { color: colors.text, textDecorationLine: isClosed ? 'line-through' : 'none' }]}>
+                🗓️ {formatMeetupDate(meetup.meeting_at)}
+              </Text>
+              <Text style={[styles.meetupLine, { color: colors.text }]} numberOfLines={2}>
+                📍 {meetup.address_text || 'Ponto marcado no mapa'}
+              </Text>
+              {meetup.note ? (
+                <Text style={[styles.meetupLine, { color: colors.textSecondary }]} numberOfLines={3}>📝 {meetup.note}</Text>
+              ) : null}
+              {meetup.response_note ? (
+                <Text style={[styles.meetupLine, { color: colors.textSecondary }]} numberOfLines={3}>💬 {meetup.response_note}</Text>
+              ) : null}
+              <Text style={{ fontSize: 11.5, fontWeight: '800', color: isDark ? '#A7F3D0' : '#2E5634', marginTop: 2 }}>
+                Ver ponto no mapa ›
+              </Text>
+            </TouchableOpacity>
+
+            {actions.length > 0 && <View style={styles.meetupActions}>{actions}</View>}
+          </>
+        )}
       </View>
     );
   };
@@ -818,25 +1032,20 @@ const ChatScreen = (props) => {
         </View>
       )}
 
-      {/* Banner de Ação para o Resgatista: Compartilhar Localização */}
-      {canShareLocation && (
+      {/* Banner de Ação para quem está com o animal: liberar o local propondo um encontro */}
+      {canShareLocation && !meetup && (
         <View style={[styles.finderActionBar, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: '#A7F3D0' }]}>
           <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={{ fontSize: 12, fontWeight: '800', color: isDark ? '#D1FAE5' : '#065F46' }}>
-              {isPrivateResidentialLocation ? 'Combinar Ponto Público Seguro' : 'Confirmar Tutor e Liberar Rota'}
+              Confirmar Tutor e Combinar Encontro
             </Text>
             <Text style={{ fontSize: 11, color: isDark ? '#A7F3D0' : '#1E3E24' }}>
-              {isPrivateResidentialLocation
-                ? 'Não compartilhe o endereço de casa; combine em local público.'
-                : 'Se as fotos/marcas baterem, compartilhe o local de retirada:'}
+              Se as fotos/marcas baterem, proponha um ponto público, dia e horário.
             </Text>
           </View>
 
           <TouchableOpacity
-            onPress={() => {
-              setLocationType(isPrivateResidentialLocation ? 'safe_point' : 'registered');
-              setShowShareLocationModal(true);
-            }}
+            onPress={() => openMeetupModal('propose')}
             style={styles.finderShareBtn}
             activeOpacity={0.85}
           >
@@ -846,8 +1055,11 @@ const ChatScreen = (props) => {
         </View>
       )}
 
+      {/* Encontro de devolução fixado no topo do chat */}
+      {renderMeetupCard()}
+
       {/* Banner de Segurança & Comprovação de Posse (para visitante) */}
-      {!canShareLocation && (
+      {!canShareLocation && !meetup && (
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -1072,130 +1284,73 @@ const ChatScreen = (props) => {
         )}
       </View>
 
-      {/* MODAL DE COMPARTILHAMENTO DE LOCAL DE ENTREGA PELO RESGATISTA */}
+      {/* PROPOSTA / CONTRAPROPOSTA DE ENCONTRO PARA DEVOLUÇÃO */}
+      <MeetupProposalModal
+        visible={meetupModal.visible}
+        mode={meetupModal.mode}
+        initialMeetup={meetupModal.base}
+        initialCoordinate={meetupInitialCoordinate}
+        submitting={submittingMeetup}
+        onClose={() => setMeetupModal({ visible: false, mode: 'propose', base: null })}
+        onSubmit={handleSubmitMeetup}
+      />
+
+      {/* PONTO DO ENCONTRO NO MAPA DO APP */}
+      <MeetupMapModal
+        visible={meetupMapVisible}
+        meetup={meetup}
+        onClose={() => setMeetupMapVisible(false)}
+      />
+
+      {/* RECUSA OU CANCELAMENTO DO ENCONTRO COM MOTIVO OPCIONAL */}
       <Modal
-        visible={showShareLocationModal}
+        visible={meetupResponse.visible}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowShareLocationModal(false)}
+        onRequestClose={() => setMeetupResponse({ visible: false, action: null, note: '' })}
       >
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.modalHeaderRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <MaterialIcons name="share-location" size={22} color="#2E5634" />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                <MaterialIcons name="event-busy" size={22} color="#DC2626" />
                 <Text style={[styles.modalTitle, { color: colors.text }]}>
-                  {isPrivateResidentialLocation ? 'Combinar Ponto Seguro' : 'Liberar Local de Retirada'}
+                  {meetupResponse.action === 'decline' ? 'Não posso nesse horário' : 'Cancelar encontro'}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setShowShareLocationModal(false)}>
+              <TouchableOpacity onPress={() => setMeetupResponse({ visible: false, action: null, note: '' })} disabled={submittingMeetup}>
                 <MaterialIcons name="close" size={22} color={colors.textMuted} />
               </TouchableOpacity>
             </View>
 
             <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-              {isPrivateResidentialLocation
-                ? 'Escolha um ponto público de encontro. O endereço residencial e as coordenadas da casa não serão compartilhados.'
-                : 'Escolha onde o tutor irá encontrar você para buscar o pet. O endereço e a rota GPS serão liberados para ele no chat:'}
+              {meetupResponse.action === 'decline'
+                ? `${otherName || 'A outra pessoa'} será avisado(a). Se preferir, use "Outro horário" para sugerir uma alternativa.`
+                : `${otherName || 'A outra pessoa'} será avisado(a) de que o encontro foi cancelado.`}
             </Text>
 
-            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-              {/* Opção 1: Endereço Cadastrado */}
-              {!isPrivateResidentialLocation && (
-                <TouchableOpacity
-                  style={[
-                    styles.locationOptionCard,
-                    { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: locationType === 'registered' ? '#2E5634' : colors.border },
-                    locationType === 'registered' && { borderWidth: 2 },
-                  ]}
-                  onPress={() => setLocationType('registered')}
-                  activeOpacity={0.8}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                    <MaterialIcons
-                      name={locationType === 'registered' ? 'radio-button-checked' : 'radio-button-unchecked'}
-                      size={20}
-                      color={locationType === 'registered' ? '#2E5634' : colors.textMuted}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.locationOptionTitle, { color: colors.text }]}>
-                        🏠 Endereço Cadastrado do Pet
-                      </Text>
-                      <Text style={[styles.locationOptionText, { color: colors.textSecondary }]}>
-                        {registeredAddressText}
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              )}
-
-              {/* Opção 2: Ponto de Encontro Seguro */}
-              <TouchableOpacity
-                style={[
-                  styles.locationOptionCard,
-                  { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: locationType === 'safe_point' ? '#2E5634' : colors.border },
-                  locationType === 'safe_point' && { borderWidth: 2 },
-                ]}
-                onPress={() => setLocationType('safe_point')}
-                activeOpacity={0.8}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-                  <MaterialIcons
-                    name={locationType === 'safe_point' ? 'radio-button-checked' : 'radio-button-unchecked'}
-                    size={20}
-                    color={locationType === 'safe_point' ? '#2E5634' : colors.textMuted}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.locationOptionTitle, { color: colors.text }]}>
-                      🛡️ Ponto de Encontro Público Seguro
-                    </Text>
-                    <Text style={[styles.locationOptionText, { color: colors.textSecondary }]}>
-                      Clínica veterinária, praça pública, delegacia ou pet shop
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-
-              {locationType === 'safe_point' && (
-                <TextInput
-                  style={[styles.modalInput, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: colors.border, color: colors.text }]}
-                  placeholder="Ex.: praça pública, clínica veterinária ou pet shop"
-                  placeholderTextColor={colors.textMuted}
-                  value={customSafeAddress}
-                  onChangeText={setCustomSafeAddress}
-                  multiline
-                />
-              )}
-
-              {/* Campo de Instruções Adicionais */}
-              <Text style={{ fontSize: 12.5, fontWeight: '700', color: colors.text, marginTop: 10, marginBottom: 4 }}>
-                📝 Instruções de Retirada (Opcional):
-              </Text>
-              <TextInput
-                style={[styles.modalInput, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: colors.border, color: colors.text, minHeight: 60 }]}
-                placeholder="Ex.: trazer coleira ou caixa de transporte"
-                placeholderTextColor={colors.textMuted}
-                value={pickupInstructions}
-                onChangeText={setPickupInstructions}
-                multiline
-              />
-            </ScrollView>
+            <TextInput
+              style={[styles.modalInput, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: colors.border, color: colors.text, minHeight: 60, textAlignVertical: 'top' }]}
+              placeholder={meetupResponse.action === 'decline' ? 'Motivo (opcional). Ex.: só consigo depois das 18h' : 'Motivo (opcional)'}
+              placeholderTextColor={colors.textMuted}
+              value={meetupResponse.note}
+              onChangeText={(text) => setMeetupResponse((prev) => ({ ...prev, note: text }))}
+              maxLength={200}
+              multiline
+            />
 
             <TouchableOpacity
-              style={[styles.modalConfirmBtn, { backgroundColor: '#2E5634' }]}
-              onPress={handleConfirmShareLocation}
-              disabled={sharingLocation}
+              style={[styles.modalConfirmBtn, { backgroundColor: '#DC2626', shadowColor: '#DC2626' }]}
+              onPress={() => runMeetupAction(meetupResponse.action, meetupResponse.note)}
+              disabled={submittingMeetup}
               activeOpacity={0.85}
             >
-              {sharingLocation ? (
+              {submittingMeetup ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <>
-                  <MaterialIcons name="share-location" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-                  <Text style={styles.modalConfirmBtnText}>
-                    {isPrivateResidentialLocation ? 'Enviar Ponto Público Seguro' : 'Enviar Localização & Liberar Rota GPS'}
-                  </Text>
-                </>
+                <Text style={styles.modalConfirmBtnText}>
+                  {meetupResponse.action === 'decline' ? 'Recusar horário' : 'Cancelar encontro'}
+                </Text>
               )}
             </TouchableOpacity>
           </View>
@@ -1416,20 +1571,39 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     marginBottom: 14,
   },
-  locationOptionCard: {
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 10,
+  // Card do encontro fixado no chat
+  meetupCard: {
+    marginHorizontal: 12,
+    marginTop: 8,
+    marginBottom: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 14,
+    borderWidth: 1.5,
   },
-  locationOptionTitle: {
-    fontSize: 13.5,
-    fontWeight: '700',
+  meetupLine: {
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
     marginBottom: 2,
   },
-  locationOptionText: {
+  meetupActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  meetupBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  meetupBtnText: {
     fontSize: 12,
-    lineHeight: 16,
+    fontWeight: '800',
   },
   modalInput: {
     borderRadius: 10,

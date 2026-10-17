@@ -18,6 +18,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import * as userService from '../services/user';
 import * as itemsService from '../services/items';
 import * as ratingsService from '../services/ratings';
+import { countUserSightings } from '../services/sightings';
 import { getFosterProfile } from '../services/foster';
 import { getUserGamificationData } from '../services/gamification';
 import { APP_FEATURES } from '../constants/features';
@@ -35,15 +36,17 @@ const UserProfileScreen = ({ route, navigation }) => {
   const [profile, setProfile] = useState(null);
   const [fosterProfile, setFosterProfile] = useState(null);
   const [userItems, setUserItems] = useState([]);
-  const [ratingsData, setRatingsData] = useState({ ratings: [], average: 5.0, total: 0, breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+  const [ratingsData, setRatingsData] = useState({ ratings: [], average: null, total: 0, breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
   const [activeMainSection, setActiveMainSection] = useState('posts'); // 'posts' | 'ratings'
   const [activePostTab, setActivePostTab] = useState('all'); // 'all' | 'lost' | 'found' | 'adoption' | 'resolved'
   const [refreshing, setRefreshing] = useState(false);
   const [gamificationData, setGamificationData] = useState(null);
+  const [sightingsCount, setSightingsCount] = useState(0);
 
   // Estados do Modal de Avaliação
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
-  const [selectedStars, setSelectedStars] = useState(5);
+  // 0 = nenhuma nota escolhida ainda (antes já vinha 5 marcado por padrão)
+  const [selectedStars, setSelectedStars] = useState(0);
   const [selectedTags, setSelectedTags] = useState([]);
   const [reviewComment, setReviewComment] = useState('');
   const [submittingRating, setSubmittingRating] = useState(false);
@@ -58,7 +61,7 @@ const UserProfileScreen = ({ route, navigation }) => {
       return;
     }
     try {
-      const [profileRes, itemsRes, ratingsRes, fosterRes, gamiRes, ratingEligibilityRes] = await Promise.allSettled([
+      const [profileRes, itemsRes, ratingsRes, fosterRes, gamiRes, ratingEligibilityRes, sightingsRes] = await Promise.allSettled([
         userService.getUserById(userId),
         itemsService.getUserItems(userId),
         ratingsService.getUserRatings(userId),
@@ -67,7 +70,9 @@ const UserProfileScreen = ({ route, navigation }) => {
         currentUser && currentUser.id !== userId
           ? ratingsService.canRateUser(currentUser.id, userId)
           : Promise.resolve(false),
+        countUserSightings(userId),
       ]);
+      setSightingsCount(sightingsRes.status === 'fulfilled' ? sightingsRes.value : 0);
 
       const profileData = profileRes.status === 'fulfilled' ? profileRes.value : null;
       const itemsData = itemsRes.status === 'fulfilled' ? itemsRes.value : [];
@@ -79,20 +84,11 @@ const UserProfileScreen = ({ route, navigation }) => {
       setProfile(profileData || { id: userId, name: initialName || 'Membro WeFIND', avatar_url: initialAvatar });
       setFosterProfile(fosterData);
       setUserItems(Array.isArray(itemsData) ? itemsData : []);
-      setRatingsData(userRatings || { ratings: [], average: 5.0, total: 0, breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+      setRatingsData(userRatings || { ratings: [], average: null, total: 0, breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
       setGamificationData(gamiData);
       const existingRating = userRatings?.ratings?.find((rating) => rating.reviewerId === currentUser?.id);
       setRatingEligible(canRate && !existingRating);
 
-      // Se o usuário logado já tiver avaliação existente, pré-carrega
-      if (currentUser && userRatings?.ratings && Array.isArray(userRatings.ratings)) {
-        const existing = userRatings.ratings.find(r => r.reviewerId === currentUser.id);
-        if (existing) {
-          setSelectedStars(existing.stars || 5);
-          setSelectedTags(existing.tags || []);
-          setReviewComment(existing.comment || '');
-        }
-      }
     } catch (error) {
       console.log('[UserProfileScreen] Erro ao carregar dados do usuário:', error.message);
       setProfile({ id: userId, name: initialName || 'Membro WeFIND', avatar_url: initialAvatar });
@@ -168,6 +164,9 @@ const UserProfileScreen = ({ route, navigation }) => {
 
       Alert.alert('Avaliação enviada!', 'Obrigado por ajudar a manter a comunidade WeFIND confiável e unida!');
       setRatingModalVisible(false);
+      setSelectedStars(0);
+      setSelectedTags([]);
+      setReviewComment('');
       loadUserData();
     } catch (error) {
       Alert.alert('Erro ao avaliar', error.message || 'Não foi possível registrar a avaliação.');
@@ -360,9 +359,14 @@ const UserProfileScreen = ({ route, navigation }) => {
   const city = profile?.city;
   const state = profile?.state;
   const neighborhood = profile?.neighborhood;
-  const locationSummary = (city && state)
-    ? `${city} - ${state}`
-    : (city || state || 'Localidade não informada');
+  // Sem cidade/estado a linha simplesmente não aparece
+  const locationSummary = (city && state) ? `${city} - ${state}` : (city || state || '');
+  const hasRatings = ratingsData.total > 0 && ratingsData.average != null;
+  const ratingAverageText = hasRatings ? ratingsData.average.toFixed(1).replace('.', ',') : '';
+  const latestPostDate = userItems
+    .map((i) => new Date(i.created_at || i.date).getTime())
+    .filter(Number.isFinite)
+    .sort((a, b) => b - a)[0];
 
   const activePosts = userItems.filter(i => !i.resolved && i.status !== 'resolved');
   const resolvedPosts = userItems.filter(i => i.resolved || i.status === 'resolved');
@@ -443,23 +447,33 @@ const UserProfileScreen = ({ route, navigation }) => {
             style={[styles.reputationBadge, { backgroundColor: isDark ? '#1E293B' : '#FEF3C7', borderColor: '#F59E0B' }]}
             activeOpacity={0.8}
           >
-            <MaterialIcons name="star" size={16} color="#F59E0B" />
-            <Text style={[styles.reputationScore, { color: isDark ? '#FBBF24' : '#B45309' }]}>
-              {ratingsData.average.toFixed(1)}
-            </Text>
-            <Text style={[styles.reputationCount, { color: isDark ? '#FDE68A' : '#92400E' }]}>
-              ({ratingsData.total} {ratingsData.total === 1 ? 'avaliação' : 'avaliações'})
-            </Text>
+            <MaterialIcons name={hasRatings ? 'star' : 'star-border'} size={16} color="#F59E0B" />
+            {hasRatings ? (
+              <>
+                <Text style={[styles.reputationScore, { color: isDark ? '#FBBF24' : '#B45309' }]}>
+                  {ratingAverageText}
+                </Text>
+                <Text style={[styles.reputationCount, { color: isDark ? '#FDE68A' : '#92400E' }]}>
+                  ({ratingsData.total} {ratingsData.total === 1 ? 'classificação' : 'classificações'})
+                </Text>
+              </>
+            ) : (
+              <Text style={[styles.reputationCount, { color: isDark ? '#FDE68A' : '#92400E' }]}>
+                Sem classificações
+              </Text>
+            )}
           </TouchableOpacity>
 
-          {/* Localização e Data de entrada */}
+          {/* Localização (só quando informada) e Data de entrada */}
           <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
-              <MaterialIcons name="location-on" size={15} color={colors.primary} />
-              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {locationSummary}{neighborhood ? ` (${neighborhood})` : ''}
-              </Text>
-            </View>
+            {locationSummary ? (
+              <View style={styles.metaItem}>
+                <MaterialIcons name="location-on" size={15} color={colors.primary} />
+                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                  {locationSummary}{neighborhood ? ` (${neighborhood})` : ''}
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.metaItem}>
               <MaterialIcons name="event" size={15} color={colors.textMuted} />
@@ -495,9 +509,9 @@ const UserProfileScreen = ({ route, navigation }) => {
                 style={[styles.rateActionBtn, { backgroundColor: isDark ? '#1E293B' : '#FEF3C7', borderColor: '#F59E0B' }]}
                 activeOpacity={0.85}
               >
-                <MaterialIcons name={existingMyRating ? 'edit' : 'star'} size={17} color="#D97706" style={{ marginRight: 5 }} />
+                <MaterialIcons name="star" size={17} color="#D97706" style={{ marginRight: 5 }} />
                 <Text style={[styles.rateActionBtnText, { color: isDark ? '#FBBF24' : '#B45309' }]}>
-                  {existingMyRating ? 'Editar Nota' : 'Classificar'}
+                  Classificar
                 </Text>
               </TouchableOpacity>
             )}
@@ -548,11 +562,28 @@ const UserProfileScreen = ({ route, navigation }) => {
 
           <TouchableOpacity onPress={() => setActiveMainSection('ratings')} style={styles.statBox}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <MaterialIcons name="star" size={16} color="#F59E0B" style={{ marginRight: 2 }} />
-              <Text style={[styles.statNumber, { color: '#D97706' }]}>{ratingsData.average.toFixed(1)}</Text>
+              <MaterialIcons name={hasRatings ? 'star' : 'star-border'} size={16} color="#F59E0B" style={{ marginRight: 2 }} />
+              <Text style={[styles.statNumber, { color: hasRatings ? '#D97706' : colors.textMuted }]}>{hasRatings ? ratingAverageText : '—'}</Text>
             </View>
-            <Text style={[styles.statLabel, { color: colors.textMuted }]}>Reputação</Text>
+            <Text style={[styles.statLabel, { color: colors.textMuted }]}>{hasRatings ? 'Reputação' : 'Sem notas'}</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Atividade na comunidade */}
+        <View style={[styles.activityCard, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: colors.cardBorder }]}>
+          <Text style={[styles.activityTitle, { color: colors.text }]}>Atividade na comunidade</Text>
+          {[
+            { icon: 'visibility', color: '#D97706', label: 'Avistamentos compartilhados', value: String(sightingsCount) },
+            { icon: 'search', color: '#DC2626', label: 'Procurando agora', value: String(lostPosts.length) },
+            { icon: 'volunteer-activism', color: '#16A34A', label: 'Encontrados ou para adoção', value: String(new Set([...foundPosts, ...adoptionPosts].map((i) => i.id)).size) },
+            latestPostDate ? { icon: 'schedule', color: colors.textMuted, label: 'Última publicação', value: formatReviewDate(latestPostDate) } : null,
+          ].filter(Boolean).map((row) => (
+            <View key={row.label} style={styles.activityRow}>
+              <MaterialIcons name={row.icon} size={16} color={row.color} style={{ marginRight: 8 }} />
+              <Text style={[styles.activityLabel, { color: colors.textSecondary }]}>{row.label}</Text>
+              <Text style={[styles.activityValue, { color: colors.text }]}>{row.value}</Text>
+            </View>
+          ))}
         </View>
 
         {/* PAINEL DE MODERAÇÃO DE MEMBRO (SUPER ADMIN) */}
@@ -763,15 +794,16 @@ const UserProfileScreen = ({ route, navigation }) => {
       {/* 4. CONTEÚDO: SEÇÃO DE CLASSIFICAÇÕES & AVALIAÇÕES */}
       {activeMainSection === 'ratings' && (
         <View style={styles.ratingsSection}>
-          {/* Card Resumo de Avaliações */}
+          {/* Card Resumo de Avaliações (só com pelo menos uma classificação) */}
+          {hasRatings && (
           <View style={[styles.ratingSummaryCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
             <View style={styles.ratingSummaryLeft}>
-              <Text style={[styles.ratingBigScore, { color: colors.text }]}>{ratingsData.average.toFixed(1)}</Text>
+              <Text style={[styles.ratingBigScore, { color: colors.text }]}>{ratingAverageText}</Text>
               <View style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <MaterialIcons
                     key={star}
-                    name={star <= Math.round(ratingsData.average) ? 'star' : 'star-border'}
+                    name={ratingsData.average >= star ? 'star' : (ratingsData.average >= star - 0.5 ? 'star-half' : 'star-border')}
                     size={20}
                     color="#F59E0B"
                   />
@@ -798,6 +830,17 @@ const UserProfileScreen = ({ route, navigation }) => {
               })}
             </View>
           </View>
+          )}
+
+          {/* Quem já classificou vê isso em vez do botão (a nota não é editável) */}
+          {!isOwnProfile && existingMyRating && (
+            <View style={[styles.alreadyRatedNote, { backgroundColor: isDark ? '#1E293B' : '#F0FDF4', borderColor: isDark ? '#334155' : '#BBF7D0' }]}>
+              <MaterialIcons name="check-circle" size={16} color="#16A34A" style={{ marginRight: 6 }} />
+              <Text style={{ flex: 1, fontSize: 12.5, fontWeight: '600', color: isDark ? '#CBD5E1' : '#166534' }}>
+                Você já classificou {displayName.split(' ')[0]} com {existingMyRating.stars} {existingMyRating.stars === 1 ? 'estrela' : 'estrelas'}.
+              </Text>
+            </View>
+          )}
 
           {/* Botão de Avaliar */}
           {!isOwnProfile && ratingEligible && (
@@ -808,7 +851,7 @@ const UserProfileScreen = ({ route, navigation }) => {
             >
               <MaterialIcons name="rate-review" size={19} color="#FFFFFF" style={{ marginRight: 8 }} />
               <Text style={styles.leaveReviewCTAText}>
-                {existingMyRating ? 'Editar Minha Classificação' : 'Classificar Experiência com este Membro'}
+                Classificar Experiência com este Membro
               </Text>
             </TouchableOpacity>
           )}
@@ -817,9 +860,11 @@ const UserProfileScreen = ({ route, navigation }) => {
           {ratingsData.ratings.length === 0 ? (
             <View style={[styles.emptyPostsCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
               <MaterialIcons name="stars" size={42} color="#F59E0B" style={{ marginBottom: 8 }} />
-              <Text style={[styles.emptyPostsTitle, { color: colors.text }]}>Ainda sem avaliações</Text>
+              <Text style={[styles.emptyPostsTitle, { color: colors.text }]}>Sem classificações</Text>
               <Text style={[styles.emptyPostsSubtitle, { color: colors.textSecondary }]}>
-                Seja o primeiro a avaliar e compartilhar sua experiência de contato ou reencontro com {displayName.split(' ')[0]}!
+                {isOwnProfile
+                  ? 'Quem conversar com você pelo chat poderá classificar a experiência 24 horas depois da última mensagem.'
+                  : `${displayName.split(' ')[0]} ainda não recebeu classificações. Depois de conversar pelo chat, a classificação é liberada 24 horas após a última mensagem.`}
               </Text>
             </View>
           ) : (
@@ -1018,8 +1063,8 @@ const UserProfileScreen = ({ route, navigation }) => {
 
                 <TouchableOpacity
                   onPress={handleSubmitRating}
-                  style={[styles.modalSubmitBtn, { backgroundColor: colors.primary }]}
-                  disabled={submittingRating}
+                  style={[styles.modalSubmitBtn, { backgroundColor: colors.primary }, !selectedStars && { opacity: 0.5 }]}
+                  disabled={submittingRating || !selectedStars}
                   activeOpacity={0.85}
                 >
                   {submittingRating ? (
@@ -1183,6 +1228,41 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  activityCard: {
+    marginHorizontal: 14,
+    marginTop: 2,
+    marginBottom: 14,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  activityTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  activityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+  },
+  activityLabel: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  activityValue: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  alreadyRatedNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 12,
   },
   statsGrid: {
     flexDirection: 'row',

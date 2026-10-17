@@ -73,12 +73,17 @@ function getRestHeaders(serviceRoleKey: string) {
 
 async function storeVerificationCode(supabaseUrl: string, serviceRoleKey: string, email: string, code: string, whatsapp: string, hashCode = true) {
   const codeHash = hashCode ? await hashVerificationCode(code) : '';
+
+  // Substitui o código anterior deste e-mail: apaga e grava de novo.
+  // (O cabeçalho "On-Conflict" não é reconhecido pelo Supabase, então o
+  // "upsert" antigo esbarrava no código que já existia.)
+  await deleteVerificationCode(supabaseUrl, serviceRoleKey, email);
+
   const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/signup_verifications`, {
     method: 'POST',
     headers: {
       ...getRestHeaders(serviceRoleKey),
-      Prefer: 'resolution=merge-duplicates',
-      'On-Conflict': 'email',
+      Prefer: 'return=minimal',
     },
     body: JSON.stringify([
       {
@@ -157,7 +162,7 @@ async function dispatchVerificationCode(phone: string, code: string) {
       },
       body: JSON.stringify({
         number: rawDigits,
-        text: `🐾 *Código de Confirmação WeFIND*\n\nSeu código de verificação é:\n\n*${code}*\n\nInforme este código no aplicativo para concluir o seu cadastro.`,
+        text: `*Código de confirmação WeFIND*\n\nSeu código de verificação é:\n\n*${code}*\n\nInforme este código no aplicativo para concluir o seu cadastro.`,
       }),
     });
 
@@ -653,7 +658,7 @@ async function findUserProfilesByPhone(supabaseUrl: string, serviceRoleKey: stri
             headers: { 'Content-Type': 'application/json', apikey: EVOLUTION_API_KEY },
             body: JSON.stringify({
               number: rawDigits,
-              text: '🔒 *Segurança WeFIND*\n\nA senha da sua conta WeFIND foi alterada com sucesso.\n\nSe você não reconhece esta operação, entre em contato imediatamente com o suporte.',
+              text: '*Aviso de segurança WeFIND*\n\nA senha da sua conta WeFIND foi alterada com sucesso.\n\nSe você não reconhece esta operação, entre em contato imediatamente com o suporte.',
             }),
             });
           }

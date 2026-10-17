@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -28,6 +29,9 @@ const ProfileScreen = ({ navigation }) => {
   const [localSavedLocation, setLocalSavedLocation] = useState(null);
   const [fosterModalVisible, setFosterModalVisible] = useState(false);
   const [fosterProfile, setFosterProfile] = useState(null);
+  // A tela fica estática; só rola se o conteúdo não couber (celular pequeno)
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
 
   const loadProfileData = useCallback(async () => {
     try {
@@ -165,6 +169,11 @@ const ProfileScreen = ({ navigation }) => {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      scrollEnabled={contentHeight > viewportHeight + 1}
+      bounces={false}
+      overScrollMode="never"
+      onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}
+      onContentSizeChange={(_, h) => setContentHeight(h)}
     >
       {/* Identidade e dados principais */}
       <View style={styles.identityCard}>
@@ -194,9 +203,6 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.identityDetails}>
             <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
               {userProfile?.name || 'Usuário WeFIND'}
-            </Text>
-            <Text style={[styles.userEmail, { color: colors.textSecondary }]} numberOfLines={1}>
-              {user?.email || 'Conta cadastrada'}
             </Text>
             {locationText ? (
               <Text style={[styles.userLocation, { color: colors.textSecondary }]} numberOfLines={1}>
@@ -240,7 +246,7 @@ const ProfileScreen = ({ navigation }) => {
       </View>
 
       {/* 4. GRUPO: COMUNIDADE & IMPACTO */}
-      <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>COMUNIDADE & IMPACTO</Text>
+      <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>COMUNIDADE E PREFERÊNCIAS</Text>
       <View style={[styles.menuGroup, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         {APP_FEATURES.fosterVolunteers && (
           <>
@@ -299,11 +305,10 @@ const ProfileScreen = ({ navigation }) => {
             ) : null}
           </React.Fragment>
         ))}
-      </View>
-
-      {/* 5. GRUPO: CONTA & PREFERÊNCIAS */}
-      <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>CONTA & PREFERÊNCIAS</Text>
-      <View style={[styles.menuGroup, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        {/* Preferências no mesmo grupo: menos títulos e espaços, a tela cabe sem rolar */}
+        {communityLinks.length > 0 ? (
+          <View style={[styles.menuDivider, { backgroundColor: colors.divider }]} />
+        ) : null}
         {settingsLinks.map((item, index) => (
           <React.Fragment key={item.route}>
             <TouchableOpacity
@@ -358,32 +363,31 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 40,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
   identityCard: {
-    paddingTop: 8,
-    marginBottom: 22,
+    marginBottom: 16,
   },
   identityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   avatarWrapper: {
     position: 'relative',
     marginRight: 14,
   },
   avatarImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#E2E8F0',
   },
   avatarFallback: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -407,13 +411,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    fontSize: 21,
+    fontSize: 19,
     fontWeight: '700',
     marginBottom: 2,
-  },
-  userEmail: {
-    fontSize: 13,
-    marginBottom: 3,
   },
   userLocation: {
     fontSize: 12,
@@ -440,14 +440,14 @@ const styles = StyleSheet.create({
   menuGroup: {
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 22,
+    marginBottom: 16,
     overflow: 'hidden',
   },
   menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 54,
-    paddingVertical: 12,
+    minHeight: 46,
+    paddingVertical: 9,
     paddingHorizontal: 14,
   },
   menuIcon: {
@@ -476,9 +476,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    marginTop: 0,
-    marginBottom: 20,
+    paddingVertical: 11,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   logoutButtonText: {
     color: '#DC2626',

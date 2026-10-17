@@ -115,7 +115,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
       id: `msg_${msg.itemId}_${msg.otherId}`,
       type: 'message',
       title: msg.otherName || 'Membro da Comunidade',
-      prefix: '💬 Mensagem sobre o pet:',
+      prefix: 'Mensagem sobre o pet:',
       message: `${msg.otherName || 'Membro da Comunidade'} enviou uma nova mensagem sobre "${msg.itemTitle || 'Pet sem nome'}".`,
       time: getRelativeTime(msg.lastMessageAt),
       timestamp: new Date(msg.lastMessageAt || Date.now()).getTime(),
@@ -133,31 +133,35 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
     const renewalAlerts = buildRenewalAlerts(items);
 
     const mappedSystemAlerts = [...renewalAlerts, ...(systemAlertsData || [])]
-      .filter((alert) => alert && (alert.type === 'renewal_reminder' || alert.type === 'item_removed' || alert.type === 'nearby_lost_pet' || alert.type === 'match' || alert.type === 'pet_match' || alert.type === 'sighting' || alert.type === 'claim_received' || alert.type === 'claim_approved' || alert.type === 'claim_rejected'))
+      .filter((alert) => alert && (alert.type === 'renewal_reminder' || alert.type === 'item_removed' || alert.type === 'nearby_lost_pet' || alert.type === 'match' || alert.type === 'pet_match' || alert.type === 'sighting' || alert.type === 'claim_received' || alert.type === 'claim_approved' || alert.type === 'claim_rejected' || alert.type === 'meetup_update'))
       .map((alert) => {
         const isRenewal = alert.type === 'renewal_reminder';
         const isNearby = alert.type === 'nearby_lost_pet';
         const isMatch = alert.type === 'match' || alert.type === 'pet_match';
         const isSighting = alert.type === 'sighting';
         const isClaim = alert.type === 'claim_received' || alert.type === 'claim_approved' || alert.type === 'claim_rejected';
+        const isMeetup = alert.type === 'meetup_update';
 
         let iconName = 'notifications';
-        let prefix = '📌 Aviso do Sistema:';
+        let prefix = 'Aviso do sistema:';
         if (isRenewal) {
           iconName = 'hourglass-bottom';
-          prefix = '⏳ Lembrete de Renovação:';
+          prefix = 'Lembrete de renovação:';
         } else if (isNearby) {
           iconName = 'radar';
-          prefix = '🚨 Alerta de Proximidade:';
+          prefix = 'Animal perdido por perto:';
         } else if (isMatch) {
           iconName = 'auto-awesome';
-          prefix = '🎯 Match Inteligente:';
+          prefix = 'Possível correspondência:';
         } else if (isSighting) {
           iconName = 'visibility';
-          prefix = '👁️ Novo Avistamento:';
+          prefix = 'Novo avistamento:';
         } else if (isClaim) {
           iconName = alert.type === 'claim_received' ? 'assignment-turned-in' : (alert.type === 'claim_approved' ? 'verified' : 'cancel');
-          prefix = alert.type === 'claim_received' ? '🛡️ Nova solicitação:' : '🛡️ Atualização da solicitação:';
+          prefix = alert.type === 'claim_received' ? 'Nova solicitação:' : 'Atualização da solicitação:';
+        } else if (isMeetup) {
+          iconName = 'event';
+          prefix = 'Encontro de devolução:';
         }
 
         return {
@@ -166,7 +170,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
           icon: iconName,
           time: getRelativeTime(alert.created_at),
           timestamp: new Date(alert.created_at || Date.now()).getTime(),
-          isCritical: isNearby || isRenewal || isMatch || isClaim || !alert.read,
+          isCritical: isNearby || isRenewal || isMatch || isClaim || isMeetup || !alert.read,
         };
       });
 
@@ -338,14 +342,14 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
         {
           user_id: user.id,
           type: 'nearby_lost_pet',
-          title: '🚨 Alerta WeFIND: Cão Perdido Próximo',
-          message: '🐾 Cão Labrador dourado ("Thor") foi visto a 800m da sua localização atual. Toque para ver detalhes e fotos.',
+          title: 'Cão perdido perto de você',
+          message: 'Cão Labrador dourado ("Thor") foi visto a 800 m de você. Abra o WeFIND para ver as fotos e os detalhes.',
           read: false,
         },
         {
           user_id: user.id,
           type: 'sighting',
-          title: '👁️ Novo Avistamento Registrado',
+          title: 'Novo avistamento registrado',
           message: 'Um voluntário registrou um avistamento com foto recente perto da Praça Central.',
           read: false,
         },
@@ -353,13 +357,13 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
           user_id: user.id,
           type: 'renewal_reminder',
           title: '⏳ Lembrete de Renovação (30 Dias)',
-          message: 'Sua publicação do pet "Mel" está próxima do período de renovação de 30 dias. Toque para mantê-la ativa.',
+          message: 'Sua publicação do pet "Mel" está próxima do período de renovação de 30 dias. Abra o WeFIND para mantê-la ativa.',
           read: false,
         },
         {
           user_id: user.id,
           type: 'match',
-          title: '✨ Sugestão Inteligente WeFIND',
+          title: 'Possível correspondência',
           message: 'Nossa IA identificou um pet cadastrado com 94% de similaridade com as fotos do seu anúncio.',
           read: false,
         },
@@ -370,8 +374,8 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
       }
 
       await triggerLocalNotification({
-        title: '🚨 Alerta WeFIND: Cão Perdido',
-        body: '🐾 Cão ("Thor", Labrador) perdido no seu bairro. Toque para abrir detalhes e fotos.',
+        title: 'Cão perdido perto de você',
+        body: 'Cão ("Thor", Labrador) perdido no seu bairro. Abra o WeFIND para ver as fotos e os detalhes.',
         data: { type: 'nearby_lost_pet' },
         delaySeconds: 0,
       });
@@ -381,7 +385,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
         onNotificationsUpdated();
       }
 
-      Alert.alert('🔔 Notificações Geradas!', 'Adicionamos 4 notificações de teste na sua caixa de entrada e disparamos um push de alerta!');
+      Alert.alert('Notificações de teste criadas', 'Adicionamos 4 notificações de teste na sua caixa de entrada e disparamos um push de alerta!');
     } catch (e) {
       console.warn('Erro ao gerar notificações de teste:', e);
       Alert.alert('Aviso', 'Notificações de demonstração inseridas com sucesso.');

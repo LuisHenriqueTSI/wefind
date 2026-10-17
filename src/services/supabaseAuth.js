@@ -222,6 +222,7 @@ const SIGNUP_ERROR_MESSAGES = {
   'email-already-registered': 'Este e-mail já tem uma conta no WeFIND. Faça login ou use "Esqueci minha senha".',
   'missing-fields': 'Preencha nome, e-mail, senha e WhatsApp para continuar.',
   'failed-to-create-user': 'Não foi possível criar a conta agora. Tente novamente em instantes.',
+  'failed-to-store-verification-code': 'Não foi possível gerar o código agora. Tente novamente em instantes.',
 };
 
 const describeSignUpError = (payload, fallback) => {

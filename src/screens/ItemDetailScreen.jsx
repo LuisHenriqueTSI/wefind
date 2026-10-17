@@ -41,7 +41,7 @@ import { findMatchesForPet } from '../services/petMatching';
 import PetMatchModal from '../components/PetMatchModal';
 import OptimizedImage from '../components/OptimizedImage';
 import * as Location from 'expo-location';
-import { canTraceRouteToItem, getPublicRouteTarget } from '../services/routeEligibility';
+import { describeRouteStatus, getRouteStatus } from '../services/routeEligibility';
 import {
   getPrivateLocationSummary,
   isResidentialAddressPrivate,
@@ -216,8 +216,10 @@ const ItemDetailScreen = ({ route, navigation }) => {
   const loadItemDetails = async () => {
     try {
       setLoading(true);
-      const itemData = await itemsService.getItemDetails(itemId);
+      let itemData = await itemsService.getItemDetails(itemId);
       if (itemData) {
+        // Contagem e último local visto vêm da tabela de avistamentos
+        [itemData] = await sightingsService.attachSightingSummaries([itemData]);
         setItem(itemData);
         if (user && itemData.owner_id === user.id) {
           const renewalInfo = getRenewalInfo(itemData);
@@ -659,18 +661,19 @@ const ItemDetailScreen = ({ route, navigation }) => {
         }
       }
 
-      await sightingsService.recordSightingAndUpdateItemLocation({
+      await sightingsService.recordSighting({
         itemId: itemId,
         userId: user.id,
         location: form.coordinate || form.location_details || { address: form.location },
         description: form.description,
         contactInfo: form.contact_info,
         photoUrl,
+        animalPlace: form.animal_place,
       });
 
       setSightingModalVisible(false);
       loadSightings();
-      loadItem(); // Recarrega os dados completos do animal atualizados no banco
+      loadItemDetails(); // Recarrega o animal com o resumo de avistamentos atualizado
 
       if (item?.owner_id) {
         try {
@@ -686,13 +689,13 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
           let notificationMessage = `${commenterName} compartilhou uma nova localização/avistamento sobre o pet em: ${form.location || 'Local informado'}.\n\nDetalhes: "${form.description || ''}"`;
           if (mapsLink) {
-            notificationMessage += `\n\n📍 *Ver localização no Google Maps:*\n${mapsLink}`;
+            notificationMessage += `\n\nVer no mapa: ${mapsLink}`;
           }
 
           await createNotification({
             user_id: item.owner_id,
             type: 'sighting',
-            title: `🐾 Nova pista sobre ${item.title || 'seu pet'}!`,
+            title: `Nova pista sobre ${item.title || 'seu pet'}`,
             message: notificationMessage,
             item_id: item.id,
           });
@@ -701,7 +704,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
         }
       }
 
-      Alert.alert('Avistamento Registrado! 🎯', 'A nova localização do pet foi atualizada e o tutor foi notificado com sucesso.');
+      Alert.alert('Avistamento registrado', 'O avistamento foi registrado nas pistas do pet e o tutor foi notificado.');
     } catch (e) {
       Alert.alert('Erro', 'Não foi possível enviar as informações. Tente novamente.');
     } finally {
@@ -813,41 +816,11 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
   const handleOpenRoute = async () => {
     if (!item) return;
-    if (!canTraceRouteToItem(item)) return;
-
-    const routeTarget = getPublicRouteTarget(item);
-    let lat = routeTarget?.latitude;
-    let lng = routeTarget?.longitude;
-
-    if (!lat || !lng) {
-      try {
-        const query = [
-          item.extra_fields?.last_sighting_address || item.street,
-          item.neighborhood,
-          item.city,
-          item.state,
-          'Brasil',
-        ].filter(Boolean).join(', ');
-
-        if (query) {
-          const results = await Location.geocodeAsync(query);
-          if (results && results.length > 0) {
-            lat = results[0].latitude;
-            lng = results[0].longitude;
-          }
-        }
-      } catch (err) {
-        console.log('[ItemDetailScreen] Erro no geocoding:', err);
-      }
-    }
-
-    if (!lat || !lng) {
-      Alert.alert(
-        'Localização indisponível',
-        'Não foi possível encontrar as coordenadas exatas deste animal para traçar a rota.'
-      );
-      return;
-    }
+    // Só pistas públicas e recentes têm rota; o destino é o centro da área de busca
+    const routeStatus = getRouteStatus(item);
+    if (!routeStatus.available) return;
+    const lat = routeStatus.area.latitude;
+    const lng = routeStatus.area.longitude;
 
     const mapParams = {
       focusItemId: item.id,
@@ -1556,8 +1529,27 @@ const ItemDetailScreen = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* Rota usa apenas localização pública: encontrada na rua ou último avistamento de um perdido */}
-          {canTraceRouteToItem(item) && (
+          {/* Situação da pista: só lugares públicos e recentes têm rota */}
+          {(() => {
+            const routeInfoText = describeRouteStatus(getRouteStatus(item));
+            if (!routeInfoText) return null;
+            const tone = {
+              hot: { bg: '#F0FDF4', border: '#BBF7D0', text: '#15803D', icon: 'local-fire-department' },
+              warm: { bg: '#FFFBEB', border: '#FDE68A', text: '#B45309', icon: 'schedule' },
+              cold: { bg: '#F8FAFC', border: '#E2E8F0', text: '#475569', icon: 'ac-unit' },
+              protected: { bg: '#F0F9FF', border: '#BAE6FD', text: '#0369A1', icon: 'lock-outline' },
+            }[routeInfoText.tone];
+            return (
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start', backgroundColor: tone.bg, borderColor: tone.border, borderWidth: 1, borderRadius: 10, padding: 9, marginTop: 6, marginBottom: 4 }}>
+                <MaterialIcons name={tone.icon} size={16} color={tone.text} style={{ marginRight: 6, marginTop: 1 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: tone.text }}>{routeInfoText.title}</Text>
+                  <Text style={{ fontSize: 11.5, color: '#475569', lineHeight: 16, marginTop: 1 }}>{routeInfoText.text}</Text>
+                </View>
+              </View>
+            );
+          })()}
+          {getRouteStatus(item).available && (
           <TouchableOpacity
             style={{
               flexDirection: 'row',
@@ -1574,7 +1566,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
           >
             <MaterialIcons name="directions" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
             <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13.5 }}>
-              {item.status === 'lost' ? 'Ver Rota até o Último Avistamento' : 'Ver Rota no Mapa'}
+              Ver rota a pé até a área
             </Text>
           </TouchableOpacity>
           )}

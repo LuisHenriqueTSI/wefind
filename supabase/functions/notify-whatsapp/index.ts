@@ -236,7 +236,7 @@ Deno.serve(async (req: Request) => {
           headers: { 'Content-Type': 'application/json', ...corsHeaders(req) },
         });
       }
-      outgoingTitle = 'Código de Confirmação WeFIND';
+      outgoingTitle = 'Código de confirmação WeFIND';
       outgoingMessage = `Seu código para confirmar a alteração do seu WhatsApp é:\n\n*${code}*\n\nInforme este código no aplicativo para atualizar seu número com segurança.`;
     }
 

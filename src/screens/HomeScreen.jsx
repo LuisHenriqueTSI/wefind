@@ -49,6 +49,7 @@ import { WeFindText, WeFindLogo } from '../components/WeFindBrand';
 import { MaterialIcons } from '@expo/vector-icons';
 import AdvancedFiltersModal from '../components/AdvancedFiltersModal';
 import LoginPillButton from '../components/LoginPillButton';
+import ProfileMenu from '../components/ProfileMenu';
 
 // Cálculo de distância geográfica precisa em KM (Fórmula de Haversine)
 const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
@@ -1710,63 +1711,27 @@ const HomeScreen = ({ navigation, route }) => {
             <LoginPillButton onPress={() => navigation.navigate('Login')} />
           )}
           {user && showProfileMenu && (
-            <View style={[styles.profileMenu, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
-              <View style={[styles.profileMenuHeader, { backgroundColor: colors.primaryLight, borderBottomColor: colors.border }]}>
-                <View style={styles.profileMenuAvatar}>
-                  {userProfile?.avatar_url ? (
-                    <Image source={{ uri: userProfile.avatar_url }} style={styles.profileMenuAvatarImage} />
-                  ) : (
-                    <Text style={styles.profileMenuAvatarText}>{userProfile?.name ? userProfile.name[0].toUpperCase() : 'U'}</Text>
-                  )}
-                </View>
-                <View style={styles.profileMenuIdentity}>
-                  <Text style={[styles.profileMenuName, { color: colors.text }]} numberOfLines={1}>{userProfile?.name || 'Usuário'}</Text>
-                  <Text style={[styles.profileMenuEmail, { color: colors.textSecondary }]} numberOfLines={1}>{user?.email || 'Conta WeFIND'}</Text>
-                </View>
-              </View>
-              {isAdmin && (
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowProfileMenu(false);
-                    navigation.navigate('Admin');
-                  }}
-                  style={styles.profileMenuItem}
-                >
-                  <View style={[styles.profileMenuIcon, styles.profileMenuAdminIcon, { backgroundColor: colors.primaryLight }]}>
-                    <MaterialIcons name="admin-panel-settings" size={18} color={colors.primary} />
-                  </View>
-                  <Text style={[styles.profileMenuItemText, { color: colors.text }]}>Administração</Text>
-                  <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                onPress={() => {
-                  setShowProfileMenu(false);
-                  navigation.navigate('ProfileTab');
-                }}
-                style={styles.profileMenuItem}
-              >
-                <View style={[styles.profileMenuIcon, { backgroundColor: colors.primaryLight }]}>
-                  <MaterialIcons name="person-outline" size={18} color={colors.primary} />
-                </View>
-                <Text style={[styles.profileMenuItemText, { color: colors.text }]}>Perfil</Text>
-                <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
-              </TouchableOpacity>
-              <View style={[styles.profileMenuDivider, { backgroundColor: colors.divider }]} />
-              <TouchableOpacity
-                onPress={() => {
-                  setShowProfileMenu(false);
-                  if (typeof signOut === 'function') signOut();
-                  else if (typeof navigation?.navigate === 'function') navigation.navigate('Login');
-                }}
-                style={styles.profileMenuItem}
-              >
-                <View style={[styles.profileMenuIcon, styles.profileMenuLogoutIcon]}>
-                  <MaterialIcons name="logout" size={18} color="#DC2626" />
-                </View>
-                <Text style={styles.profileMenuLogoutText}>Sair</Text>
-              </TouchableOpacity>
-            </View>
+            <ProfileMenu
+              profile={userProfile}
+              isAdmin={isAdmin}
+              onOpenProfile={() => {
+                setShowProfileMenu(false);
+                navigation.navigate('ProfileTab');
+              }}
+              onOpenSettings={() => {
+                setShowProfileMenu(false);
+                navigation.navigate('Config');
+              }}
+              onOpenAdmin={() => {
+                setShowProfileMenu(false);
+                navigation.navigate('Admin');
+              }}
+              onSignOut={() => {
+                setShowProfileMenu(false);
+                if (typeof signOut === 'function') signOut();
+                else if (typeof navigation?.navigate === 'function') navigation.navigate('Login');
+              }}
+            />
           )}
         </View>
 
@@ -2376,59 +2341,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
-  profileMenu: {
-    position: 'absolute',
-    top: 56,
-    right: 18,
-    width: 236,
-    padding: 8,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: COLORS.primaryBorder,    zIndex: 100,
-  },
-  profileMenuHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    marginBottom: 4,
-    borderRadius: 12,
-    backgroundColor: COLORS.primaryLight,
-  },
-  profileMenuAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.secondary || '#B1734A',
-    overflow: 'hidden',
-  },
-  profileMenuAvatarImage: { width: 36, height: 36 },
-  profileMenuAvatarText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
-  profileMenuIdentity: { flex: 1, marginLeft: 10 },
-  profileMenuName: { color: '#111827', fontSize: 14, fontWeight: '800' },
-  profileMenuEmail: { color: '#6B7280', fontSize: 11, marginTop: 2 },
-  profileMenuItem: {
-    minHeight: 46,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-    borderRadius: 10,
-  },
-  profileMenuIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primaryLight,
-  },
-  profileMenuAdminIcon: { backgroundColor: COLORS.primaryLight },
-  profileMenuLogoutIcon: { backgroundColor: '#FEF2F2' },
-  profileMenuItemText: { flex: 1, marginLeft: 10, color: '#1F2937', fontSize: 14, fontWeight: '700' },
-  profileMenuLogoutText: { flex: 1, marginLeft: 10, color: '#DC2626', fontSize: 14, fontWeight: '700' },
-  profileMenuDivider: { height: 1, marginVertical: 4, backgroundColor: '#E5E7EB' },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -2486,14 +2398,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
-  profileMenuIconBox: {
-    width: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  profileMenuText: { fontSize: 13.5, color: '#1F2937', fontWeight: '600' },
-  profileMenuDivider: { height: 1, backgroundColor: '#E2E8F0', marginVertical: 4 },
   advFilterHeader: {
     flexDirection: 'row',
     alignItems: 'center',

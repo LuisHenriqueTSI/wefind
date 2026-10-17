@@ -116,74 +116,89 @@ export const syncRatingNotifications = async (userId) => {
   return created;
 };
 
+// Sem classificações a média é null (e não 5,0): a tela mostra "Sem classificações".
+const emptyRatings = () => ({ ratings: [], average: null, total: 0, breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
+
+const parseTags = (value) => {
+  if (Array.isArray(value)) return value;
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+// Nota válida de 1 a 5; qualquer outra coisa não entra na média
+const parseStars = (value) => {
+  const stars = Math.round(Number(value));
+  return Number.isFinite(stars) && stars >= 1 && stars <= 5 ? stars : null;
+};
+
+/**
+ * Classificações recebidas por um membro, com média e distribuição.
+ * A tabela `user_ratings` do Supabase é a única fonte: antes cada celular
+ * guardava também uma cópia local (com outro id), e quem classificava via a
+ * própria nota contada duas vezes; notas que falhavam no servidor só
+ * existiam naquele aparelho.
+ */
 export const getUserRatings = async (targetUserId) => {
-  if (!targetUserId) return { ratings: [], average: 5.0, total: 0, breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+  if (!targetUserId) return emptyRatings();
 
   try {
-    let remoteRatings = [];
-    try {
-      const { data, error } = await supabase
-        .from('user_ratings')
-        .select('*')
-        .eq('target_user_id', targetUserId)
-        .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('user_ratings')
+      .select('*')
+      .eq('target_user_id', targetUserId)
+      .order('created_at', { ascending: false });
 
-      if (!error && Array.isArray(data)) {
-        remoteRatings = data.map(r => ({
-          id: r.id,
-          targetUserId: r.target_user_id,
-          reviewerId: r.reviewer_id,
-          reviewerName: r.reviewer_name || 'Membro da Comunidade',
-          reviewerAvatar: r.reviewer_avatar || null,
-          stars: Number(r.stars) || 5,
-          tags: Array.isArray(r.tags) ? r.tags : (r.tags ? JSON.parse(r.tags) : []),
-          comment: r.comment || '',
-          createdAt: r.created_at,
-        }));
-      }
-    } catch (e) {
-      console.log('[ratings] Tabela remota user_ratings:', e.message);
+    if (error) {
+      console.log('[ratings] Erro ao buscar user_ratings:', error.message);
+      return emptyRatings();
     }
 
-    // Carrega avaliações armazenadas localmente
-    let localRatings = [];
-    try {
-      const raw = await AsyncStorage.getItem(LOCAL_RATINGS_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        localRatings = (parsed || []).filter(r => r.targetUserId === targetUserId);
-      }
-    } catch (e) {
-      console.log('[ratings] Erro ao carregar avaliações locais:', e.message);
-    }
-
-    // Combina remotas e locais evitando duplicatas
-    const ids = new Set(remoteRatings.map(r => String(r.id)));
-    const uniqueLocal = localRatings.filter(r => !ids.has(String(r.id)));
-    const allRatings = [...uniqueLocal, ...remoteRatings].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-
-    // Calcula métricas
-    const total = allRatings.length;
-    const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    let sum = 0;
-
-    allRatings.forEach(r => {
-      const s = Math.max(1, Math.min(5, Math.round(r.stars || 5)));
-      breakdown[s] = (breakdown[s] || 0) + 1;
-      sum += s;
+    // Uma classificação por avaliador (a mais recente), sempre com nota válida
+    const seenReviewers = new Set();
+    const ratings = [];
+    (data || []).forEach((r) => {
+      const stars = parseStars(r.stars);
+      if (stars == null) return;
+      const reviewerKey = String(r.reviewer_id || r.id);
+      if (seenReviewers.has(reviewerKey)) return;
+      seenReviewers.add(reviewerKey);
+      ratings.push({
+        id: r.id,
+        targetUserId: r.target_user_id,
+        reviewerId: r.reviewer_id,
+        reviewerName: r.reviewer_name || 'Membro da Comunidade',
+        reviewerAvatar: r.reviewer_avatar || null,
+        stars,
+        tags: parseTags(r.tags),
+        comment: r.comment || '',
+        createdAt: r.created_at,
+      });
     });
 
-    const average = total > 0 ? (sum / total).toFixed(1) : '5.0';
+    const total = ratings.length;
+    if (total === 0) return emptyRatings();
+
+    const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    let sum = 0;
+    ratings.forEach((r) => {
+      breakdown[r.stars] += 1;
+      sum += r.stars;
+    });
 
     return {
-      ratings: allRatings,
-      average: Number(average),
+      ratings,
+      average: Math.round((sum / total) * 10) / 10,
       total,
       breakdown,
     };
   } catch (error) {
     console.warn('[ratings] Erro ao buscar avaliações:', error.message);
-    return { ratings: [], average: 5.0, total: 0, breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } };
+    return emptyRatings();
   }
 };
 
@@ -192,7 +207,7 @@ export const submitUserRating = async ({
   reviewerId,
   reviewerName,
   reviewerAvatar,
-  stars = 5,
+  stars,
   tags = [],
   comment = '',
 }) => {
@@ -204,100 +219,70 @@ export const submitUserRating = async ({
     throw new Error('Você não pode avaliar seu próprio perfil.');
   }
 
+  const safeStars = parseStars(stars);
+  if (safeStars == null) {
+    throw new Error('Escolha uma nota de 1 a 5 estrelas.');
+  }
+
   if (!(await canRateUser(reviewerId, targetUserId))) {
     throw new Error('A classificação será liberada após 24 horas sem novas mensagens entre vocês.');
   }
 
+  // limit(1): com registros duplicados antigos, maybeSingle() dava erro
   const { data: existingRemoteRating, error: existingRemoteError } = await supabase
     .from('user_ratings')
     .select('id')
     .eq('target_user_id', targetUserId)
     .eq('reviewer_id', reviewerId)
-    .maybeSingle();
+    .limit(1);
 
   if (existingRemoteError) throw existingRemoteError;
-  if (existingRemoteRating) {
+  if (existingRemoteRating?.length > 0) {
     throw new Error('Você já enviou sua classificação para este membro. Ela não pode ser editada.');
   }
 
-  const localRaw = await AsyncStorage.getItem(LOCAL_RATINGS_KEY);
-  const localRatings = localRaw ? JSON.parse(localRaw) : [];
-  if (localRatings.some((rating) => rating.targetUserId === targetUserId && rating.reviewerId === reviewerId)) {
-    throw new Error('Você já enviou sua classificação para este membro. Ela não pode ser editada.');
-  }
-
-  const safeStars = Math.max(1, Math.min(5, Number(stars) || 5));
   const newRating = {
-    id: `rating-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    targetUserId,
-    reviewerId,
-    reviewerName: reviewerName || 'Membro WeFIND',
-    reviewerAvatar: reviewerAvatar || null,
+    target_user_id: targetUserId,
+    reviewer_id: reviewerId,
+    reviewer_name: reviewerName || 'Membro WeFIND',
+    reviewer_avatar: reviewerAvatar || null,
     stars: safeStars,
     tags: Array.isArray(tags) ? tags : [],
     comment: String(comment || '').trim(),
-    createdAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
   };
 
-  // 1. Tenta salvar no Supabase
-  try {
-    const { error } = await supabase.from('user_ratings').insert({
-      target_user_id: targetUserId,
-      reviewer_id: reviewerId,
-      reviewer_name: newRating.reviewerName,
-      reviewer_avatar: newRating.reviewerAvatar,
-      stars: safeStars,
-      tags: newRating.tags,
-      comment: newRating.comment,
-      created_at: newRating.createdAt,
-    });
-    if (error) throw error;
-  } catch (remoteErr) {
-    console.log('[ratings] Aviso ao salvar no Supabase:', remoteErr.message);
+  // Se o servidor recusar, a classificação NÃO é dada como enviada
+  const { data, error } = await supabase.from('user_ratings').insert(newRating).select().maybeSingle();
+  if (error) {
+    console.log('[ratings] Erro ao salvar no Supabase:', error.message);
+    throw new Error('Não foi possível enviar a classificação agora. Verifique sua conexão e tente novamente.');
   }
 
-  // 2. Salva no AsyncStorage local
-  try {
-    const existing = localRaw ? JSON.parse(localRaw) : [];
-    const updated = [newRating, ...existing];
-    await AsyncStorage.setItem(LOCAL_RATINGS_KEY, JSON.stringify(updated));
-  } catch (localErr) {
-    console.log('[ratings] Erro no AsyncStorage:', localErr.message);
-  }
-
-  return newRating;
+  return data || newRating;
 };
 
-export const deleteUserRating = async (ratingId, targetUserId) => {
-  try {
-    if (!ratingId) return false;
-    console.log('[ratings] Excluindo avaliação:', ratingId);
+export const deleteUserRating = async (ratingId) => {
+  if (!ratingId) return false;
 
-    // 1. Tenta excluir do Supabase
-    try {
-      await supabase
-        .from('user_ratings')
-        .delete()
-        .eq('id', ratingId);
-    } catch (e) {
-      console.log('[ratings] Aviso ao excluir do Supabase:', e.message);
-    }
+  const { error } = await supabase
+    .from('user_ratings')
+    .delete()
+    .eq('id', ratingId);
 
-    // 2. Exclui do AsyncStorage local
-    try {
-      const raw = await AsyncStorage.getItem(LOCAL_RATINGS_KEY);
-      if (raw) {
-        const existing = JSON.parse(raw);
-        const filtered = existing.filter(r => String(r.id) !== String(ratingId));
-        await AsyncStorage.setItem(LOCAL_RATINGS_KEY, JSON.stringify(filtered));
-      }
-    } catch (e) {
-      console.log('[ratings] Erro ao remover do AsyncStorage:', e.message);
-    }
-
-    return true;
-  } catch (error) {
+  if (error) {
     console.error('[ratings] Erro ao excluir avaliação:', error.message);
     throw error;
   }
+
+  // Limpa a cópia local antiga, se ainda existir neste aparelho
+  try {
+    const raw = await AsyncStorage.getItem(LOCAL_RATINGS_KEY);
+    if (raw) {
+      const filtered = (JSON.parse(raw) || []).filter((r) => String(r.id) !== String(ratingId));
+      await AsyncStorage.setItem(LOCAL_RATINGS_KEY, JSON.stringify(filtered));
+    }
+  } catch {}
+
+  return true;
 };

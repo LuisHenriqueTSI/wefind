@@ -112,13 +112,13 @@ const ConfigScreen = ({ navigation }) => {
       const { dispatchSystemNotificationToWhatsApp } = require('../services/whatsappNotifications');
       const result = await dispatchSystemNotificationToWhatsApp({
         userId: user.id,
-        title: '🐾 Teste de Alerta WeFIND',
+        title: 'Teste de notificação WeFIND',
         message: 'Olá! Este é um teste confirmando que o seu WhatsApp está 100% configurado para receber notificações do WeFIND.',
         type: 'test_alert',
       });
 
       if (result?.sent) {
-        Alert.alert('Sucesso! 🎉', 'Mensagem de teste enviada para o seu WhatsApp cadastrado.');
+        Alert.alert('Mensagem enviada', 'Mensagem de teste enviada para o seu WhatsApp cadastrado.');
       } else if (result?.reason === 'user-opted-out') {
         Alert.alert('Notificações desativadas', 'Você desativou o recebimento de mensagens no WhatsApp. Ative a chave acima para receber.');
       } else if (result?.reason === 'missing-whatsapp') {
@@ -133,7 +133,7 @@ const ConfigScreen = ({ navigation }) => {
 
   const handleTestPushNotification = () => {
     Alert.alert(
-      '🧪 Testar Push no Celular',
+      'Testar notificação no celular',
       'Como deseja testar o alerta de pet perdido?',
       [
         {
@@ -141,12 +141,12 @@ const ConfigScreen = ({ navigation }) => {
           onPress: async () => {
             const { triggerLocalNotification } = require('../services/pushNotifications');
             await triggerLocalNotification({
-              title: '🚨 Alerta WeFIND: Cão Perdido',
-              body: '🐾 Cão ("Thor", Labrador) perdido no seu bairro. Toque para abrir detalhes e fotos.',
+              title: 'Cão perdido perto de você',
+              body: 'Cão ("Thor", Labrador) perdido no seu bairro. Abra o WeFIND para ver as fotos e os detalhes.',
               data: { type: 'nearby_lost_pet' },
               delaySeconds: 0,
             });
-            Alert.alert('🔔 Push Disparado!', 'Verifique a barra de notificações no topo do seu celular!');
+            Alert.alert('Notificação enviada', 'Verifique a barra de notificações no topo do seu celular!');
           },
         },
         {
@@ -154,8 +154,8 @@ const ConfigScreen = ({ navigation }) => {
           onPress: async () => {
             const { triggerLocalNotification } = require('../services/pushNotifications');
             await triggerLocalNotification({
-              title: '🚨 Alerta WeFIND: Cão Perdido',
-              body: '🐾 Cão ("Thor", Labrador) perdido no seu bairro. Toque para abrir detalhes e fotos.',
+              title: 'Cão perdido perto de você',
+              body: 'Cão ("Thor", Labrador) perdido no seu bairro. Abra o WeFIND para ver as fotos e os detalhes.',
               data: { type: 'nearby_lost_pet' },
               delaySeconds: 4,
             });

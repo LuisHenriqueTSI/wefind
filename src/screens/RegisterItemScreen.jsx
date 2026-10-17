@@ -30,6 +30,7 @@ import { states } from '../lib/br-locations';
 import Card from '../components/Card';
 import COLORS from '../constants/theme';
 import { APP_FEATURES } from '../constants/features';
+import { removeHouseNumberFromAddress } from '../utils/locationPrivacy';
 
 const PET_SPECIES_OPTIONS = [
   { label: 'Selecione a espécie', value: '' },
@@ -704,7 +705,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
               <View style={{ flex: isLost ? 1.5 : 2.2 }}>
                 <Text style={[styles.smallInputLabel, { color: colors.textSecondary }]}>
-                  {isLost ? 'Ponto de Referência / Rua' : 'Rua / Logradouro'}
+                  {isLost ? 'Ponto de Referência / Rua' : 'Rua / Logradouro (sem número)'}
                 </Text>
                 <TextInput
                   style={[styles.singleLineInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
@@ -720,25 +721,6 @@ const RegisterItemScreen = ({ navigation, route }) => {
                 />
               </View>
 
-              {!isLost && (
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.smallInputLabel, { color: colors.textSecondary }]}>
-                    {isSpotted ? 'Nº Aprox.' : 'Nº da Casa'}
-                  </Text>
-                  <TextInput
-                    style={[styles.singleLineInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
-                    value={mapLocationDetails?.number || ''}
-                    onChangeText={(t) => {
-                      const updated = { ...(mapLocationDetails || {}), number: t };
-                      setMapLocationDetails(updated);
-                      const formatted = [updated.street, updated.number, updated.district, updated.city, updated.state].filter(Boolean).join(', ');
-                      setMapAddressText(formatted);
-                    }}
-                    placeholder={isSpotted ? 'Ex: 450' : 'Ex: 123'}
-                    placeholderTextColor={colors.textMuted}
-                  />
-                </View>
-              )}
             </View>
 
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
@@ -831,7 +813,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
 
         const details = addressDetails || {
           street: address?.street || address?.name || '',
-          number: address?.houseNumber || (address?.name && /^\d+$/.test(String(address.name)) ? address.name : ''),
+          number: '',
           district: resolvedDistrict,
           city: resolvedCity,
           state: resolvedRegion,
@@ -1373,18 +1355,19 @@ const RegisterItemScreen = ({ navigation, route }) => {
         }
       }
 
-      await sightingsService.recordSightingAndUpdateItemLocation({
+      await sightingsService.recordSighting({
         itemId: selectedMatchPet.id,
         userId: user.id,
         location: mapLocation ? { latitude: Number(mapLocation.latitude), longitude: Number(mapLocation.longitude), address: mapAddressText } : mapAddressText,
         description: description?.trim() || 'Avistado novamente por um usuário nesta região.',
         photoUrl,
+        animalPlace: foundCustody === 'spotted' ? 'street' : 'private',
       });
 
       setShowMatchingModal(false);
       Alert.alert(
-        'Localização Atualizada! 🎯',
-        `A localização de "${selectedMatchPet.title}" foi atualizada no mapa para o ponto onde você o viu. O tutor e voluntários foram avisados!`,
+        'Avistamento registrado',
+        `O ponto onde você viu "${selectedMatchPet.title}" foi registrado nas pistas do pet. O tutor e voluntários foram avisados!`,
         [
           {
             text: 'Ver no Mapa',
@@ -1483,8 +1466,8 @@ const RegisterItemScreen = ({ navigation, route }) => {
       ].filter(Boolean).join(', ')).trim();
 
       const exactLocationDetails = {
-        street: mapLocationDetails?.street || '',
-        number: mapLocationDetails?.number || '',
+        street: removeHouseNumberFromAddress(mapLocationDetails?.street || ''),
+        number: '', // o WeFIND não guarda número de casa
         district: mapLocationDetails?.district || '',
         city: mapLocationDetails?.city || city || '',
         state: mapLocationDetails?.state || state || '',
@@ -1504,10 +1487,10 @@ const RegisterItemScreen = ({ navigation, route }) => {
         neighborhood: toNull(mapLocationDetails?.district) || toNull(neighborhood) || editItem?.neighborhood || null,
         latitude: mapLocation?.latitude ?? editItem?.latitude ?? null,
         longitude: mapLocation?.longitude ?? editItem?.longitude ?? null,
-        street: toNull(mapLocationDetails?.street) || editItem?.street || null,
-        house_number: toNull(mapLocationDetails?.number) || editItem?.house_number || null,
+        street: toNull(removeHouseNumberFromAddress(mapLocationDetails?.street || '')) || toNull(removeHouseNumberFromAddress(editItem?.street || '')) || null,
+        house_number: null, // nunca salvo (privacidade); limpa valores antigos ao editar
         postal_code: toNull(mapLocationDetails?.postalCode) || editItem?.postal_code || null,
-        address: toNull(normalizedAddressText) || editItem?.address || null,
+        address: toNull(removeHouseNumberFromAddress(normalizedAddressText)) || toNull(removeHouseNumberFromAddress(editItem?.address || '')) || null,
         status: toNull(effectiveStatus) || editItem?.status || 'lost',
         category: toNull(itemType) || editItem?.category || null,
         item_type: toNull(itemType) || editItem?.item_type || null,
@@ -1682,7 +1665,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
           return;
         }
 
-        const successTitle = status === 'lost' ? '🚨 Publicado com Sucesso!' : '🐾 Publicação Criada com Sucesso!';
+        const successTitle = status === 'lost' ? 'Publicação criada' : 'Publicação criada';
         const successMessage = status === 'lost'
           ? 'Seu alerta foi publicado no mapa e voluntários da região foram notificados. Você pode conferir os detalhes agora ou gerenciar em "Minhas Publicações".'
           : 'Seu anúncio foi salvo e já está ativo no mapa da região informada e na sua lista de anúncios.';
@@ -2012,7 +1995,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                     style={[
                       styles.statusButton,
                       { backgroundColor: isDark ? '#1E293B' : '#F9FAFB', borderColor: isDark ? '#334155' : '#E5E7EB' },
-                      status === 'lost' && { backgroundColor: isDark ? COLORS.secondaryDark : COLORS.secondary, borderColor: isDark ? COLORS.secondaryMedium : COLORS.secondary },
+                      status === 'lost' && { backgroundColor: '#E67E22', borderColor: '#E67E22' },
                     ]}
                     onPress={() => setStatus('lost')}
                   >
@@ -2048,7 +2031,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                     style={[
                       styles.statusButton,
                       { backgroundColor: isDark ? '#1E293B' : '#F9FAFB', borderColor: isDark ? '#334155' : '#E5E7EB' },
-                      status === 'adoption' && { backgroundColor: isDark ? COLORS.secondaryDark : COLORS.secondary, borderColor: isDark ? COLORS.secondaryMedium : COLORS.secondary },
+                      status === 'adoption' && { backgroundColor: '#BE185D', borderColor: '#BE185D' },
                     ]}
                     onPress={() => {
                       setStatus('adoption');
@@ -2069,14 +2052,14 @@ const RegisterItemScreen = ({ navigation, route }) => {
 
               {/* Informação sobre Publicação Direta para Adoção */}
               {status === 'adoption' && (
-                <View style={{ backgroundColor: isDark ? COLORS.secondaryLight : COLORS.secondaryLight, borderWidth: 1.5, borderColor: isDark ? COLORS.secondaryMedium : COLORS.secondaryBorder, borderRadius: 12, padding: 14, marginBottom: 20 }}>
+                <View style={{ backgroundColor: isDark ? 'rgba(190, 24, 93, 0.15)' : '#FDF2F8', borderWidth: 1.5, borderColor: isDark ? '#BE185D' : '#FBCFE8', borderRadius: 12, padding: 14, marginBottom: 20 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 }}>
-                    <MaterialIcons name="favorite" size={18} color={COLORS.secondary} />
-                    <Text style={{ fontSize: 13.5, fontWeight: '800', color: isDark ? COLORS.secondaryMedium : COLORS.secondaryDark }}>
+                    <MaterialIcons name="favorite" size={18} color={isDark ? '#F472B6' : '#BE185D'} />
+                    <Text style={{ fontSize: 13.5, fontWeight: '800', color: isDark ? '#F9A8D4' : '#9D174D' }}>
                       Adoção Imediata (Pet sem Tutor Conhecido)
                     </Text>
                   </View>
-                  <Text style={{ fontSize: 12, lineHeight: 16, color: isDark ? '#E8C3AE' : COLORS.secondaryDark }}>
+                  <Text style={{ fontSize: 12, lineHeight: 16, color: isDark ? '#FBCFE8' : '#9D174D' }}>
                     Utilize esta opção para doar ou cadastrar animais resgatados, ninhadas ou pets de abrigo que não possuem dono prévio. O anúncio entrará diretamente no feed de adoção.
                   </Text>
                 </View>
@@ -2456,7 +2439,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                   style={[
                     styles.statusButton,
                     { backgroundColor: isDark ? '#1E293B' : '#F9FAFB', borderColor: isDark ? '#334155' : '#E5E7EB' },
-                    status === 'lost' && { backgroundColor: isDark ? COLORS.secondaryDark : COLORS.secondary, borderColor: isDark ? COLORS.secondaryMedium : COLORS.secondary },
+                    status === 'lost' && { backgroundColor: '#E67E22', borderColor: '#E67E22' },
                   ]}
                   onPress={() => setStatus('lost')}
                 >

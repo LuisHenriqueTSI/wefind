@@ -609,7 +609,47 @@
                         "version":  122,
                         "filename":  "TCC_WeFIND_v122_16-10-2026-17h34.pdf",
                         "date":  "2026-10-16T17:34:03-03:00"
+                    },
+                    {
+                        "version":  123,
+                        "filename":  "TCC_WeFIND_v123_17-10-2026-11h27.pdf",
+                        "date":  "2026-10-17T11:27:21-03:00"
+                    },
+                    {
+                        "version":  124,
+                        "filename":  "TCC_WeFIND_v124_17-10-2026-11h54.pdf",
+                        "date":  "2026-10-17T11:54:34-03:00"
+                    },
+                    {
+                        "version":  125,
+                        "filename":  "TCC_WeFIND_v125_17-10-2026-11h57.pdf",
+                        "date":  "2026-10-17T11:57:50-03:00"
+                    },
+                    {
+                        "version":  126,
+                        "filename":  "TCC_WeFIND_v126_17-10-2026-12h07.pdf",
+                        "date":  "2026-10-17T12:07:37-03:00"
+                    },
+                    {
+                        "version":  127,
+                        "filename":  "TCC_WeFIND_v127_17-10-2026-12h10.pdf",
+                        "date":  "2026-10-17T12:10:35-03:00"
+                    },
+                    {
+                        "version":  128,
+                        "filename":  "TCC_WeFIND_v128_17-10-2026-12h21.pdf",
+                        "date":  "2026-10-17T12:21:48-03:00"
+                    },
+                    {
+                        "version":  129,
+                        "filename":  "TCC_WeFIND_v129_17-10-2026-12h48.pdf",
+                        "date":  "2026-10-17T12:48:14-03:00"
+                    },
+                    {
+                        "version":  130,
+                        "filename":  "TCC_WeFIND_v130_17-10-2026-15h14.pdf",
+                        "date":  "2026-10-17T15:14:19-03:00"
                     }
                 ],
-    "current_version":  122
+    "current_version":  130
 }

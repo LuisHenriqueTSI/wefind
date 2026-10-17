@@ -313,8 +313,8 @@ export async function broadcastLostPetAlertToNearbyUsers(petItem, currentUserId 
     const petIdentification = [nameText ? `"${nameText}"` : '', breedText ? `(${breedText})` : ''].filter(Boolean).join(' ') || speciesLabel;
     const locationHint = petDistrict ? `no Bairro ${petDistrict}` : (petCity ? `em ${petCity}` : 'na sua região');
 
-    const alertTitle = `🚨 Alerta WeFIND: ${speciesLabel} Perdido`;
-    const alertMessage = `🐾 ${speciesLabel} ${petIdentification} perdido ${locationHint}. Toque para abrir detalhes e fotos.`;
+    const alertTitle = `${speciesLabel} perdido perto de você`;
+    const alertMessage = `${speciesLabel} ${petIdentification} perdido ${locationHint}. Abra o WeFIND para ver as fotos e os detalhes.`;
 
     // 2. Cria notificações in-app persistentes no Supabase para cada usuário próximo
     const inAppNotifications = targetUsers.map((target) => ({

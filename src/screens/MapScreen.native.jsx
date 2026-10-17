@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Animated, Image, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Image, Linking, Modal, PixelRatio, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import MapView, { Polyline } from 'react-native-maps';
+import MapView, { Circle, Marker, Polyline } from 'react-native-maps';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import * as itemsService from '../services/items';
@@ -12,10 +13,22 @@ import PetMapMarker from '../components/PetMapMarker';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import COLORS from '../constants/theme';
-import { canTraceRouteToItem, getPublicRouteTarget } from '../services/routeEligibility';
+import {
+  DEFAULT_ROUTE_MODE,
+  ROUTE_MODES,
+  ROUTE_MODE_ORDER,
+  buildGoogleMapsUrl,
+  describeRouteStatus,
+  formatClueAge,
+  getRouteMode,
+  getRouteStatus,
+  getSightingHistoryAreas,
+} from '../services/routeEligibility';
+import { fetchTransitItinerary } from '../services/transitRoute';
 import {
   getPrivateLocationSummary,
   isResidentialAddressPrivate,
+  removeHouseNumberFromAddress,
   removeHouseNumberFromStreet,
   roundPublicCoordinate,
 } from '../utils/locationPrivacy';
@@ -33,6 +46,49 @@ const PETS_ONLY_MAP_STYLE = [
   { featureType: 'administrative', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
   { featureType: 'road', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
 ];
+
+// Cores da pista: quente (verde), morna (âmbar), fria (cinza), protegida (azul)
+const ROUTE_TONE_COLORS = {
+  hot: { stroke: '#16A34A', fill: 'rgba(22, 163, 74, 0.16)', bg: '#F0FDF4', border: '#BBF7D0', text: '#15803D', icon: 'local-fire-department' },
+  warm: { stroke: '#D97706', fill: 'rgba(217, 119, 6, 0.14)', bg: '#FFFBEB', border: '#FDE68A', text: '#B45309', icon: 'schedule' },
+  cold: { stroke: '#94A3B8', fill: 'rgba(148, 163, 184, 0.14)', bg: '#F8FAFC', border: '#E2E8F0', text: '#475569', icon: 'ac-unit' },
+  protected: { stroke: '#0284C7', fill: 'rgba(2, 132, 199, 0.1)', bg: '#F0F9FF', border: '#BAE6FD', text: '#0369A1', icon: 'lock-outline' },
+};
+
+const ROUTE_MODE_STORAGE_KEY = '@wefind/route_mode';
+
+// Número no centro de cada círculo do histórico. No Android o react-native-maps
+// desenha o marcador num bitmap de 100 x 100 px (ver PetMapMarker), então a
+// View mede exatamente isso e a bolinha fica centralizada nela.
+const HISTORY_BOX_DP = (Platform.OS === 'android' ? 100 : Math.round(30 * PixelRatio.get())) / PixelRatio.get();
+const HISTORY_DOT_DP = Math.min(24, HISTORY_BOX_DP - 4);
+
+const SightingHistoryMarker = React.memo(({ area, index, onPress }) => {
+  const [tracksViewChanges, setTracksViewChanges] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setTracksViewChanges(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+  const tone = ROUTE_TONE_COLORS[area.freshness] || ROUTE_TONE_COLORS.cold;
+
+  return (
+    <Marker
+      coordinate={{ latitude: area.latitude, longitude: area.longitude }}
+      anchor={{ x: 0.5, y: 0.5 }}
+      tracksViewChanges={tracksViewChanges}
+      title={`${formatClueAge(area.ageHours)}${area.isPrivate ? ' · em casa/quintal' : ''}`}
+      description={`Publicado por ${area.userName}`}
+      onPress={onPress}
+      zIndex={3}
+    >
+      <View collapsable={false} style={{ width: HISTORY_BOX_DP, height: HISTORY_BOX_DP, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: HISTORY_DOT_DP, height: HISTORY_DOT_DP, borderRadius: HISTORY_DOT_DP / 2, backgroundColor: tone.stroke, borderWidth: 2, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800' }}>{index + 1}</Text>
+        </View>
+      </View>
+    </Marker>
+  );
+});
 
 // Cache em memória para geocodificação de cidades/estados
 const geoCityCache = {};
@@ -101,6 +157,63 @@ const calculateDistanceKm = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
+// ---------------------------------------------------------------------------
+// Geometria da navegação
+// ---------------------------------------------------------------------------
+const getDistanceM = (a, b) =>
+  (calculateDistanceKm(a?.latitude, a?.longitude, b?.latitude, b?.longitude) || 0) * 1000;
+
+const getPathLengthM = (coords) => {
+  let total = 0;
+  for (let i = 1; i < (coords?.length || 0); i += 1) total += getDistanceM(coords[i - 1], coords[i]);
+  return total;
+};
+
+/**
+ * Ponto da rota mais próximo do usuário: índice do início do trecho e a
+ * distância até ele, em metros. Usa uma projeção plana local (equiretangular),
+ * precisa o bastante nas distâncias de uma rota a pé ou de carro.
+ */
+const findNearestOnRoute = (point, coords) => {
+  if (!point || !Array.isArray(coords) || coords.length < 2) return null;
+  const metersPerDegLat = 111320;
+  const metersPerDegLng = 111320 * Math.cos((point.latitude * Math.PI) / 180);
+  const toXY = (c) => ({
+    x: (c.longitude - point.longitude) * metersPerDegLng,
+    y: (c.latitude - point.latitude) * metersPerDegLat,
+  });
+
+  let best = null;
+  for (let i = 0; i < coords.length - 1; i += 1) {
+    const a = toXY(coords[i]);
+    const b = toXY(coords[i + 1]);
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lengthSq = dx * dx + dy * dy;
+    // O usuário está na origem (0, 0): projeta a origem sobre o trecho a-b
+    const t = lengthSq > 0 ? Math.max(0, Math.min(1, -(a.x * dx + a.y * dy) / lengthSq)) : 0;
+    const distanceM = Math.hypot(a.x + t * dx, a.y + t * dy);
+    if (!best || distanceM < best.distanceM) best = { index: i, distanceM };
+  }
+  return best;
+};
+
+/** Direção de a para b, em graus (0 = norte, sentido horário). */
+const getBearing = (a, b) => {
+  if (!a || !b) return 0;
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLng = toRad(b.longitude - a.longitude);
+  const lat1 = toRad(a.latitude);
+  const lat2 = toRad(b.latitude);
+  const y = Math.sin(dLng) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+  const bearing = (Math.atan2(y, x) * 180) / Math.PI;
+  return Number.isFinite(bearing) ? (bearing + 360) % 360 : 0;
+};
+
+const formatRouteDistance = (distanceM) =>
+  distanceM < 1000 ? `${Math.max(10, Math.round(distanceM / 10) * 10)} m` : `${(distanceM / 1000).toFixed(1)} km`;
+
 const formatItemDate = (value) => {
   if (!value) return '';
   const raw = String(value);
@@ -154,23 +267,22 @@ const formatItemFullAddress = (item) => {
   // ANIMAL VISTO NA RUA / AVISTAMENTO: Pode exibir rua e altura da via pública
   const lastSighting = item.extra_fields?.last_sighting_address;
   if (lastSighting && typeof lastSighting === 'string' && !lastSighting.startsWith('{') && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(lastSighting.trim())) {
-    return lastSighting.trim();
+    return removeHouseNumberFromAddress(lastSighting.trim());
   }
 
   const directAddress = item.address || item.extra_fields?.address || item.extra_fields?.location_details?.fullAddressText;
   if (directAddress && typeof directAddress === 'string' && !directAddress.startsWith('{') && !/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(directAddress.trim())) {
-    return directAddress.trim();
+    return removeHouseNumberFromAddress(directAddress.trim());
   }
 
-  const street = item.street || item.extra_fields?.street || item.extra_fields?.location_details?.street || '';
-  const number = item.house_number || item.number || item.extra_fields?.house_number || item.extra_fields?.location_details?.number || '';
+  const street = removeHouseNumberFromStreet(item.street || item.extra_fields?.street || item.extra_fields?.location_details?.street || '');
   const neighborhood = item.neighborhood || item.extra_fields?.neighborhood || item.extra_fields?.location_details?.neighborhood || '';
   const city = item.city || item.extra_fields?.city || item.extra_fields?.location_details?.city || '';
   const state = item.state || item.extra_fields?.state || item.extra_fields?.location_details?.state || '';
 
   const parts = [];
   if (street) {
-    parts.push(number ? `${street}, ${number}` : street);
+    parts.push(street);
   }
   if (neighborhood && neighborhood !== street) {
     parts.push(neighborhood);
@@ -288,11 +400,25 @@ const MapScreen = ({ route, navigation }) => {
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [routeInfo, setRouteInfo] = useState(null);
   const [loadingRoute, setLoadingRoute] = useState(false);
+  const [routeMode, setRouteMode] = useState(DEFAULT_ROUTE_MODE);
+  // Trechos desenhados (um só para a pé/bicicleta/carro; um por perna no ônibus)
+  const [routeSegments, setRouteSegments] = useState([]);
+  // Navegação: a câmera acompanha o usuário e a rota encolhe conforme ele anda
   const [isNavigating, setIsNavigating] = useState(false);
-  const isNavigatingRef = useRef(false);
+  const [followUser, setFollowUser] = useState(true);
+  const [navProgress, setNavProgress] = useState(null);
+  // Origem e destino da última rota, para recalcular ao trocar o meio de transporte
+  const routeEndpointsRef = useRef(null);
+  const routeRequestIdRef = useRef(0);
+  // Card recolhido: a tela fica limpa só com a rota ou com o histórico no mapa
+  const [cardCollapsed, setCardCollapsed] = useState(false);
+  const [historyMode, setHistoryMode] = useState(false);
   const handledRouteParamRef = useRef(null);
   const [resolvedItemAddress, setResolvedItemAddress] = useState('');
-  const selectedItemCanHaveRoute = canTraceRouteToItem(selectedItem);
+  // Situação da pista do animal selecionado (quente / morna / fria / protegida)
+  const selectedRouteStatus = useMemo(() => getRouteStatus(selectedItem), [selectedItem]);
+  const selectedRouteDescription = useMemo(() => describeRouteStatus(selectedRouteStatus), [selectedRouteStatus]);
+  const selectedItemCanHaveRoute = selectedRouteStatus.available;
 
   // Sighting Modal State
   const [sightingModalVisible, setSightingModalVisible] = useState(false);
@@ -300,15 +426,31 @@ const MapScreen = ({ route, navigation }) => {
   const [targetSightingItem, setTargetSightingItem] = useState(null);
   const [selectedItemTrail, setSelectedItemTrail] = useState([]);
   const [cardHeight, setCardHeight] = useState(0);
+  const isCardVisible = Boolean(selectedItem) && !cardCollapsed;
+  const historyAreas = useMemo(
+    () => getSightingHistoryAreas(selectedItem, selectedItemTrail),
+    [selectedItem, selectedItemTrail]
+  );
+  const isRouteActive = selectedItemCanHaveRoute && routeCoordinates.length > 1 && !historyMode;
 
-  // Carrega o rastro de deslocamento do animal selecionado
+  // Último meio de transporte escolhido
+  useEffect(() => {
+    AsyncStorage.getItem(ROUTE_MODE_STORAGE_KEY)
+      .then((saved) => {
+        if (saved && ROUTE_MODES[saved]) setRouteMode(saved);
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     Animated.timing(overlayOpacity, {
-      toValue: selectedItem ? 1 : 0,
+      toValue: isCardVisible ? 1 : 0,
       duration: 220,
       useNativeDriver: true,
     }).start();
-  }, [selectedItem, overlayOpacity]);
+  }, [isCardVisible, overlayOpacity]);
+
+  // Carrega o rastro de deslocamento do animal selecionado
 
   useEffect(() => {
     let isMounted = true;
@@ -334,33 +476,10 @@ const MapScreen = ({ route, navigation }) => {
     return () => { isMounted = false; };
   }, [selectedItem?.id, selectedItem?.latitude, selectedItem?.longitude, selectedItem?.extra_fields?.sighting_count, route?.params?.showTrail]);
 
-  // Auto-resolução do endereço completo do animal visto na rua
+  // Endereço exibido no cartão (sempre sem número de casa)
   useEffect(() => {
-    if (!selectedItem) {
-      setResolvedItemAddress('');
-      return;
-    }
-
-    const staticAddr = formatItemFullAddress(selectedItem);
-    setResolvedItemAddress(staticAddr);
-
-    // Auto-resolução com número de rua APENAS se for animal avistado solto na via pública
-    const routeTarget = getPublicRouteTarget(selectedItem);
-    if (routeTarget) {
-      const lat = routeTarget.latitude;
-      const lng = routeTarget.longitude;
-
-      if (lat != null && lng != null && !isNaN(Number(lat)) && !isNaN(Number(lng))) {
-        sightingsService.resolveReadableAddress({ latitude: Number(lat), longitude: Number(lng) })
-          .then((addr) => {
-            if (addr && addr !== 'Localização marcada no mapa') {
-              setResolvedItemAddress(addr);
-            }
-          })
-          .catch(() => {});
-      }
-    }
-  }, [selectedItem?.id, selectedItem?.latitude, selectedItem?.longitude, selectedItem?.status, selectedItem?.extra_fields?.found_custody]);
+    setResolvedItemAddress(selectedItem ? formatItemFullAddress(selectedItem) : '');
+  }, [selectedItem?.id, selectedItem?.latitude, selectedItem?.longitude, selectedItem?.status, selectedItem?.extra_fields?.found_custody, selectedItem?.extra_fields?.last_sighting_address]);
 
   const handleOpenSightingModal = (item) => {
     if (!user) {
@@ -387,29 +506,27 @@ const MapScreen = ({ route, navigation }) => {
         }
       }
 
-      const res = await sightingsService.recordSightingAndUpdateItemLocation({
+      const res = await sightingsService.recordSighting({
         itemId: targetSightingItem.id,
         userId: user.id,
         location: form.coordinate || form.location_details || { address: form.location },
         description: form.description,
         contactInfo: form.contact_info,
         photoUrl,
+        animalPlace: form.animal_place,
       });
 
       setSightingModalVisible(false);
-      Alert.alert('Avistamento Registrado! 🎯', 'A nova localização do pet foi atualizada no mapa e os voluntários e tutores foram avisados.');
+      Alert.alert('Avistamento registrado', 'O avistamento foi registrado nas pistas do pet e os voluntários e tutores foram avisados.');
 
-      await loadItems();
-      const newLat = res?.updatedLocation?.latitude ?? form.coordinate?.latitude;
-      const newLng = res?.updatedLocation?.longitude ?? form.coordinate?.longitude;
+      // A publicação continua no local original; o avistamento entra no rastro.
+      const refreshedItems = await loadItems();
+      const refreshedItem = refreshedItems?.find((i) => i.id === targetSightingItem.id);
+      if (refreshedItem) setSelectedItem(refreshedItem);
+
+      const newLat = res?.sightingLocation?.latitude ?? form.coordinate?.latitude;
+      const newLng = res?.sightingLocation?.longitude ?? form.coordinate?.longitude;
       if (newLat && newLng) {
-        const updatedItem = {
-          ...targetSightingItem,
-          latitude: Number(newLat),
-          longitude: Number(newLng),
-          address: res?.updatedLocation?.address || targetSightingItem.address,
-        };
-        setSelectedItem(updatedItem);
         if (mapRef.current) {
           mapRef.current.animateCamera({
             center: { latitude: Number(newLat), longitude: Number(newLng) },
@@ -431,249 +548,391 @@ const MapScreen = ({ route, navigation }) => {
   };
 
   const locationSubRef = useRef(null);
-  const lastRouteCalcCoordRef = useRef(null);
-  const lastRouteCalcTimeRef = useRef(0);
+  const lastRerouteAtRef = useRef(0);
+  // Valores atuais lidos dentro do watchPosition (sem recriar a assinatura)
+  const routeCoordsRef = useRef([]);
+  const routeInfoRef = useRef(null);
+  const routeModeRef = useRef(routeMode);
+  const followUserRef = useRef(true);
+  const navTargetRef = useRef(null);
+  useEffect(() => { routeCoordsRef.current = routeCoordinates; }, [routeCoordinates]);
+  useEffect(() => { routeInfoRef.current = routeInfo; }, [routeInfo]);
+  useEffect(() => { routeModeRef.current = routeMode; }, [routeMode]);
+  useEffect(() => { followUserRef.current = followUser; }, [followUser]);
 
-  const calculateRoute = useCallback(async (fromCoords, toCoords, autoFit = true) => {
-    const fromLng = Number(fromCoords?.longitude);
-    const fromLat = Number(fromCoords?.latitude);
-    const toLng = Number(toCoords?.longitude);
-    const toLat = Number(toCoords?.latitude);
-
-    if (isNaN(fromLat) || isNaN(fromLng) || isNaN(toLat) || isNaN(toLng)) return;
-
-    setLoadingRoute(true);
-
-    // Servidores de roteamento de alta disponibilidade (OSRM / OpenStreetMap)
+  // Busca o traçado no OSRM (a pé, bicicleta ou carro). O servidor do
+  // OpenStreetMap tem um perfil para cada um; o servidor reserva (project-osrm)
+  // só calcula rotas de carro, então dele só aproveitamos o traçado e o tempo
+  // vem da distância e da velocidade média do meio escolhido.
+  const fetchOsrmRoute = useCallback(async (from, to, mode) => {
+    const coordsPath = `${from.longitude},${from.latitude};${to.longitude},${to.latitude}`;
+    const osrmService = mode.osrmProfile === 'car' ? 'driving' : mode.osrmProfile;
     const endpoints = [
-      `https://routing.openstreetmap.de/routed-car/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson`,
-      `https://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson`,
+      { url: `https://routing.openstreetmap.de/routed-${mode.osrmProfile}/route/v1/${osrmService}/${coordsPath}?overview=full&geometries=geojson`, trustDuration: true },
+      { url: `https://router.project-osrm.org/route/v1/driving/${coordsPath}?overview=full&geometries=geojson`, trustDuration: mode.key === 'car' },
     ];
 
-    let successData = null;
-
-    for (const url of endpoints) {
+    for (const { url, trustDuration } of endpoints) {
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 4500);
-
         const res = await fetch(url, {
           signal: controller.signal,
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'WeFindApp/1.0 (React Native Mobile)',
-          },
+          headers: { Accept: 'application/json', 'User-Agent': 'WeFindApp/1.0 (React Native Mobile)' },
         });
         clearTimeout(timeoutId);
-
         if (res.ok) {
           const data = await res.json();
-          if (data?.routes?.[0]?.geometry?.coordinates && data.routes[0].geometry.coordinates.length > 1) {
-            successData = data;
-            break;
+          const routeData = data?.routes?.[0];
+          if (routeData?.geometry?.coordinates?.length > 1) {
+            const durationTrusted = trustDuration && Number.isFinite(routeData.duration) && routeData.duration > 0;
+            return {
+              coords: routeData.geometry.coordinates.map(([lng, lat]) => ({ latitude: Number(lat), longitude: Number(lng) })),
+              distanceM: routeData.distance,
+              durationMin: Math.max(1, Math.round(durationTrusted ? routeData.duration / 60 : routeData.distance / mode.metersPerMin)),
+            };
           }
         }
       } catch (err) {
         console.log(`[MapScreen] Aviso no servidor de rota (${url.split('/')[2]}):`, err?.message);
       }
     }
+    return null;
+  }, []);
 
-    if (successData?.routes?.[0]?.geometry?.coordinates) {
-      const coords = successData.routes[0].geometry.coordinates.map(([lng, lat]) => ({
-        latitude: Number(lat),
-        longitude: Number(lng),
-      }));
+  // Rota até o centro da área de busca no meio de transporte escolhido.
+  //  - A pé, bicicleta e carro: OSRM. Se os servidores falharem, mostra uma
+  //    linha reta com distância aproximada.
+  //  - Ônibus: itinerário com linhas e horários (Transitous). Onde a cidade não
+  //    publica dados de transporte, mostra a rota a pé e avisa.
+  // `silent`: recálculo durante a navegação, sem spinner e sem mexer na câmera.
+  const calculateRoute = useCallback(async (fromCoords, toCoords, autoFit = true, modeKey = DEFAULT_ROUTE_MODE, silent = false) => {
+    const from = { latitude: Number(fromCoords?.latitude), longitude: Number(fromCoords?.longitude) };
+    const to = { latitude: Number(toCoords?.latitude), longitude: Number(toCoords?.longitude) };
+    const mode = getRouteMode(modeKey);
 
-      setRouteCoordinates(coords);
-      lastRouteCalcCoordRef.current = { latitude: fromLat, longitude: fromLng };
-      lastRouteCalcTimeRef.current = Date.now();
+    if ([from.latitude, from.longitude, to.latitude, to.longitude].some((v) => !Number.isFinite(v))) return false;
 
-      setRouteInfo({
-        distanceKm: (successData.routes[0].distance / 1000).toFixed(1),
-        durationMin: Math.max(1, Math.round(successData.routes[0].duration / 60)),
-      });
+    if (!silent) setLoadingRoute(true);
+    routeRequestIdRef.current += 1;
+    const requestId = routeRequestIdRef.current;
+    routeEndpointsRef.current = { from, to };
 
-      // Só ajusta visão geral se NÃO estiver no modo de navegação ativa
-      if (autoFit && !isNavigatingRef.current && mapRef.current && coords.length > 0) {
-        setTimeout(() => {
-          if (!isNavigatingRef.current) {
-            mapRef.current?.fitToCoordinates([{ latitude: fromLat, longitude: fromLng }, { latitude: toLat, longitude: toLng }, ...coords], {
-              edgePadding: { top: 140, right: 60, bottom: 440, left: 60 },
-              animated: true,
-            });
-          }
-        }, 300);
+    let segments = null;
+    let info = null;
+
+    if (!mode.osrmProfile) {
+      const itinerary = await fetchTransitItinerary(from, to);
+      if (itinerary) {
+        segments = itinerary.segments;
+        info = {
+          durationMin: itinerary.durationMin,
+          distanceText: '',
+          approximate: false,
+          modeKey: mode.key,
+          travelKey: mode.key,
+          transit: itinerary,
+        };
       }
-    } else {
-      console.log('[MapScreen] Servidores de rota indisponíveis no momento.');
+    }
+
+    if (!info) {
+      // Ônibus sem dados na cidade: a parte que dá para mostrar aqui é a pé
+      const travelMode = mode.osrmProfile ? mode : getRouteMode('foot');
+      const osrm = await fetchOsrmRoute(from, to, travelMode);
+      const coords = osrm ? osrm.coords : [from, to];
+      const distanceM = osrm ? osrm.distanceM : (calculateDistanceKm(from.latitude, from.longitude, to.latitude, to.longitude) || 0) * 1000;
+      segments = [{ key: 'route', mode: travelMode.key, coordinates: coords, color: COLORS.primary, dashed: !osrm }];
+      info = {
+        distanceText: formatRouteDistance(distanceM),
+        durationMin: osrm ? osrm.durationMin : Math.max(1, Math.round(distanceM / travelMode.metersPerMin)),
+        totalDistanceM: distanceM,
+        approximate: !osrm,
+        modeKey: mode.key,
+        travelKey: travelMode.key,
+        note: mode.osrmProfile ? '' : 'Sem horários de ônibus nesta cidade · rota a pé',
+      };
+    }
+
+    // Trocou de meio de transporte enquanto esta rota carregava: vale a mais nova
+    if (requestId !== routeRequestIdRef.current) return false;
+
+    const coords = segments.flatMap((s) => s.coordinates);
+    info.totalDurationMin = info.durationMin;
+    setRouteSegments(segments);
+    setRouteCoordinates(coords);
+    setRouteInfo(info);
+    setNavProgress(null);
+
+    if (autoFit && mapRef.current) {
+      setTimeout(() => {
+        mapRef.current?.fitToCoordinates(coords, {
+          // O card fecha ao traçar a rota: sobra só a faixa de resumo no topo
+          edgePadding: { top: 220, right: 60, bottom: 140, left: 60 },
+          animated: true,
+        });
+      }, 250);
     }
 
     setLoadingRoute(false);
-  }, []);
+    return true;
+  }, [fetchOsrmRoute]);
 
-  // Inicia a navegação aproximando a câmera do usuário automaticamente (estilo Google Maps)
-  const startNavigation = useCallback(async (overrideCoords = null) => {
-    isNavigatingRef.current = true;
-    setIsNavigating(true);
-
-    let coords = overrideCoords || userCoords;
-
-    if (!coords) {
-      try {
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-        if (loc?.coords) {
-          coords = {
-            latitude: loc.coords.latitude,
-            longitude: loc.coords.longitude,
-          };
-          setUserCoords(coords);
-        }
-      } catch (e) {}
-    }
-
-    if (coords && mapRef.current) {
-      let heading = 0;
-      const routeTarget = getPublicRouteTarget(selectedItem);
-      if (routeTarget) {
-        const dLng = (routeTarget.longitude - coords.longitude) * (Math.PI / 180);
-        const lat1 = coords.latitude * (Math.PI / 180);
-        const lat2 = routeTarget.latitude * (Math.PI / 180);
-        const y = Math.sin(dLng) * Math.cos(lat2);
-        const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
-        heading = (Math.atan2(y, x) * 180) / Math.PI;
-        if (heading < 0) heading += 360;
-      }
-
-      // Recentraliza e aproxima a câmera automaticamente na posição do usuário
-      mapRef.current.animateToRegion({
-        latitude: Number(coords.latitude),
-        longitude: Number(coords.longitude),
-        latitudeDelta: 0.003,
-        longitudeDelta: 0.003,
-      }, 500);
-
-      try {
-        mapRef.current.animateCamera({
-          center: {
-            latitude: Number(coords.latitude),
-            longitude: Number(coords.longitude),
-          },
-          pitch: 50,
-          heading: Math.round(heading) || 0,
-          zoom: 18,
-        }, { duration: 600 });
-      } catch (e) {}
-    }
-  }, [userCoords, selectedItem]);
-
-  // Encerra o modo de navegação
   const stopNavigation = useCallback(() => {
-    isNavigatingRef.current = false;
     setIsNavigating(false);
-    setRouteCoordinates([]);
-    setRouteInfo(null);
-    if (mapRef.current && userCoords) {
-      mapRef.current.animateToRegion({
-        latitude: userCoords.latitude,
-        longitude: userCoords.longitude,
-        latitudeDelta: 0.04,
-        longitudeDelta: 0.04,
-      }, 600);
-    }
-  }, [userCoords]);
+    setFollowUser(true);
+    setNavProgress(null);
+    navTargetRef.current = null;
+    mapRef.current?.animateCamera({ pitch: 0, heading: 0 }, { duration: 500 });
+  }, []);
 
   const handleSelectItem = useCallback((item) => {
     setSelectedItem(item);
-    isNavigatingRef.current = false;
     setIsNavigating(false);
+    setRouteSegments([]);
     setRouteCoordinates([]);
     setRouteInfo(null);
+    setNavProgress(null);
+    routeEndpointsRef.current = null;
+    setCardCollapsed(false);
+    setHistoryMode(false);
   }, []);
 
-  // Visão geral de toda a rota
-  const fitRouteOverview = useCallback(() => {
-    const routeTarget = getPublicRouteTarget(selectedItem);
-    if (mapRef.current && userCoords && routeTarget) {
-      mapRef.current.fitToCoordinates(
-        [userCoords, routeTarget, ...routeCoordinates],
-        {
-          edgePadding: { top: 140, right: 60, bottom: isNavigating ? 260 : 440, left: 60 },
-          animated: true,
+  const clearRoute = useCallback(() => {
+    routeRequestIdRef.current += 1;
+    routeEndpointsRef.current = null;
+    setIsNavigating(false);
+    setRouteSegments([]);
+    setRouteCoordinates([]);
+    setRouteInfo(null);
+    setNavProgress(null);
+    setLoadingRoute(false);
+  }, []);
+
+  // Fecha o card e sai da rota / do histórico
+  const closeSelection = useCallback(() => {
+    clearRoute();
+    setSelectedItem(null);
+    setCardCollapsed(false);
+    setHistoryMode(false);
+  }, [clearRoute]);
+
+  // Navegação curva a curva com voz fica com o Google Maps, que recebe só o
+  // centro da área de busca (nunca o ponto exato marcado).
+  const openInGoogleMaps = useCallback((item, modeKey = DEFAULT_ROUTE_MODE) => {
+    const status = getRouteStatus(item);
+    if (!status.available) return;
+    Linking.openURL(buildGoogleMapsUrl(status.area, modeKey)).catch(() => {
+      Alert.alert('Não foi possível abrir o Google Maps', 'Verifique se há um aplicativo de mapas instalado.');
+    });
+  }, []);
+
+  // Mostra no mapa a rota até a área de busca e recolhe o card
+  const showRoutePreview = useCallback(async (item, knownCoords = null, modeKey = routeMode) => {
+    const status = getRouteStatus(item);
+    if (!status.available) return;
+
+    setHistoryMode(false);
+    setCardCollapsed(true);
+
+    let current = knownCoords || userCoords;
+    if (!current) {
+      try {
+        const { status: permission } = await Location.getForegroundPermissionsAsync();
+        if (permission === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          if (loc?.coords) {
+            current = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
+            setUserCoords(current);
+          }
         }
+      } catch (e) {}
+    }
+
+    if (!current) {
+      // Sem a localização do usuário, o próprio Google Maps calcula o caminho
+      setCardCollapsed(false);
+      openInGoogleMaps(item, modeKey);
+      return;
+    }
+
+    await calculateRoute(current, status.area, true, modeKey);
+  }, [userCoords, routeMode, calculateRoute, openInGoogleMaps]);
+
+  // Troca o meio de transporte e recalcula a rota (e o tempo) já traçada.
+  // Navegando, recalcula a partir de onde o usuário está agora.
+  const handleChangeRouteMode = useCallback((modeKey) => {
+    if (!ROUTE_MODES[modeKey]) return;
+    setRouteMode(modeKey);
+    AsyncStorage.setItem(ROUTE_MODE_STORAGE_KEY, modeKey).catch(() => {});
+    const endpoints = routeEndpointsRef.current;
+    if (endpoints && routeCoordinates.length > 0) {
+      calculateRoute(isNavigating && userCoords ? userCoords : endpoints.from, endpoints.to, !isNavigating, modeKey);
+    }
+  }, [routeCoordinates.length, isNavigating, userCoords, calculateRoute]);
+
+  // Inicia a rota traçada: a câmera acompanha o usuário e a rota é atualizada
+  // conforme ele anda, até chegar na área onde o pet foi visto.
+  const startNavigation = useCallback(async () => {
+    const status = getRouteStatus(selectedItem);
+    if (!status.available || routeCoordinates.length < 2) return;
+
+    let permission = 'denied';
+    try {
+      permission = (await Location.getForegroundPermissionsAsync()).status;
+      if (permission !== 'granted') permission = (await Location.requestForegroundPermissionsAsync()).status;
+    } catch (e) {}
+    if (permission !== 'granted') {
+      Alert.alert('Localização necessária', 'Permita o acesso à localização para acompanhar a rota em tempo real.');
+      return;
+    }
+
+    navTargetRef.current = status.area;
+    lastRerouteAtRef.current = Date.now();
+    setCardCollapsed(true);
+    setFollowUser(true);
+    setIsNavigating(true);
+
+    const here = userCoords || routeCoordinates[0];
+    mapRef.current?.animateCamera({
+      center: here,
+      heading: Math.round(getBearing(here, routeCoordinates[Math.min(1, routeCoordinates.length - 1)])),
+      pitch: 45,
+      zoom: 17.5,
+    }, { duration: 700 });
+  }, [selectedItem, routeCoordinates, userCoords]);
+
+  // Botão de centralizar durante a navegação: volta a seguir o usuário
+  const resumeFollowingUser = useCallback(() => {
+    setFollowUser(true);
+    if (userCoords) {
+      const nearest = findNearestOnRoute(userCoords, routeCoordinates);
+      const nextPoint = nearest ? routeCoordinates[Math.min(nearest.index + 1, routeCoordinates.length - 1)] : null;
+      mapRef.current?.animateCamera({
+        center: userCoords,
+        heading: Math.round(getBearing(userCoords, nextPoint || userCoords)),
+        pitch: 45,
+        zoom: 17.5,
+      }, { duration: 500 });
+    }
+  }, [userCoords, routeCoordinates]);
+
+  // A cada nova posição durante a navegação
+  const handleNavigationFix = useCallback((loc) => {
+    const here = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
+    setUserCoords(here);
+
+    const target = navTargetRef.current;
+    if (!target) return;
+
+    // Chegou na área de busca
+    const toTargetM = getDistanceM(here, target);
+    if (toTargetM <= target.radiusM * 0.8) {
+      stopNavigation();
+      clearRoute();
+      setCardCollapsed(false);
+      Alert.alert(
+        'Você chegou à área 🐾',
+        'O pet foi visto por aqui. Procure com calma nos arredores e chame pelo nome. Viu o pet? Registre em "Vi o Pet".'
       );
+      return;
     }
-  }, [userCoords, selectedItem, routeCoordinates, isNavigating]);
 
-  // Monitora a localização do usuário em tempo real quando uma rota estiver ativa
+    const modeKey = routeModeRef.current;
+    const info = routeInfoRef.current;
+    const coords = routeCoordsRef.current;
+    const isTransit = Boolean(info?.transit);
+    const nearest = findNearestOnRoute(here, coords);
+
+    // Saiu da rota: recalcula a partir de onde está (com intervalo mínimo)
+    const offRouteM = isTransit ? 120 : (info?.travelKey === 'car' ? 50 : 35);
+    const minRerouteMs = isTransit ? 45000 : 8000;
+    if ((!nearest || nearest.distanceM > offRouteM) && Date.now() - lastRerouteAtRef.current > minRerouteMs) {
+      lastRerouteAtRef.current = Date.now();
+      calculateRoute(here, target, false, modeKey, true);
+    } else if (nearest && !isTransit && info) {
+      // Na rota: apaga o trecho já percorrido e atualiza distância e tempo
+      const remaining = [here, ...coords.slice(nearest.index + 1)];
+      const remainingM = getPathLengthM(remaining);
+      setRouteCoordinates(remaining);
+      setRouteSegments((segments) => (segments.length === 1 ? [{ ...segments[0], coordinates: remaining }] : segments));
+      const total = info.totalDistanceM || remainingM || 1;
+      setNavProgress({
+        distanceText: formatRouteDistance(remainingM),
+        durationMin: Math.max(1, Math.round((info.totalDurationMin || 1) * Math.min(1, remainingM / total))),
+      });
+    }
+
+    if (followUserRef.current && mapRef.current) {
+      const moving = Number(loc.coords.speed) > 1 && Number(loc.coords.heading) >= 0;
+      const nextPoint = nearest ? coords[Math.min(nearest.index + 1, coords.length - 1)] : target;
+      mapRef.current.animateCamera({
+        center: here,
+        heading: Math.round(moving ? loc.coords.heading : getBearing(here, nextPoint)),
+        pitch: 45,
+        zoom: 17.5,
+      }, { duration: 900 });
+    }
+  }, [calculateRoute, clearRoute, stopNavigation]);
+
+  const navigationFixRef = useRef(handleNavigationFix);
+  useEffect(() => { navigationFixRef.current = handleNavigationFix; }, [handleNavigationFix]);
+
+  // Acompanha a posição do usuário só enquanto navega
   useEffect(() => {
-    const routeTarget = getPublicRouteTarget(selectedItem);
-    const hasActiveRoute = (routeCoordinates.length > 0 || isNavigating) && routeTarget;
-    if (hasActiveRoute && locationStatus === 'granted') {
-      let isSubscribed = true;
+    if (!isNavigating) return undefined;
+    let cancelled = false;
 
-      Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.High,
-          timeInterval: 2500,
-          distanceInterval: 8, // Atualiza a cada 8 metros percorridos
-        },
-        (loc) => {
-          if (!isSubscribed) return;
-          const newCoord = {
-            latitude: loc.coords.latitude,
-            longitude: loc.coords.longitude,
-          };
-          setUserCoords(newCoord);
-
-          // Se estiver navegando, acompanha a posição do usuário suavemente
-          if (isNavigatingRef.current && mapRef.current) {
-            mapRef.current.animateToRegion({
-              latitude: newCoord.latitude,
-              longitude: newCoord.longitude,
-              latitudeDelta: 0.003,
-              longitudeDelta: 0.003,
-            }, 600);
-          }
-
-          // Atualiza o traçado da rota e o tempo estimado de forma inteligente (a cada 25m ou 12s)
-          const lastCoord = lastRouteCalcCoordRef.current;
-          const timeSinceLast = Date.now() - (lastRouteCalcTimeRef.current || 0);
-
-          let shouldRecalculate = false;
-          if (!lastCoord || timeSinceLast > 12000) {
-            shouldRecalculate = true;
-          } else {
-            const movedDistKm = sightingsService.calculateDistanceKm(lastCoord.latitude, lastCoord.longitude, newCoord.latitude, newCoord.longitude);
-            if (movedDistKm != null && movedDistKm >= 0.025) { // 25 metros
-              shouldRecalculate = true;
-            }
-          }
-
-          if (shouldRecalculate) {
-            calculateRoute(newCoord, {
-              latitude: routeTarget.latitude,
-              longitude: routeTarget.longitude,
-            }, false);
-          }
-        }
-      ).then((sub) => {
-        locationSubRef.current = sub;
-      }).catch((e) => console.log('[MapScreen] Erro no watchPosition:', e));
-
-      return () => {
-        isSubscribed = false;
-        if (locationSubRef.current) {
-          locationSubRef.current.remove();
-          locationSubRef.current = null;
-        }
-      };
-    } else {
-      if (locationSubRef.current) {
-        locationSubRef.current.remove();
-        locationSubRef.current = null;
+    Location.watchPositionAsync(
+      { accuracy: Location.Accuracy.High, timeInterval: 2000, distanceInterval: 4 },
+      (loc) => {
+        if (!cancelled && loc?.coords) navigationFixRef.current(loc);
       }
+    ).then((sub) => {
+      if (cancelled) sub.remove();
+      else locationSubRef.current = sub;
+    }).catch((e) => console.log('[MapScreen] Erro no watchPosition:', e?.message || e));
+
+    return () => {
+      cancelled = true;
+      locationSubRef.current?.remove();
+      locationSubRef.current = null;
+    };
+  }, [isNavigating]);
+
+  // Histórico: recolhe o card e mostra no mapa os círculos dos avistamentos
+  const showSightingHistory = useCallback(() => {
+    if (historyAreas.length === 0) return;
+    clearRoute();
+    setHistoryMode(true);
+    setCardCollapsed(true);
+    setTimeout(() => {
+      const points = historyAreas.map((a) => ({ latitude: a.latitude, longitude: a.longitude }));
+      if (points.length === 1) {
+        mapRef.current?.animateToRegion({ ...points[0], latitudeDelta: 0.012, longitudeDelta: 0.012 }, 600);
+      } else {
+        mapRef.current?.fitToCoordinates(points, {
+          edgePadding: { top: 200, right: 70, bottom: 190, left: 70 },
+          animated: true,
+        });
+      }
+    }, 250);
+  }, [historyAreas, clearRoute]);
+
+  const exitSightingHistory = useCallback(() => {
+    setHistoryMode(false);
+    setCardCollapsed(false);
+  }, []);
+
+  // Fechar o card com uma rota ou o histórico na tela só o recolhe; para
+  // encerrar, use o X da faixa no topo.
+  const dismissCard = useCallback(() => {
+    if (isRouteActive || historyMode) {
+      setCardCollapsed(true);
+      return;
     }
-  }, [routeCoordinates.length > 0, isNavigating, selectedItem?.id, locationStatus, calculateRoute]);
+    closeSelection();
+  }, [isRouteActive, historyMode, closeSelection]);
 
   // Ao receber focusItemId ou showRoute, centraliza e traça a rota UMA VEZ
   useEffect(() => {
@@ -694,36 +953,8 @@ const MapScreen = ({ route, navigation }) => {
       if (target?.latitude && target?.longitude) {
         handleSelectItem(target);
 
-        if (showRoute && canTraceRouteToItem(target)) {
-          (async () => {
-            let current = userCoords;
-            if (!current) {
-              try {
-                const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-                if (loc?.coords) {
-                  current = {
-                    latitude: loc.coords.latitude,
-                    longitude: loc.coords.longitude,
-                  };
-                  setUserCoords(current);
-                }
-              } catch (e) {}
-            }
-
-            if (current) {
-              calculateRoute(current, {
-                latitude: getPublicRouteTarget(target).latitude,
-                longitude: getPublicRouteTarget(target).longitude,
-              }, true);
-            } else {
-              mapRef.current?.animateToRegion({
-                latitude: Number(target.latitude),
-                longitude: Number(target.longitude),
-                latitudeDelta: 0.03,
-                longitudeDelta: 0.03,
-              }, 800);
-            }
-          })();
+        if (showRoute && getRouteStatus(target).available) {
+          showRoutePreview(target);
         } else {
           mapRef.current?.animateToRegion({
             latitude: Number(target.latitude),
@@ -734,7 +965,7 @@ const MapScreen = ({ route, navigation }) => {
         }
       }
     }
-  }, [route?.params?.focusItemId, route?.params?.showRoute, items, calculateRoute, handleSelectItem]);
+  }, [route?.params?.focusItemId, route?.params?.showRoute, items, showRoutePreview, handleSelectItem]);
 
   // Ao buscar, recentraliza suavemente no primeiro animal correspondente encontrado
   useEffect(() => {
@@ -844,12 +1075,14 @@ const MapScreen = ({ route, navigation }) => {
       );
 
       // Apenas animais na rua aparecem no mapa (vistos na rua 'spotted' ou perdidos 'lost')
-      const validItems = resolvedList.filter((item) => {
+      const streetItems = resolvedList.filter((item) => {
         if (!item) return false;
         const isSpotted = item.extra_fields?.found_custody === 'spotted';
         const isLost = item.status === 'lost';
         return isSpotted || isLost;
       });
+      // Contagem e último local visto vêm da tabela de avistamentos
+      const validItems = await sightingsService.attachSightingSummaries(streetItems);
       setItems(validItems);
 
       // Se o usuário ainda não concedeu GPS, centraliza no primeiro animal encontrado ou região padrão
@@ -862,8 +1095,10 @@ const MapScreen = ({ route, navigation }) => {
           longitudeDelta: 0.15,
         });
       }
+      return validItems;
     } catch (e) {
       console.warn('[MapScreen] Erro ao carregar itens para o mapa:', e?.message || e);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -1024,7 +1259,8 @@ const MapScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* Barra de Pesquisa Flutuante de Animais */}
+      {/* Barra de Pesquisa Flutuante de Animais (some com o card recolhido: tela limpa) */}
+      {!cardCollapsed && (
       <View style={[styles.searchContainer, { top: Math.max(insets.top + 8, 44) }]}>
         <View style={styles.searchBar}>
           <MaterialIcons name="search" size={22} color={COLORS.primary} style={{ marginRight: 8 }} />
@@ -1075,6 +1311,7 @@ const MapScreen = ({ route, navigation }) => {
           </View>
         )}
       </View>
+      )}
 
       <MapView
         ref={mapRef}
@@ -1086,30 +1323,57 @@ const MapScreen = ({ route, navigation }) => {
         showsBuildings={false}
         showsCompass={true}
         mapPadding={{
-          top: Math.max(insets.top + 68, 104),
+          top: cardCollapsed ? Math.max(insets.top + 110, 140) : Math.max(insets.top + 68, 104),
           right: 12,
-          bottom: isNavigating ? 150 : (selectedItem ? 370 : 110),
+          bottom: isCardVisible ? 370 : 110,
           left: 12,
         }}
         customMapStyle={PETS_ONLY_MAP_STYLE}
+        // Mexeu no mapa durante a navegação: para de seguir até recentralizar
+        onPanDrag={() => {
+          if (isNavigating && followUser) setFollowUser(false);
+        }}
       >
-        {/* Traçado da Rota GPS */}
-        {selectedItemCanHaveRoute && routeCoordinates.length > 1 && (
-          <>
-            <Polyline
-              coordinates={routeCoordinates.filter(c => c && Number.isFinite(c.latitude) && Number.isFinite(c.longitude))}
-              strokeColor="#1E3E24"
-              strokeWidth={7}
-            />
-            <Polyline
-              coordinates={routeCoordinates.filter(c => c && Number.isFinite(c.latitude) && Number.isFinite(c.longitude))}
-              strokeColor={COLORS.primary}
-              strokeWidth={4.5}
-            />
-          </>
+        {/* Área de busca da pista (nunca o ponto exato) */}
+        {selectedRouteStatus.area && !historyMode && (
+          <Circle
+            center={{ latitude: selectedRouteStatus.area.latitude, longitude: selectedRouteStatus.area.longitude }}
+            radius={selectedRouteStatus.area.radiusM}
+            strokeColor={ROUTE_TONE_COLORS[selectedRouteStatus.freshness]?.stroke || '#94A3B8'}
+            fillColor={ROUTE_TONE_COLORS[selectedRouteStatus.freshness]?.fill || 'rgba(148, 163, 184, 0.15)'}
+            strokeWidth={2}
+          />
         )}
 
+        {/* Rota até a área no meio de transporte escolhido */}
+        {/* (no ônibus, um trecho por perna: a pé tracejado, linhas na cor da linha) */}
+        {isRouteActive && routeSegments.map((segment) => (
+          <Polyline
+            key={segment.key}
+            coordinates={segment.coordinates.filter(c => c && Number.isFinite(c.latitude) && Number.isFinite(c.longitude))}
+            strokeColor={segment.color}
+            strokeWidth={5}
+            lineDashPattern={segment.dashed ? [8, 8] : undefined}
+          />
+        ))}
 
+        {/* Histórico: um círculo por avistamento (mais antigos mais apagados) */}
+        {historyMode && historyAreas.map((area, index) => {
+          const tone = ROUTE_TONE_COLORS[area.freshness] || ROUTE_TONE_COLORS.cold;
+          return (
+            <Circle
+              key={`history-circle-${area.id}`}
+              center={{ latitude: area.latitude, longitude: area.longitude }}
+              radius={area.radiusM}
+              strokeColor={tone.stroke}
+              fillColor={tone.fill}
+              strokeWidth={index === 0 ? 2 : 1}
+            />
+          );
+        })}
+        {historyMode && historyAreas.map((area, index) => (
+          <SightingHistoryMarker key={`history-marker-${area.id}`} area={area} index={index} />
+        ))}
 
         {filteredItems
           .filter(item => {
@@ -1117,74 +1381,243 @@ const MapScreen = ({ route, navigation }) => {
             const lng = Number(item.longitude);
             return Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0;
           })
+          // Com o card recolhido (rota ou histórico), só o animal selecionado fica no mapa
+          .filter(item => !cardCollapsed || item.id === selectedItem?.id)
           .map((item) => (
             <PetMapMarker
               key={String(item.id)}
               item={item}
               isSelected={selectedItem?.id === item.id}
-              onPress={() => handleSelectItem(item)}
+              onPress={() => (cardCollapsed && item.id === selectedItem?.id ? setCardCollapsed(false) : handleSelectItem(item))}
               onCalloutPress={() => navigation.navigate('ItemDetail', { itemId: item.id })}
             />
           ))}
       </MapView>
 
-      {/* Banner Superior de Rota Ativa com botão Iniciar Navegação */}
-      {routeInfo && !isNavigating && selectedItemCanHaveRoute && (
-        <View style={[styles.activeRouteBanner, { top: Math.max(insets.top + 64, 100) }]}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
-            <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
-              <MaterialIcons name="directions-car" size={18} color="#FFFFFF" />
+      {/* Resumo da rota: tempo, distância, meio de transporte, Iniciar e Google Maps */}
+      {isRouteActive && routeInfo && (() => {
+        const travelMode = getRouteMode(routeInfo.travelKey || routeInfo.modeKey);
+        const transit = routeInfo.transit;
+        const durationMin = (isNavigating && navProgress?.durationMin) || routeInfo.durationMin;
+        const distanceText = (isNavigating && navProgress?.distanceText) || routeInfo.distanceText;
+        const subtitle = routeInfo.note
+          || (transit ? [transit.departureText, transit.arrivalText].filter(Boolean).join(' · ') : '')
+          || (routeInfo.approximate ? 'Distância em linha reta até a área' : `Até a área onde ${selectedItem?.title || 'o pet'} foi visto`);
+        return (
+          <View style={[styles.activeRouteBanner, { top: cardCollapsed ? Math.max(insets.top + 8, 44) : Math.max(insets.top + 64, 100) }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                <View style={styles.routeBannerIcon}>
+                  {loadingRoute ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <MaterialIcons name={isNavigating ? 'navigation' : (transit ? getRouteMode('transit').icon : travelMode.icon)} size={19} color="#FFFFFF" />
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#1E293B' }} numberOfLines={1}>
+                    {routeInfo.approximate ? '~' : ''}{durationMin} min {transit ? 'de ônibus' : travelMode.shortLabel}
+                    {distanceText ? ` · ${distanceText}` : ''}
+                  </Text>
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: routeInfo.note ? '#B45309' : '#64748B' }} numberOfLines={1}>
+                    {subtitle}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                {isNavigating ? (
+                  <TouchableOpacity
+                    onPress={stopNavigation}
+                    style={[styles.routeBannerMapsBtn, { backgroundColor: '#DC2626' }]}
+                    activeOpacity={0.85}
+                    accessibilityLabel="Encerrar navegação"
+                  >
+                    <MaterialIcons name="stop" size={15} color="#FFFFFF" style={{ marginRight: 2 }} />
+                    <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11.5 }}>Encerrar</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      onPress={startNavigation}
+                      disabled={loadingRoute}
+                      style={styles.routeBannerMapsBtn}
+                      activeOpacity={0.85}
+                      accessibilityLabel="Iniciar a rota acompanhando sua localização"
+                    >
+                      <MaterialIcons name="play-arrow" size={16} color="#FFFFFF" style={{ marginRight: 1 }} />
+                      <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11.5 }}>Iniciar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => openInGoogleMaps(selectedItem, routeInfo.modeKey)}
+                      style={styles.routeBannerIconBtn}
+                      accessibilityLabel="Abrir no Google Maps"
+                    >
+                      <MaterialIcons name="open-in-new" size={16} color="#475569" />
+                    </TouchableOpacity>
+                    {cardCollapsed && (
+                      <TouchableOpacity
+                        onPress={() => setCardCollapsed(false)}
+                        style={styles.routeBannerIconBtn}
+                        accessibilityLabel="Mostrar o card do animal"
+                      >
+                        <MaterialIcons name="expand-less" size={18} color="#475569" />
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                      onPress={() => {
+                        clearRoute();
+                        setCardCollapsed(false);
+                      }}
+                      style={styles.routeBannerIconBtn}
+                      accessibilityLabel="Encerrar rota"
+                    >
+                      <MaterialIcons name="close" size={16} color="#64748B" />
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#1E293B' }} numberOfLines={1}>
-                {routeInfo.distanceKm} km • ~{routeInfo.durationMin} min
-              </Text>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B' }} numberOfLines={1}>
-                📍 {resolvedItemAddress || formatItemFullAddress(selectedItem)}
-              </Text>
-            </View>
+
+            {/* Ônibus: pernas do trajeto (a pé › linha › a pé) */}
+            {transit?.legs?.length > 0 && (
+              <View style={styles.transitLegsRow}>
+                {transit.legs.map((leg, index) => (
+                  <View key={`leg-${index}`} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    {index > 0 && <MaterialIcons name="chevron-right" size={14} color="#CBD5E1" />}
+                    {leg.mode === 'WALK' ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <MaterialIcons name={leg.icon} size={14} color="#64748B" />
+                        <Text style={styles.transitWalkText}>{leg.label}</Text>
+                      </View>
+                    ) : (
+                      <View style={[styles.transitLineBadge, { backgroundColor: leg.color }]}>
+                        <MaterialIcons name={leg.icon} size={12} color="#FFFFFF" style={{ marginRight: 2 }} />
+                        <Text style={styles.transitLineText} numberOfLines={1}>{leg.label}</Text>
+                      </View>
+                    )}
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Meio de transporte: recalcula a rota e o tempo (escondido navegando, tela limpa) */}
+            {!isNavigating && (
+              <View style={styles.routeModeRow}>
+                {ROUTE_MODE_ORDER.map((key) => {
+                  const mode = ROUTE_MODES[key];
+                  const active = routeInfo.modeKey === key;
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      onPress={() => handleChangeRouteMode(key)}
+                      disabled={active || loadingRoute}
+                      style={[styles.routeModeChip, active && styles.routeModeChipActive]}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                      accessibilityLabel={`Rota ${mode.shortLabel}`}
+                    >
+                      <MaterialIcons name={mode.icon} size={15} color={active ? '#FFFFFF' : '#475569'} />
+                      <Text style={[styles.routeModeChipText, active && { color: '#FFFFFF' }]}>{mode.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
           </View>
+        );
+      })()}
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <TouchableOpacity
-              onPress={() => startNavigation()}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#16A34A',
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                borderRadius: 10,
-              }}
-              activeOpacity={0.85}
-            >
-              <MaterialIcons name="navigation" size={15} color="#FFFFFF" style={{ marginRight: 3 }} />
-              <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11.5 }}>Iniciar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={stopNavigation}
-              style={{ padding: 6, borderRadius: 10, backgroundColor: '#F1F5F9' }}
-            >
-              <MaterialIcons name="close" size={16} color="#64748B" />
-            </TouchableOpacity>
+      {/* Histórico de avistamentos: faixa discreta no topo para voltar ao card ou sair */}
+      {historyMode && selectedItem && (
+        <View style={[styles.activeRouteBanner, { top: cardCollapsed ? Math.max(insets.top + 8, 44) : Math.max(insets.top + 64, 100) }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+              <View style={[styles.routeBannerIcon, { backgroundColor: '#D97706' }]}>
+                <MaterialIcons name="history" size={19} color="#FFFFFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13, fontWeight: '800', color: '#1E293B' }} numberOfLines={1}>
+                  {historyAreas.length === 1 ? '1 avistamento' : `${historyAreas.length} avistamentos`} · {selectedItem.title || 'Animal'}
+                </Text>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B' }} numberOfLines={1}>
+                  Áreas aproximadas · 1 é o mais recente
+                </Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              {cardCollapsed && (
+                <TouchableOpacity
+                  onPress={() => setCardCollapsed(false)}
+                  style={styles.routeBannerIconBtn}
+                  accessibilityLabel="Mostrar o card do animal"
+                >
+                  <MaterialIcons name="expand-less" size={18} color="#475569" />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={exitSightingHistory}
+                style={styles.routeBannerIconBtn}
+                accessibilityLabel="Sair do histórico de avistamentos"
+              >
+                <MaterialIcons name="close" size={16} color="#64748B" />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       )}
 
-      {/* Overlay escurecido animado sobre o mapa quando um item está selecionado */}
+      {/* Lista mínima do histórico: tempo e quem publicou; toque centraliza o círculo */}
+      {historyMode && cardCollapsed && historyAreas.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={[styles.historyStrip, { bottom: Math.max(insets.bottom + 12, 18) }]}
+          contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
+        >
+          {historyAreas.map((area, index) => {
+            const tone = ROUTE_TONE_COLORS[area.freshness] || ROUTE_TONE_COLORS.cold;
+            return (
+              <TouchableOpacity
+                key={`history-chip-${area.id}`}
+                style={styles.historyChip}
+                activeOpacity={0.85}
+                onPress={() => mapRef.current?.animateToRegion({
+                  latitude: area.latitude,
+                  longitude: area.longitude,
+                  latitudeDelta: 0.008,
+                  longitudeDelta: 0.008,
+                }, 500)}
+              >
+                <View style={[styles.historyChipDot, { backgroundColor: tone.stroke }]}>
+                  <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800' }}>{index + 1}</Text>
+                </View>
+                <View>
+                  <Text style={styles.historyChipTitle}>{formatClueAge(area.ageHours)}</Text>
+                  <Text style={styles.historyChipText} numberOfLines={1}>
+                    {area.userName}{area.isPrivate ? ' · em casa' : ''}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      {/* Overlay escurecido animado sobre o mapa quando o card está aberto */}
       <Animated.View
-        pointerEvents={selectedItem ? 'auto' : 'none'}
+        pointerEvents={isCardVisible ? 'auto' : 'none'}
         style={[styles.mapDimOverlay, { opacity: overlayOpacity }]}
       >
         <TouchableOpacity
           style={{ flex: 1 }}
           activeOpacity={1}
-          onPress={() => setSelectedItem(null)}
+          onPress={dismissCard}
         />
       </Animated.View>
 
-      {selectedItem && !isNavigating && (
+      {isCardVisible && (
         <View
           style={styles.infoCard}
           onLayout={(e) => {
@@ -1192,7 +1625,7 @@ const MapScreen = ({ route, navigation }) => {
             if (h) setCardHeight(h);
           }}
         >
-          <TouchableOpacity style={styles.infoClose} onPress={() => setSelectedItem(null)} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.infoClose} onPress={dismissCard} activeOpacity={0.7}>
             <MaterialIcons name="close" size={18} color="#64748B" />
           </TouchableOpacity>
 
@@ -1501,7 +1934,65 @@ const MapScreen = ({ route, navigation }) => {
             </View>
           </View>
 
-          {/* 7. Ações: Ver Detalhes, Informar Avistamento e Iniciar Rota com Aproximação Automática */}
+          {/* Situação da pista: explica quando há rota e quando não há */}
+          {selectedRouteDescription && (
+            <View style={[styles.clueCard, { backgroundColor: ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.bg, borderColor: ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.border }]}>
+              <MaterialIcons
+                name={ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.icon || 'info-outline'}
+                size={16}
+                color={ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.text}
+                style={{ marginRight: 6, marginTop: 1 }}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.clueTitle, { color: ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.text }]}>
+                  {selectedRouteDescription.title}
+                </Text>
+                <Text style={styles.clueText}>{selectedRouteDescription.text}</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Meio de transporte da rota (o tempo é recalculado na escolha) */}
+          {selectedItemCanHaveRoute && (
+            <View style={[styles.routeModeRow, { marginTop: 0, marginBottom: 8 }]}>
+              {ROUTE_MODE_ORDER.map((key) => {
+                const mode = ROUTE_MODES[key];
+                const active = routeMode === key;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    onPress={() => handleChangeRouteMode(key)}
+                    disabled={loadingRoute}
+                    style={[styles.routeModeChip, active && styles.routeModeChipActive]}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    accessibilityLabel={`Rota ${mode.shortLabel}`}
+                  >
+                    <MaterialIcons name={mode.icon} size={15} color={active ? '#FFFFFF' : '#475569'} />
+                    <Text style={[styles.routeModeChipText, active && { color: '#FFFFFF' }]}>{mode.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+
+          {/* Histórico: círculos dos avistamentos anteriores no mapa */}
+          {historyAreas.length > 0 && (
+            <TouchableOpacity
+              style={styles.historyButton}
+              onPress={showSightingHistory}
+              activeOpacity={0.85}
+              accessibilityLabel="Ver histórico de avistamentos no mapa"
+            >
+              <MaterialIcons name="history" size={16} color="#B45309" style={{ marginRight: 5 }} />
+              <Text style={styles.historyButtonText}>
+                Ver histórico de avistamentos ({historyAreas.length})
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* 7. Ações: Ver Detalhes, Informar Avistamento e Rota */}
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
             <TouchableOpacity
               style={[styles.detailsButton, { flex: 1, marginTop: 0, paddingVertical: 10 }]}
@@ -1538,133 +2029,26 @@ const MapScreen = ({ route, navigation }) => {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: routeCoordinates.length > 0 ? '#16A34A' : COLORS.primary,
+                  backgroundColor: COLORS.primary,
                   borderRadius: 12,
                   paddingHorizontal: 14,
                   paddingVertical: 10,
-                  shadowColor: routeCoordinates.length > 0 ? '#16A34A' : COLORS.primary,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.25,
-                  shadowRadius: 4,
-                  elevation: 3,
                 }}
-                onPress={async () => {
-                  let current = userCoords;
-                  if (!current) {
-                    current = await requestUserLocation();
-                  }
-                  if (current && getPublicRouteTarget(selectedItem)) {
-                    // Se a rota ainda não foi calculada, calcula sem afastar a câmera e inicia navegação
-                    if (routeCoordinates.length === 0) {
-                      const routeTarget = getPublicRouteTarget(selectedItem);
-                      if (!routeTarget) return;
-                      await calculateRoute(current, {
-                        latitude: routeTarget.latitude,
-                        longitude: routeTarget.longitude,
-                      }, false);
-                    }
-                    // Inicia navegação e recentraliza com aproximação direta na posição do usuário
-                    startNavigation(current);
-                  } else if (!current) {
-                    Alert.alert('Localização necessária', 'Ative o GPS do seu dispositivo para iniciar a rota até o animal.');
-                  }
-                }}
+                // Rota já traçada: só recolhe o card de novo para mostrar o mapa
+                onPress={() => (isRouteActive ? setCardCollapsed(true) : showRoutePreview(selectedItem))}
+                disabled={loadingRoute}
                 activeOpacity={0.85}
               >
-                <MaterialIcons name="navigation" size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
+                {loadingRoute ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 4 }} />
+                ) : (
+                  <MaterialIcons name={isRouteActive ? 'map' : getRouteMode(routeMode).icon} size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
+                )}
                 <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
-                  {isNavigating ? 'Navegando' : (routeCoordinates.length > 0 ? 'Iniciar' : 'Iniciar Rota')}
+                  {isRouteActive ? 'Ver rota' : 'Traçar rota'}
                 </Text>
               </TouchableOpacity>
             )}
-          </View>
-        </View>
-      )}
-
-      {/* 8. HUD Flutuante de Navegação Ativa em Tempo Real (Estilo Google Maps) */}
-      {isNavigating && selectedItemCanHaveRoute && (
-        <View style={styles.navigationHudCard}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <View style={{ flex: 1, marginRight: 10 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
-                <Text style={{ fontSize: 24, fontWeight: '900', color: '#16A34A' }}>
-                  {routeInfo?.durationMin || 5} min
-                </Text>
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748B' }}>
-                  ({routeInfo?.distanceKm || 1.2} km)
-                </Text>
-              </View>
-              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#1E293B', marginTop: 1 }} numberOfLines={1}>
-                Indo até {selectedItem?.title || 'o animal'}
-              </Text>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B', marginTop: 2 }} numberOfLines={1}>
-                📍 {resolvedItemAddress || formatItemFullAddress(selectedItem)}
-              </Text>
-            </View>
-
-            <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#BBF7D0' }}>
-              <MaterialIcons name="navigation" size={24} color="#16A34A" />
-            </View>
-          </View>
-
-          {/* Botões de Ação da Navegação */}
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1,
-                borderColor: '#E2E8F0',
-                borderRadius: 12,
-                paddingVertical: 10,
-              }}
-              onPress={() => startNavigation()}
-              activeOpacity={0.75}
-            >
-              <MaterialIcons name="my-location" size={18} color={COLORS.primary} style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 12.5, fontWeight: '700', color: COLORS.primaryDark }}>Recentralizar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#F8FAFC',
-                borderWidth: 1,
-                borderColor: '#E2E8F0',
-                borderRadius: 12,
-                paddingVertical: 10,
-              }}
-              onPress={fitRouteOverview}
-              activeOpacity={0.75}
-            >
-              <MaterialIcons name="map" size={18} color="#475569" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#334155' }}>Visão Geral</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#FEF2F2',
-                borderWidth: 1,
-                borderColor: '#FECACA',
-                borderRadius: 12,
-                paddingHorizontal: 14,
-                paddingVertical: 10,
-              }}
-              onPress={stopNavigation}
-              activeOpacity={0.75}
-            >
-              <MaterialIcons name="close" size={18} color="#DC2626" style={{ marginRight: 3 }} />
-              <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#DC2626' }}>Encerrar</Text>
-            </TouchableOpacity>
           </View>
         </View>
       )}
@@ -1674,22 +2058,20 @@ const MapScreen = ({ route, navigation }) => {
         style={[
           styles.centerLocationButton,
           {
-            bottom: isNavigating
-              ? 165
-              : selectedItem
+            bottom: isCardVisible
               ? (cardHeight ? cardHeight + 36 : 420)
-              : Math.max(insets.bottom + 20, 28),
+              : (historyMode ? Math.max(insets.bottom + 12, 18) + 66 : Math.max(insets.bottom + 20, 28)),
           },
         ]}
-        onPress={handleCenterOnUser}
+        onPress={isNavigating ? resumeFollowingUser : handleCenterOnUser}
         disabled={centeringLoading}
         activeOpacity={0.8}
-        accessibilityLabel="Centralizar na minha localização"
+        accessibilityLabel={isNavigating ? 'Voltar a seguir minha posição' : 'Centralizar na minha localização'}
       >
         {centeringLoading ? (
           <ActivityIndicator size="small" color={COLORS.primary} />
         ) : (
-          <MaterialIcons name="my-location" size={24} color={COLORS.primary} />
+          <MaterialIcons name={isNavigating && !followUser ? 'navigation' : 'my-location'} size={24} color={COLORS.primary} />
         )}
       </TouchableOpacity>
 
@@ -1903,30 +2285,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
-  navigationHudCard: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 22,
-    padding: 16,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.24,
-    shadowRadius: 14,
-    elevation: 8,
-    borderWidth: 1.5,
-    borderColor: '#BBF7D0',
-    zIndex: 60,
+  clueCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 9,
+    paddingVertical: 7,
+    marginBottom: 8,
+  },
+  clueTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  clueText: {
+    fontSize: 11,
+    color: '#475569',
+    lineHeight: 15,
+    marginTop: 1,
   },
   activeRouteBanner: {
     position: 'absolute',
     left: 16,
     right: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     paddingHorizontal: 12,
@@ -1939,6 +2320,137 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 4,
     zIndex: 50,
+  },
+  routeBannerIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  routeBannerMapsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 9,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  routeBannerIconBtn: {
+    padding: 6,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+  },
+  transitLegsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    rowGap: 4,
+    marginTop: 8,
+  },
+  transitWalkText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    marginLeft: 1,
+  },
+  transitLineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    maxWidth: 140,
+  },
+  transitLineText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  routeModeRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 8,
+  },
+  routeModeChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    paddingVertical: 6,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+  },
+  routeModeChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  routeModeChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  historyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    backgroundColor: '#FFFBEB',
+    marginBottom: 6,
+  },
+  historyButtonText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#B45309',
+  },
+  historyStrip: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 40,
+  },
+  historyChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    maxWidth: 210,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  historyChipDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyChipTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#1E293B',
+  },
+  historyChipText: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#64748B',
+    maxWidth: 160,
   },
   centerLocationButton: {
     position: 'absolute',
