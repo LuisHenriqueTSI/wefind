@@ -238,7 +238,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
         if (typeof onNotificationsUpdated === 'function') {
           onNotificationsUpdated();
         }
-        Alert.alert('Publicação Renovada', 'Seu anúncio foi renovado com sucesso e continua ativo por mais 30 dias!');
+        Alert.alert('Publicação renovada', 'Seu anúncio foi renovado com sucesso e continua ativo por mais 30 dias!');
       } catch (err) {
         Alert.alert('Erro', err?.message || 'Falha ao renovar publicação.');
       } finally {
@@ -296,11 +296,11 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
   // Marcar todas como lidas ou limpar
   function handleClearAllOptions() {
     Alert.alert(
-      'Gerenciar Notificações',
+      'Gerenciar notificações',
       'O que você deseja fazer com as notificações?',
       [
         {
-          text: 'Marcar Todas como Lidas',
+          text: 'Marcar todas como lidas',
           onPress: async () => {
             try {
               if (user) {
@@ -326,7 +326,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
   // Disparar pacote de notificações fake para teste (Exclusivo Admin)
   async function handleTestNotification() {
     if (!isAdmin) {
-      Alert.alert('Acesso Restrito', 'Esta funcionalidade de teste é exclusiva para a conta de Administrador.');
+      Alert.alert('Acesso restrito', 'Esta funcionalidade de teste é exclusiva para a conta de Administrador.');
       return;
     }
 
@@ -356,7 +356,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
         {
           user_id: user.id,
           type: 'renewal_reminder',
-          title: '⏳ Lembrete de Renovação (30 Dias)',
+          title: 'Lembrete de renovação',
           message: 'Sua publicação do pet "Mel" está próxima do período de renovação de 30 dias. Abra o WeFIND para mantê-la ativa.',
           read: false,
         },

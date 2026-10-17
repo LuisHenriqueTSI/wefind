@@ -189,7 +189,7 @@ const InboxScreen = () => {
                   }}>
                     <MaterialIcons name="error-outline" size={10} color={isDark ? '#FCA5A5' : '#DC2626'} style={{ marginRight: 2 }} />
                     <Text style={{ fontSize: 9.5, fontWeight: '700', color: isDark ? '#FCA5A5' : '#DC2626' }}>
-                      Publicação Excluída
+                      Publicação excluída
                     </Text>
                   </View>
                 )}
@@ -271,7 +271,7 @@ const InboxScreen = () => {
                 activeOpacity={0.85}
               >
                 <Text style={{ fontWeight: '800', color: colors.primary, marginBottom: 4 }}>
-                  {item.conversation.otherName} {item.conversation.itemTitle ? `• 🐾 ${item.conversation.itemTitle}` : ''}
+                  {item.conversation.otherName} {item.conversation.itemTitle ? `· ${item.conversation.itemTitle}` : ''}
                 </Text>
                 <Text style={{ color: isDark ? '#F8FAFC' : '#1F2937', fontSize: 14, backgroundColor: isDark ? '#334155' : '#FFF9C4', borderRadius: 8, padding: 6 }}>
                   {item.message.content}

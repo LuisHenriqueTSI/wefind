@@ -136,7 +136,7 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
         <View style={styles.storiesContainer}>
           {/* Header Superior dos Stories */}
           <View style={[styles.storiesHeaderBanner, { backgroundColor: statusColor }]}>
-            <Text style={styles.storiesAppBadge}>🐾 WeFIND ALERTA</Text>
+            <Text style={styles.storiesAppBadge}>WeFIND · ALERTA</Text>
             <Text style={styles.storiesStatusTitle}>{statusHeaderTitle}</Text>
           </View>
 
@@ -153,7 +153,7 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
             {activeReward && (
               <View style={styles.storiesRewardFloatingBadge}>
                 <Text style={styles.storiesRewardFloatingText}>
-                  💰 RECOMPENSA: R$ {parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  RECOMPENSA: R$ {parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </Text>
               </View>
             )}
@@ -167,13 +167,13 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
 
             <View style={styles.storiesAttributesRow}>
               {(item.breed || item.extra_fields?.breed) && (
-                <Text style={styles.storiesAttributeChip}>🏷️ {item.breed || item.extra_fields?.breed}</Text>
+                <Text style={styles.storiesAttributeChip}>{item.breed || item.extra_fields?.breed}</Text>
               )}
               {(item.color || item.extra_fields?.color) && (
-                <Text style={styles.storiesAttributeChip}>🎨 {item.color || item.extra_fields?.color}</Text>
+                <Text style={styles.storiesAttributeChip}>{item.color || item.extra_fields?.color}</Text>
               )}
               {(item.gender || item.extra_fields?.gender) && (
-                <Text style={styles.storiesAttributeChip}>⚧ {item.gender || item.extra_fields?.gender}</Text>
+                <Text style={styles.storiesAttributeChip}>{item.gender || item.extra_fields?.gender}</Text>
               )}
             </View>
 
@@ -214,7 +214,7 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
             <Text style={styles.feedHeaderTitle}>{statusHeaderTitle}</Text>
             {activeReward && (
               <Text style={styles.feedRewardBadge}>
-                💰 RECOMPENSA: R$ {parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                RECOMPENSA: R$ {parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </Text>
             )}
           </View>
@@ -235,13 +235,13 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
               <Text style={styles.feedPetTitle} numberOfLines={2}>{item.title || 'Animal'}</Text>
               
               <Text style={styles.feedInfoLine}>
-                🐾 {item.species || 'Animal'} • {item.breed || 'SRD'}
+                {item.species || 'Animal'} • {item.breed || 'SRD'}
               </Text>
               <Text style={styles.feedInfoLine}>
-                📍 {streetNeighborhood || cityState || 'Local informado'}
+                {streetNeighborhood || cityState || 'Local informado'}
               </Text>
               {formattedDate ? (
-                <Text style={styles.feedInfoLine}>📅 {formattedDate}</Text>
+                <Text style={styles.feedInfoLine}>{formattedDate}</Text>
               ) : null}
 
               {formattedPhone ? (
@@ -272,7 +272,7 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
         {/* Faixa Superior de Alerta */}
         <View style={[styles.headerBanner, { backgroundColor: statusColor }]}>
           <View style={styles.headerTopRow}>
-            <Text style={styles.headerAppBadge}>{isAdoption ? '💖 WeFIND ADOÇÃO' : '🐾 WeFIND ALERTA'}</Text>
+            <Text style={styles.headerAppBadge}>{isAdoption ? 'WeFIND · ADOÇÃO' : 'WeFIND · ALERTA'}</Text>
             {formattedDate ? <Text style={styles.headerDate}>{formattedDate}</Text> : null}
           </View>
           <Text style={styles.headerStatusText}>{statusHeaderTitle}</Text>
@@ -297,41 +297,35 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
             {item.title || 'Animal sem identificação'}
           </Text>
 
-          {/* Badges minimalistas das características do pet com emojis */}
+          {/* Características do pet */}
           <View style={styles.attributesRow}>
             {(item.species || item.extra_fields?.species) && (
-              <View style={styles.attributeBadge}>
-                <Text style={styles.attributeEmoji}>🐾</Text>
+              <View style={styles.attributeBadge}>
                 <Text style={styles.attributeText}>{item.species || item.extra_fields?.species}</Text>
               </View>
             )}
             {(item.breed || item.extra_fields?.breed) && (
-              <View style={styles.attributeBadge}>
-                <Text style={styles.attributeEmoji}>🏷️</Text>
+              <View style={styles.attributeBadge}>
                 <Text style={styles.attributeText}>{item.breed || item.extra_fields?.breed}</Text>
               </View>
             )}
             {(item.gender || item.extra_fields?.gender) && (item.gender || item.extra_fields?.gender) !== 'Não informado' && (
-              <View style={styles.attributeBadge}>
-                <Text style={styles.attributeEmoji}>⚧</Text>
+              <View style={styles.attributeBadge}>
                 <Text style={styles.attributeText}>{item.gender || item.extra_fields?.gender}</Text>
               </View>
             )}
             {(item.age || item.extra_fields?.age) && (item.age || item.extra_fields?.age) !== 'Não informado' && (
-              <View style={styles.attributeBadge}>
-                <Text style={styles.attributeEmoji}>🎂</Text>
+              <View style={styles.attributeBadge}>
                 <Text style={styles.attributeText}>{item.age || item.extra_fields?.age}</Text>
               </View>
             )}
             {(item.size || item.extra_fields?.size) && (item.size || item.extra_fields?.size) !== 'Não informado' && (
-              <View style={styles.attributeBadge}>
-                <Text style={styles.attributeEmoji}>📏</Text>
+              <View style={styles.attributeBadge}>
                 <Text style={styles.attributeText}>{item.size || item.extra_fields?.size}</Text>
               </View>
             )}
             {(item.color || item.extra_fields?.color) && (
-              <View style={styles.attributeBadge}>
-                <Text style={styles.attributeEmoji}>🎨</Text>
+              <View style={styles.attributeBadge}>
                 <Text style={styles.attributeText}>{item.color || item.extra_fields?.color}</Text>
               </View>
             )}
@@ -361,8 +355,8 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
             <View style={styles.rewardContainer}>
               <Text style={styles.rewardText}>
                 {activeReward.amount
-                  ? `💰 RECOMPENSA OFERECIDA: R$ ${parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                  : '💰 RECOMPENSA OFERECIDA'}
+                  ? `RECOMPENSA OFERECIDA: R$ ${parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                  : 'RECOMPENSA OFERECIDA'}
               </Text>
             </View>
           )}

@@ -191,10 +191,10 @@ export default function ProofUploadModal({
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={[styles.title, { color: colors.text }]}>
-                    Comprovação de Tutela
+                    Comprovação de tutela
                   </Text>
                   <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                    Liberação Segura do Animal
+                    Para devolver o animal com segurança
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -255,7 +255,7 @@ export default function ProofUploadModal({
                         proofType === 'photos' && styles.proofTypeLabelActive,
                       ]}
                     >
-                      Fotos do Pet
+                      Fotos do pet
                     </Text>
                   </TouchableOpacity>
 
@@ -281,7 +281,7 @@ export default function ProofUploadModal({
                         proofType === 'documents' && styles.proofTypeLabelActive,
                       ]}
                     >
-                      Vacina / Doc
+                      Vacina ou documento
                     </Text>
                   </TouchableOpacity>
 
@@ -307,7 +307,7 @@ export default function ProofUploadModal({
                         proofType === 'secret_marks' && styles.proofTypeLabelActive,
                       ]}
                     >
-                      Marcas Ocultas
+                      Marcas ocultas
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -357,7 +357,7 @@ export default function ProofUploadModal({
                     />
 
                     <Text style={[styles.inputLabel, { color: colors.text, marginTop: 10 }]}>
-                      Foto da Carteira de Vacinação ou Termo de Adoção:
+                      Foto da carteira de vacinação ou termo de adoção:
                     </Text>
                     <View style={styles.photoPickersRow}>
                       <TouchableOpacity
@@ -367,7 +367,7 @@ export default function ProofUploadModal({
                         activeOpacity={0.8}
                       >
                         <MaterialIcons name="photo-library" size={18} color={COLORS.primary} style={{ marginRight: 6 }} />
-                        <Text style={[styles.photoPickerBtnText, { color: COLORS.primary }]}>Anexar Documento</Text>
+                        <Text style={[styles.photoPickerBtnText, { color: COLORS.primary }]}>Anexar documento</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.photoPickerBtn, { backgroundColor: isDark ? '#0A120D' : '#F1F5F9', borderColor: colors.border }]}
@@ -376,7 +376,7 @@ export default function ProofUploadModal({
                         activeOpacity={0.8}
                       >
                         <Ionicons name="camera-outline" size={18} color={COLORS.primary} style={{ marginRight: 6 }} />
-                        <Text style={[styles.photoPickerBtnText, { color: COLORS.primary }]}>Fotografar Doc</Text>
+                        <Text style={[styles.photoPickerBtnText, { color: COLORS.primary }]}>Fotografar documento</Text>
                       </TouchableOpacity>
                     </View>
                   </View>

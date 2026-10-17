@@ -110,7 +110,7 @@ const AdvancedFiltersModal = ({
             <View style={[styles.header, { borderBottomColor: isDark ? '#334155' : '#F1F5F9' }]}>
               <View style={styles.headerLeft}>
                 <MaterialIcons name="tune" size={24} color={colors.primary} />
-                <Text style={[styles.title, { color: colors.text }]}>Filtros Avançados</Text>
+                <Text style={[styles.title, { color: colors.text }]}>Filtros avançados</Text>
                 {activeCount > 0 && (
                   <View style={[styles.badge, { backgroundColor: colors.primaryLight, borderColor: COLORS.primaryBorder }]}>
                     <Text style={[styles.badgeText, { color: colors.primary }]}>{activeCount}</Text>
@@ -124,7 +124,7 @@ const AdvancedFiltersModal = ({
 
             {/* Scrollable Filters */}
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-              {renderSection('🐾 Espécie', 'animalType', [
+              {renderSection('Espécie', 'animalType', [
                 { label: 'Todas', value: 'all' },
                 { label: 'Cachorro', value: 'cachorro' },
                 { label: 'Gato', value: 'gato' },
@@ -134,7 +134,7 @@ const AdvancedFiltersModal = ({
                 { label: 'Outro', value: 'outro' },
               ])}
               
-              {renderSection('📏 Porte', 'size', [
+              {renderSection('Porte', 'size', [
                 { label: 'Todos', value: 'all' },
                 { label: 'Pequeno', value: 'pequeno' },
                 { label: 'Médio', value: 'medio' },
@@ -142,20 +142,20 @@ const AdvancedFiltersModal = ({
                 { label: 'Gigante', value: 'gigante' },
               ])}
 
-              {renderSection('⚧ Sexo', 'gender', [
+              {renderSection('Sexo', 'gender', [
                 { label: 'Todos', value: 'all' },
-                { label: '♂ Macho', value: 'macho' },
-                { label: '♀ Fêmea', value: 'femea' },
+                { label: 'Macho', value: 'macho' },
+                { label: 'Fêmea', value: 'femea' },
               ])}
 
-              {renderSection('🎂 Idade', 'age', [
+              {renderSection('Idade', 'age', [
                 { label: 'Todas', value: 'all' },
                 { label: 'Filhote', value: 'filhote' },
                 { label: 'Adulto', value: 'adulto' },
                 { label: 'Idoso', value: 'idoso' },
               ])}
 
-              {renderSection('🎨 Cor', 'colors', [
+              {renderSection('Cor', 'colors', [
                 { label: 'Todas', value: 'all' },
                 { label: 'Preto', value: 'preto' },
                 { label: 'Branco', value: 'branco' },
@@ -168,7 +168,7 @@ const AdvancedFiltersModal = ({
               ])}
 
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>⚡ Destaque & Ordenação</Text>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Destaque e ordenação</Text>
                 <View style={styles.pillContainer}>
                   <TouchableOpacity
                     onPress={() => setLocalFilters(prev => ({ ...prev, hasReward: !prev.hasReward }))}
@@ -184,14 +184,14 @@ const AdvancedFiltersModal = ({
                       { color: isDark ? '#94A3B8' : '#475569' },
                       safeFilters.hasReward && { color: isDark ? '#FBBF24' : '#B45309', fontWeight: '800' },
                     ]}>
-                      🎁 Com Recompensa
+                      Com recompensa
                     </Text>
                   </TouchableOpacity>
 
                   {[
-                    { label: '📍 Mais Próximos', value: 'distance' },
-                    { label: '🕒 Mais Recentes', value: 'newest' },
-                    { label: '📅 Mais Antigos', value: 'oldest' },
+                    { label: 'Mais próximos', value: 'distance' },
+                    { label: 'Mais recentes', value: 'newest' },
+                    { label: 'Mais antigos', value: 'oldest' },
                   ].map(opt => {
                     const isSelected = (safeFilters.sortBy || 'distance') === opt.value;
                     return (
@@ -229,7 +229,7 @@ const AdvancedFiltersModal = ({
                 style={[styles.btnPrimary, { backgroundColor: colors.primary }]}
                 onPress={handleApply}
               >
-                <Text style={styles.btnPrimaryText}>Aplicar Filtros</Text>
+                <Text style={styles.btnPrimaryText}>Aplicar filtros</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>

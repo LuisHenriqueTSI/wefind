@@ -12,6 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { stripEmoji } from '../utils/text';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Calendar } from 'react-native-calendars';
@@ -59,18 +60,18 @@ const HELP_NEED_OPTIONS = [
 ];
 const RECOVERY_SEARCH_DAYS = 21;
 const PET_TEMPERAMENT_OPTIONS = [
-  '😇 Dócil',
-  '🎾 Brincalhão',
-  '🛋️ Calmo / Tranquilo',
-  '💖 Muito Carinhoso',
-  '👶 Bom com Crianças',
-  '🐱 Convive com Gatos',
-  '🐶 Convive com Cães',
-  '🦮 Obediente',
-  '💉 Vacinado',
-  '🪱 Vermifugado',
-  '🏡 Adaptado a Apartamento',
-  '⚡ Enérgico / Ativo',
+  'Dócil',
+  'Brincalhão',
+  'Calmo / tranquilo',
+  'Muito carinhoso',
+  'Bom com crianças',
+  'Convive com gatos',
+  'Convive com cães',
+  'Obediente',
+  'Vacinado',
+  'Vermifugado',
+  'Adaptado a apartamento',
+  'Enérgico / ativo',
 ];
 const PET_COLOR_ALIASES = {
   Preto: ['preto', 'preta', 'pretos', 'pretas'],
@@ -212,7 +213,7 @@ const ITEM_TYPES = {
       description: 'Descrição',
     },
     placeholders: {
-      title: 'Ex: Chave, Guarda-chuva, Outro item',
+      title: 'Ex: chave, guarda-chuva, outro item',
       color: 'Ex: Cor predominante',
       description: 'Descreva detalhes que ajudem a identificar o item...',
     },
@@ -242,7 +243,7 @@ const ITEM_TYPES = {
       description: 'Descrição',
     },
     placeholders: {
-      title: 'Ex: Mochila preta, Livro de ficção científica',
+      title: 'Ex: mochila preta, livro de ficção científica',
       color: 'Ex: Preto com detalhes vermelhos',
       description: 'Ex: Com zíper quebrado, adesivo na lateral',
     },
@@ -274,7 +275,7 @@ const ITEM_TYPES = {
       description: 'Detalhes',
     },
     placeholders: {
-      title: 'Ex: Anel de ouro, Colar com pedra azul',
+      title: 'Ex: anel de ouro, colar com pedra azul',
       color: 'Ex: Dourado, Prateado',
       description: 'Ex: Gravado "Para Maria", com pedra azul',
     },
@@ -290,7 +291,7 @@ const ITEM_TYPES = {
       description: 'Detalhes',
     },
     placeholders: {
-      title: 'Ex: Jaqueta de couro, Calça jeans',
+      title: 'Ex: jaqueta de couro, calça jeans',
       color: 'Ex: Azul marinho com listras brancas',
       description: 'Ex: Bolsos laterais, etiqueta vermelha',
     },
@@ -362,7 +363,12 @@ const RegisterItemScreen = ({ navigation, route }) => {
   const [animalCollar, setAnimalCollar] = useState(editItem?.collar || editItem?.extra_fields?.collar || '');
   const [animalNeutered, setAnimalNeutered] = useState(editItem?.neutered || editItem?.extra_fields?.neutered || '');
   const [animalTemperament, setAnimalTemperament] = useState(
-    Array.isArray(editItem?.extra_fields?.temperament) ? editItem.extra_fields.temperament : []
+    Array.isArray(editItem?.extra_fields?.temperament)
+      ? editItem.extra_fields.temperament.map((trait) => {
+          const plain = stripEmoji(trait);
+          return PET_TEMPERAMENT_OPTIONS.find((option) => option.toLowerCase() === plain.toLowerCase()) || plain;
+        })
+      : []
   );
   
   // Publicação em nome de terceiro
@@ -473,7 +479,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
             <MaterialIcons name="add-location-alt" size={22} color="#D97706" style={{ marginTop: 2 }} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#FDE68A' : '#B45309', marginBottom: 3 }}>
-                📍 Avistamento em Via Pública
+                Avistamento em via pública
               </Text>
               <Text style={{ fontSize: 11.5, color: isDark ? '#FEF3C7' : '#92400E', lineHeight: 17 }}>
                 O endereço deste ponto da rua ficará visível para que o tutor e a comunidade possam traçar a rota até onde o animal foi visto.
@@ -492,7 +498,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
         {renderMapLocationButton()}
 
         <View style={styles.datePickerContainer}>
-          <Text style={[styles.label, { color: colors.text }]}>Data do Evento *</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Data *</Text>
           <TouchableOpacity
             style={[styles.datePickerButton, { backgroundColor: isDark ? '#161F30' : '#F9FAFB', borderColor: colors.border }]}
             onPress={() => setShowDatePicker(true)}
@@ -512,7 +518,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
           <View style={styles.modalContainer}>
             <View style={[styles.calendarWrapper, { backgroundColor: colors.surface }]}>
               <View style={[styles.calendarHeader, { borderBottomColor: colors.border }]}>
-                <Text style={[styles.calendarTitle, { color: colors.text }]}>Selecione a Data</Text>
+                <Text style={[styles.calendarTitle, { color: colors.text }]}>Selecione a data</Text>
                 <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                   <Text style={[styles.closeButton, { color: colors.textSecondary }]}>✕</Text>
                 </TouchableOpacity>
@@ -549,7 +555,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
               <View style={[styles.checkbox, { borderColor: colors.border }, offerReward && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
                 {offerReward && <Text style={styles.checkmark}>✓</Text>}
               </View>
-              <Text style={[styles.checkboxLabel, { color: colors.text }]}>Oferecer Recompensa</Text>
+              <Text style={[styles.checkboxLabel, { color: colors.text }]}>Oferecer recompensa</Text>
             </TouchableOpacity>
 
             {offerReward && (
@@ -777,7 +783,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
             </View>
 
             <View style={styles.addressEditorContainer}>
-              <Text style={[styles.smallInputLabel, { color: colors.textSecondary }]}>Endereço Completo</Text>
+              <Text style={[styles.smallInputLabel, { color: colors.textSecondary }]}>Endereço completo</Text>
               <TextInput
                 style={[styles.addressInput, { backgroundColor: colors.inputBg, borderColor: colors.border, color: colors.text }]}
                 value={mapAddressText}
@@ -1089,15 +1095,15 @@ const RegisterItemScreen = ({ navigation, route }) => {
     }
 
     Alert.alert(
-      'Adicionar Foto do Animal',
+      'Adicionar foto do animal',
       'Escolha como deseja adicionar a foto:',
       [
         {
-          text: '📸 Tirar Foto Agora (Câmera)',
+          text: 'Tirar foto',
           onPress: takeAndCropPhoto,
         },
         {
-          text: '🖼️ Escolher da Galeria',
+          text: 'Escolher da galeria',
           onPress: pickAndCropImage,
         },
         {
@@ -1370,7 +1376,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
         `O ponto onde você viu "${selectedMatchPet.title}" foi registrado nas pistas do pet. O tutor e voluntários foram avisados!`,
         [
           {
-            text: 'Ver no Mapa',
+            text: 'Ver no mapa',
             onPress: () => {
               navigation.reset({
                 index: 0,
@@ -1601,7 +1607,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
 
         Alert.alert('Sucesso', 'Publicação atualizada com sucesso!', [
           {
-            text: 'Ver Publicação',
+            text: 'Ver publicação',
             onPress: () => {
               if (editItem?.id) {
                 navigateToItemDetailAfterPublish(editItem.id);
@@ -1611,13 +1617,13 @@ const RegisterItemScreen = ({ navigation, route }) => {
             },
           },
           {
-            text: 'Minhas Publicações',
+            text: 'Minhas publicações',
             onPress: () => {
               navigateToMyItemsAfterPublish();
             },
           },
           {
-            text: 'Tela Inicial',
+            text: 'Tela inicial',
             onPress: () => {
               goToHomeAfterPublish();
             },
@@ -1675,7 +1681,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
           successMessage,
           [
             {
-              text: 'Ver Publicação',
+              text: 'Ver publicação',
               onPress: () => {
                 if (resultItem?.id) {
                   navigateToItemDetailAfterPublish(resultItem.id);
@@ -1685,13 +1691,13 @@ const RegisterItemScreen = ({ navigation, route }) => {
               },
             },
             {
-              text: 'Minhas Publicações',
+              text: 'Minhas publicações',
               onPress: () => {
                 navigateToMyItemsAfterPublish();
               },
             },
             {
-              text: 'Ir para Home',
+              text: 'Ir para o início',
               onPress: () => {
                 goToHomeAfterPublish();
               },
@@ -1785,7 +1791,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
               <MaterialIcons name="radar" size={26} color={COLORS.primary} />
             </View>
             <Text style={{ fontSize: 18, fontWeight: '900', color: colors.text, textAlign: 'center', marginBottom: 4 }}>
-              Animal Semelhante por Perto!
+              Animal parecido por perto
             </Text>
             <Text style={{ fontSize: 12.5, color: colors.textSecondary, textAlign: 'center', lineHeight: 17 }}>
               Encontramos publicação(ões) compatível(is) nesta região. Confirme somente se você tem certeza de que é o mesmo animal.
@@ -1866,7 +1872,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                 <>
                   <MaterialIcons name="check-circle" size={17} color="#FFFFFF" style={{ marginRight: 6 }} />
                   <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13.5 }}>
-                    Sim, é ele! Atualizar Localização
+                    Sim, é ele. Atualizar localização
                   </Text>
                 </>
               )}
@@ -1886,7 +1892,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
               activeOpacity={0.75}
             >
               <Text style={{ color: colors.textSecondary, fontWeight: '700', fontSize: 13 }}>
-                Não, é outro animal (Criar Novo)
+                Não, é outro animal (Criar novo)
               </Text>
             </TouchableOpacity>
           </View>
@@ -1902,7 +1908,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
       return (
         <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
           <View style={[styles.header, { backgroundColor: colors.card, borderColor: colors.cardBorder, borderWidth: 1, borderRadius: 12, padding: 16 }]}>
-            <Text style={[styles.title, { color: colors.text }]}>Editar Animal</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Editar animal</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Tipo: {ITEM_TYPES[normalized]?.label || normalized || editItem.category}</Text>
             <Text style={{ color: colors.textSecondary, marginTop: 16, fontWeight: 'bold' }}>
               Você pode ajustar detalhes do animal antes de salvar.
@@ -1922,7 +1928,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
         label: 'Animal',
         desc: 'Cães, gatos, aves, bovinos, cavalos e outros animais',
         color: colors.primaryLight,
-        icon: '🐾'
+        icon: 'pets'
       }
     ];
     return (
@@ -1941,13 +1947,13 @@ const RegisterItemScreen = ({ navigation, route }) => {
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', padding: 18 }}>
                 <View style={{ backgroundColor: isDark ? 'rgba(37, 99, 235, 0.2)' : opt.color, borderRadius: 12, width: 48, height: 48, alignItems: 'center', justifyContent: 'center', marginRight: 18 }}>
-                  <Text style={{ fontSize: 26 }}>{opt.icon}</Text>
+                  <MaterialIcons name={opt.icon} size={26} color={colors.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontWeight: 'bold', fontSize: 18, color: colors.text }}>{opt.label}</Text>
                   <Text style={{ color: colors.textSecondary, fontSize: 15, marginTop: 2 }}>{opt.desc}</Text>
                 </View>
-                <Text style={{ fontSize: 22, color: colors.textMuted, marginLeft: 8 }}>→</Text>
+                <MaterialIcons name="chevron-right" size={24} color={colors.textMuted} style={{ marginLeft: 8 }} />
               </View>
             </TouchableOpacity>
           ))}
@@ -2044,7 +2050,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                       { color: colors.textSecondary },
                       status === 'adoption' && styles.statusTextActive,
                     ]}>
-                      Para Adoção
+                      Para adoção
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -2056,7 +2062,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 }}>
                     <MaterialIcons name="favorite" size={18} color={isDark ? '#F472B6' : '#BE185D'} />
                     <Text style={{ fontSize: 13.5, fontWeight: '800', color: isDark ? '#F9A8D4' : '#9D174D' }}>
-                      Adoção Imediata (Pet sem Tutor Conhecido)
+                      Adoção imediata (animal sem tutor conhecido)
                     </Text>
                   </View>
                   <Text style={{ fontSize: 12, lineHeight: 16, color: isDark ? '#FBCFE8' : '#9D174D' }}>
@@ -2225,7 +2231,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                     >
                       <Ionicons name="camera" size={18} color={colors.primary} style={{ marginRight: 6 }} />
                       <Text style={[styles.uploadButtonText, { color: colors.primary, fontSize: 13 }]}>
-                        Tirar Foto
+                        Tirar foto
                       </Text>
                     </TouchableOpacity>
 
@@ -2289,7 +2295,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                           }}
                           onPress={() => reCropPhoto(index)}
                         >
-                          <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>✂️ Ajustar</Text>
+                          <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>Ajustar</Text>
                         </TouchableOpacity>
                       </View>
                     ))}
@@ -2338,7 +2344,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
               {status === 'adoption' && (
                 <View style={styles.selectionGroup}>
                   <Text style={[styles.label, { color: colors.text }]}>
-                    Personalidade & Cuidados *(Incentiva a Adoção)*
+                    Personalidade e cuidados (ajuda na adoção)
                   </Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
                     {PET_TEMPERAMENT_OPTIONS.map((trait) => {
@@ -2477,7 +2483,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
             {itemType === 'document' && (
               <View style={styles.warningContainer}>
                 <Text style={styles.warningText}>
-                  ⚠️ Documentos não podem ter fotos por segurança
+                  Documentos não podem ter fotos por segurança
                 </Text>
               </View>
             )}
@@ -2504,7 +2510,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                       >
                         <Ionicons name="camera" size={18} color={colors.primary} style={{ marginRight: 6 }} />
                         <Text style={[styles.uploadButtonText, { color: colors.primary, fontSize: 13 }]}>
-                          Tirar Foto
+                          Tirar foto
                         </Text>
                       </TouchableOpacity>
 
@@ -2569,7 +2575,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                             }}
                             onPress={() => reCropPhoto(index)}
                           >
-                            <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>✂️ Ajustar</Text>
+                            <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>Ajustar</Text>
                           </TouchableOpacity>
                         </View>
                       ))}
@@ -2650,14 +2656,14 @@ const RegisterItemScreen = ({ navigation, route }) => {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 0 }} keyboardShouldPersistTaps="handled">
-          <Text style={[styles.title, { color: colors.text }]}>Localização e Recompensa</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Localização e recompensa</Text>
           <Text style={[styles.locationHint, { color: colors.textSecondary }]}>
             Escolha no mapa onde o animal foi {status === 'lost' ? 'visto pela última vez' : 'encontrado'}.
           </Text>
           {renderMapLocationButton()}
 
           <View style={styles.datePickerContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>Data do Evento *</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Data *</Text>
             <TouchableOpacity
               style={[styles.datePickerButton, { backgroundColor: isDark ? '#161F30' : '#F9FAFB', borderColor: colors.border }]}
               onPress={() => setShowDatePicker(true)}
@@ -2677,7 +2683,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
             <View style={styles.modalContainer}>
               <View style={[styles.calendarWrapper, { backgroundColor: colors.surface }]}>
                 <View style={[styles.calendarHeader, { borderBottomColor: colors.border }]}>
-                  <Text style={[styles.calendarTitle, { color: colors.text }]}>Selecione a Data</Text>
+                  <Text style={[styles.calendarTitle, { color: colors.text }]}>Selecione a data</Text>
                   <TouchableOpacity onPress={() => setShowDatePicker(false)}>
                     <Text style={[styles.closeButton, { color: colors.textSecondary }]}>✕</Text>
                   </TouchableOpacity>
@@ -2724,7 +2730,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                 <View style={[styles.checkbox, { borderColor: colors.border }, offerReward && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
                   {offerReward && <Text style={styles.checkmark}>✓</Text>}
                 </View>
-                <Text style={[styles.checkboxLabel, { color: colors.text }]}>Oferecer Recompensa</Text>
+                <Text style={[styles.checkboxLabel, { color: colors.text }]}>Oferecer recompensa</Text>
               </TouchableOpacity>
 
               {offerReward && (

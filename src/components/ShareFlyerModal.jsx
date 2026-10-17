@@ -92,8 +92,8 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
 
   const FORMATS = [
     { id: 'a4', label: 'Cartaz com QR', icon: 'description', desc: 'Impressão e Postes' },
-    { id: 'stories', label: 'Stories / Status', icon: 'smartphone', desc: '9:16 Vertical' },
-    { id: 'feed', label: 'Feed Quadrado', icon: 'crop-square', desc: '1:1 Instagram' },
+    { id: 'stories', label: 'Stories / status', icon: 'smartphone', desc: '9:16 Vertical' },
+    { id: 'feed', label: 'Feed quadrado', icon: 'crop-square', desc: '1:1 Instagram' },
   ];
 
   const getShareTextMessage = () => {
@@ -104,10 +104,10 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
     );
 
     const status = isAdoption
-      ? '🤍 PARA ADOÇÃO'
-      : (item.status === 'found' ? '🔍 ENCONTRADO' : '🚨 PROCURA-SE / PERDIDO');
+      ? 'PARA ADOÇÃO'
+      : (item.status === 'found' ? 'ENCONTRADO' : 'PROCURA-SE');
 
-    const locationLabel = isAdoption ? '📍 Onde está' : '📍 Local';
+    const locationLabel = isAdoption ? 'Onde está' : 'Local';
     const location = isResidentialAddressPrivate(item)
       ? getPrivateLocationSummary(item)
       : [
@@ -120,20 +120,20 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
     const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? new Date(`${rawDate}T12:00:00`) : new Date(rawDate);
     const formattedDate = item.date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('pt-BR') : 'Não informada';
     const phone = contactPhone || '';
-    const phoneInfo = includePhone && phone ? `\n📞 Contato direto: ${phone}` : '\n💬 Contato pelo chat do WeFIND';
+    const phoneInfo = includePhone && phone ? `\nContato: ${phone}` : '\nContato pelo chat do WeFIND';
     
     const details = [
-      item.species || item.extra_fields?.species ? `🐾 ${item.species || item.extra_fields?.species}` : '',
-      item.breed || item.extra_fields?.breed ? `🏷️ ${item.breed || item.extra_fields?.breed}` : '',
-      item.gender || item.extra_fields?.gender ? `⚧ ${item.gender || item.extra_fields?.gender}` : '',
-      item.color || item.extra_fields?.color ? `🎨 ${item.color || item.extra_fields?.color}` : '',
+      item.species || item.extra_fields?.species ? `${item.species || item.extra_fields?.species}` : '',
+      item.breed || item.extra_fields?.breed ? `${item.breed || item.extra_fields?.breed}` : '',
+      item.gender || item.extra_fields?.gender ? `${item.gender || item.extra_fields?.gender}` : '',
+      item.color || item.extra_fields?.color ? `${item.color || item.extra_fields?.color}` : '',
     ].filter(Boolean).join(' | ');
 
     const detailsLine = details ? `\n${details}\n` : '';
     const headerTitle = isAdoption ? 'ADOÇÃO RESPONSÁVEL' : 'AJUDE A ENCONTRAR';
-    const linkInfo = `\n🔗 Link no WeFIND: ${publicationUrl(item.id)}`;
+    const linkInfo = `\nVer no WeFIND: ${publicationUrl(item.id)}`;
 
-    return `🐾 *WeFIND - ${headerTitle}*\n\n${status}: *${item.title || 'Animal'}*${detailsLine}\n${locationLabel}: ${location}\n📅 Data: ${formattedDate}${phoneInfo}${linkInfo}\n\n"${item.description || ''}"\n\n📢 *Por favor, ajude compartilhando com seus contatos!*`;
+    return `*WeFIND - ${headerTitle}*\n\n${status}: *${item.title || 'Animal'}*${detailsLine}\n${locationLabel}: ${location}\nData: ${formattedDate}${phoneInfo}${linkInfo}\n\n"${item.description || ''}"\n\nSe puder, compartilhe com seus contatos.`;
   };
 
   const handleShareImage = async () => {
@@ -193,8 +193,8 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <MaterialIcons name="qr-code-2" size={24} color={colors.primary} />
               <View>
-                <Text style={[styles.modalHeaderTitle, { color: colors.text }]}>Gerador de Cartazes & Posts</Text>
-                <Text style={[styles.modalHeaderSub, { color: colors.textSecondary }]}>Com QR Code dinâmico e formatos sociais</Text>
+                <Text style={[styles.modalHeaderTitle, { color: colors.text }]}>Cartaz para divulgar</Text>
+                <Text style={[styles.modalHeaderSub, { color: colors.textSecondary }]}>Com código QR e formatos para redes sociais</Text>
               </View>
             </View>
             <TouchableOpacity onPress={onClose} style={[styles.closeButton, { backgroundColor: isDark ? '#1E293B' : '#F3F4F6' }]}>

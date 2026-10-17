@@ -446,7 +446,7 @@ const ChatScreen = (props) => {
   const handleSubmitProof = async () => {
     if (!proofText.trim() && !proofPhoto) {
       Alert.alert(
-        'Comprovação Necessária',
+        'Comprovação necessária',
         'Por favor, descreva ao menos uma característica marcante do pet ou anexe uma foto para comprovar a posse antes de enviar.'
       );
       return;
@@ -550,7 +550,7 @@ const ChatScreen = (props) => {
       appendSentMessage(message);
       setMeetupModal({ visible: false, mode: 'propose', base: null });
       Alert.alert(
-        'Proposta enviada! 📅',
+        'Proposta enviada',
         `${otherName || 'A outra pessoa'} vai receber a proposta e pode confirmar, recusar ou sugerir outro horário.`
       );
     } catch (err) {
@@ -754,11 +754,11 @@ const ChatScreen = (props) => {
                 </Text>
               </View>
               <Text style={{ fontSize: 13.5, fontWeight: '700', color: isDark ? '#ECFDF5' : '#065F46', marginBottom: 2 }}>
-                📍 {displayAddress || 'Ponto de Retirada'}
+                {displayAddress || 'Ponto de Retirada'}
               </Text>
               {displayInstructions ? (
                 <Text style={{ fontSize: 12, color: isDark ? '#A7F3D0' : '#1E3E24', marginBottom: 8 }}>
-                  📝 {displayInstructions}
+                  {displayInstructions}
                 </Text>
               ) : null}
 
@@ -770,7 +770,7 @@ const ChatScreen = (props) => {
                   activeOpacity={0.85}
                 >
                   <MaterialIcons name="directions-car" size={17} color="#FFFFFF" style={{ marginRight: 6 }} />
-                  <Text style={styles.mapRouteCtaBtnText}>Traçar Rota GPS até o Pet</Text>
+                  <Text style={styles.mapRouteCtaBtnText}>Ver rota até o pet</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -907,16 +907,16 @@ const ChatScreen = (props) => {
           <>
             <TouchableOpacity onPress={() => setMeetupMapVisible(true)} activeOpacity={0.8} style={{ marginTop: 6 }}>
               <Text style={[styles.meetupLine, { color: colors.text, textDecorationLine: isClosed ? 'line-through' : 'none' }]}>
-                🗓️ {formatMeetupDate(meetup.meeting_at)}
+                {formatMeetupDate(meetup.meeting_at)}
               </Text>
               <Text style={[styles.meetupLine, { color: colors.text }]} numberOfLines={2}>
-                📍 {meetup.address_text || 'Ponto marcado no mapa'}
+                {meetup.address_text || 'Ponto marcado no mapa'}
               </Text>
               {meetup.note ? (
-                <Text style={[styles.meetupLine, { color: colors.textSecondary }]} numberOfLines={3}>📝 {meetup.note}</Text>
+                <Text style={[styles.meetupLine, { color: colors.textSecondary }]} numberOfLines={3}>Observação: {meetup.note}</Text>
               ) : null}
               {meetup.response_note ? (
-                <Text style={[styles.meetupLine, { color: colors.textSecondary }]} numberOfLines={3}>💬 {meetup.response_note}</Text>
+                <Text style={[styles.meetupLine, { color: colors.textSecondary }]} numberOfLines={3}>Resposta: {meetup.response_note}</Text>
               ) : null}
               <Text style={{ fontSize: 11.5, fontWeight: '800', color: isDark ? '#A7F3D0' : '#2E5634', marginTop: 2 }}>
                 Ver ponto no mapa ›
@@ -1037,7 +1037,7 @@ const ChatScreen = (props) => {
         <View style={[styles.finderActionBar, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: '#A7F3D0' }]}>
           <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={{ fontSize: 12, fontWeight: '800', color: isDark ? '#D1FAE5' : '#065F46' }}>
-              Confirmar Tutor e Combinar Encontro
+              Confirmar tutor e combinar encontro
             </Text>
             <Text style={{ fontSize: 11, color: isDark ? '#A7F3D0' : '#1E3E24' }}>
               Se as fotos/marcas baterem, proponha um ponto público, dia e horário.
@@ -1050,7 +1050,7 @@ const ChatScreen = (props) => {
             activeOpacity={0.85}
           >
             <MaterialIcons name="share-location" size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
-            <Text style={styles.finderShareBtnText}>Liberar Local</Text>
+            <Text style={styles.finderShareBtnText}>Liberar local</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -1072,7 +1072,7 @@ const ChatScreen = (props) => {
         }}>
           <MaterialIcons name="security" size={17} color="#2E5634" />
           <Text style={{ flex: 1, fontSize: 11.5, color: isDark ? '#D1FAE5' : '#065F46', lineHeight: 15 }}>
-            <Text style={{ fontWeight: '800' }}>Dica de Segurança:</Text>{' '}
+            <Text style={{ fontWeight: '800' }}>Dica de segurança:</Text>{' '}
             {verificationPending
               ? 'Sua solicitação está em análise. O chat será liberado assim que o dono da publicação aprovar a devolução.'
               : isFoundPet && !requiresOwnershipProof
@@ -1112,7 +1112,7 @@ const ChatScreen = (props) => {
             <View style={[styles.proofCard, { backgroundColor: colors.surface, borderColor: isDark ? colors.primary : COLORS.primaryBorder }]}>
               <View style={[styles.proofBadge, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : COLORS.primaryLight }]}>
                 <MaterialIcons name="verified-user" size={20} color={colors.primary} />
-                <Text style={[styles.proofBadgeText, { color: colors.primary }]}>Comprovação Obrigatória</Text>
+                <Text style={[styles.proofBadgeText, { color: colors.primary }]}>Comprovação obrigatória</Text>
               </View>
 
               <Text style={[styles.proofTitle, { color: colors.text }]}>
@@ -1129,7 +1129,7 @@ const ChatScreen = (props) => {
                   onPress={() => handlePickProofPhoto('camera')}
                 >
                   <MaterialIcons name="photo-camera" size={18} color={colors.primary} style={{ marginRight: 6 }} />
-                  <Text style={[styles.proofBtnText, { color: colors.text }]}>Tirar Foto</Text>
+                  <Text style={[styles.proofBtnText, { color: colors.text }]}>Tirar foto</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -1184,7 +1184,7 @@ const ChatScreen = (props) => {
                 ) : (
                   <>
                     <MaterialIcons name="security" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-                    <Text style={styles.proofSubmitBtnText}>Enviar Comprovação e Liberar Chat</Text>
+                    <Text style={styles.proofSubmitBtnText}>Enviar comprovação e liberar chat</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -1228,7 +1228,7 @@ const ChatScreen = (props) => {
         ) : requiresInitialProof ? (
           <View style={{ paddingVertical: 10, paddingHorizontal: 12, alignItems: 'center' }}>
             <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', fontWeight: '600' }}>
-              🔒 Preencha e envie a comprovação acima para liberar as mensagens.
+              Envie a comprovação acima para liberar as mensagens.
             </Text>
           </View>
         ) : (

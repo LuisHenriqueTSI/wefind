@@ -135,7 +135,7 @@ const PetRgCard = ({ pet, userProfile, onClose }) => {
 
             <View style={styles.fieldRow}>
               <Text style={styles.fieldLabel}>CONTATO DE EMERGÊNCIA:</Text>
-              <Text style={styles.fieldValuePhone} numberOfLines={1}>📞 {tutorPhone}</Text>
+              <Text style={styles.fieldValuePhone} numberOfLines={1}>{tutorPhone}</Text>
             </View>
 
             <View style={styles.tagsRow}>
@@ -181,7 +181,7 @@ const PetRgCard = ({ pet, userProfile, onClose }) => {
           ) : (
             <>
               <MaterialIcons name="share" size={18} color="#FFFFFF" style={{ marginRight: 7 }} />
-              <Text style={styles.shareBtnText}>Salvar / Compartilhar Carteirinha</Text>
+              <Text style={styles.shareBtnText}>Salvar / compartilhar carteirinha</Text>
             </>
           )}
         </TouchableOpacity>

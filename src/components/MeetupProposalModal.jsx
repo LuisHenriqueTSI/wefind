@@ -187,7 +187,7 @@ const MeetupProposalModal = ({
               </View>
 
               {/* Local */}
-              <Text style={[styles.label, { color: colors.text }]}>📍 Ponto de encontro</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Ponto de encontro</Text>
               <TouchableOpacity
                 style={[styles.locationField, { backgroundColor: fieldBg, borderColor: coordinate ? accent : colors.border }]}
                 onPress={() => setMapPickerVisible(true)}
@@ -204,7 +204,7 @@ const MeetupProposalModal = ({
               </TouchableOpacity>
 
               {/* Dia */}
-              <Text style={[styles.label, { color: colors.text }]}>🗓️ Dia</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Dia</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: 8 }}>
                 {days.map((day) => {
                   const selected = day.key === dayKey;
@@ -246,7 +246,7 @@ const MeetupProposalModal = ({
               </View>
 
               {/* Observação */}
-              <Text style={[styles.label, { color: colors.text }]}>📝 Observação (opcional)</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Observação (opcional)</Text>
               <TextInput
                 style={[styles.noteInput, { backgroundColor: fieldBg, borderColor: colors.border, color: colors.text }]}
                 placeholder={mode === 'propose'

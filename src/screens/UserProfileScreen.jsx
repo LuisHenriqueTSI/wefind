@@ -261,12 +261,12 @@ const UserProfileScreen = ({ route, navigation }) => {
 
   const handleDeleteUserAccount = () => {
     Alert.alert(
-      'Excluir Conta do Usuário (Admin)',
+      'Excluir conta do usuário (administrador)',
       `ATENÇÃO: Deseja excluir permanentemente o perfil de "${profile?.name || 'este usuário'}", todas as suas publicações, fotos e comentários? Esta ação NÃO pode ser desfeita.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Excluir Permanentemente',
+          text: 'Excluir permanentemente',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -288,7 +288,7 @@ const UserProfileScreen = ({ route, navigation }) => {
 
   const handleDeleteUserItem = (targetItem) => {
     Alert.alert(
-      'Excluir Publicação (Admin)',
+      'Excluir publicação (administrador)',
       `Deseja excluir a publicação "${targetItem.title || 'Pet'}" como Administrador?`,
       [
         { text: 'Cancelar', style: 'cancel' },
@@ -335,11 +335,11 @@ const UserProfileScreen = ({ route, navigation }) => {
 
   const getStarLabel = (stars) => {
     switch (stars) {
-      case 5: return 'Excelente experiência! ⭐⭐⭐⭐⭐';
-      case 4: return 'Muito boa experiência! ⭐⭐⭐⭐';
-      case 3: return 'Experiência regular ⭐⭐⭐';
-      case 2: return 'Experiência abaixo do esperado ⭐⭐';
-      case 1: return 'Experiência ruim ⭐';
+      case 5: return 'Excelente experiência';
+      case 4: return 'Boa experiência';
+      case 3: return 'Experiência regular';
+      case 2: return 'Abaixo do esperado';
+      case 1: return 'Experiência ruim';
       default: return 'Selecione uma nota';
     }
   };
@@ -533,11 +533,11 @@ const UserProfileScreen = ({ route, navigation }) => {
                   <MaterialIcons name="home-work" size={15} color="#16A34A" />
                 </View>
                 <Text style={{ fontSize: 13, fontWeight: '800', color: '#15803D' }}>
-                  Voluntário de Lar Temporário
+                  Voluntário de lar temporário
                 </Text>
               </View>
               <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#166534', lineHeight: 16 }}>
-                Disponível para acolher: {fosterProfile.species?.map(s => s === 'dogs' ? '🐶 Cães' : (s === 'cats' ? '🐱 Gatos' : (s === 'birds' ? '🦜 Aves' : '🐾 Outros'))).join(', ') || 'Pets'}.
+                Disponível para acolher: {fosterProfile.species?.map(s => s === 'dogs' ? 'Cães' : (s === 'cats' ? 'Gatos' : (s === 'birds' ? 'Aves' : 'Outros'))).join(', ') || 'Pets'}.
                 {fosterProfile.neighborhood ? ` • ${fosterProfile.neighborhood}` : ''}
               </Text>
             </View>
@@ -593,7 +593,7 @@ const UserProfileScreen = ({ route, navigation }) => {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <MaterialIcons name="admin-panel-settings" size={18} color="#D97706" />
                 <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#FCD34D' : '#92400E' }}>
-                  Moderação Super Admin
+                  Moderação do administrador
                 </Text>
               </View>
               <View style={{ backgroundColor: profile?.role === 'admin' || profile?.adm ? '#2E5634' : '#64748B', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
@@ -622,7 +622,7 @@ const UserProfileScreen = ({ route, navigation }) => {
               >
                 <MaterialIcons name="delete-forever" size={16} color="#DC2626" style={{ marginRight: 4 }} />
                 <Text style={{ fontSize: 12, fontWeight: '800', color: '#DC2626' }}>
-                  Excluir Conta
+                  Excluir conta
                 </Text>
               </TouchableOpacity>
             </View>
@@ -727,7 +727,7 @@ const UserProfileScreen = ({ route, navigation }) => {
                 : '#DC2626';
 
               const statusLabel = isResolved
-                ? 'Reencontrado 🎉'
+                ? 'Reencontrado'
                 : isAdoption
                 ? 'Para Adoção'
                 : isFound
@@ -851,7 +851,7 @@ const UserProfileScreen = ({ route, navigation }) => {
             >
               <MaterialIcons name="rate-review" size={19} color="#FFFFFF" style={{ marginRight: 8 }} />
               <Text style={styles.leaveReviewCTAText}>
-                Classificar Experiência com este Membro
+                Classificar experiência com este membro
               </Text>
             </TouchableOpacity>
           )}

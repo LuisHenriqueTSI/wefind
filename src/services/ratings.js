@@ -2,17 +2,18 @@ import { supabase } from '../lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createNotification } from './notifications';
 import { sendPushNotification } from './pushNotifications';
+import { stripEmoji } from '../utils/text';
 
 const LOCAL_RATINGS_KEY = '@wefind_user_ratings_store';
 
 export const POPULAR_RATING_TAGS = [
-  '❤️ Muito Atencioso(a)',
-  '⚡ Respondeu Rápido',
-  '🛡️ Tutor Confiável',
-  '🐾 Ajudou no Resgate',
-  '💬 Ótima Comunicação',
-  '🤝 Muito Pontual',
-  '⭐ Recomendo a Todos',
+  'Atencioso(a)',
+  'Respondeu rápido',
+  'Confiável',
+  'Ajudou no resgate',
+  'Boa comunicação',
+  'Pontual',
+  'Recomendo',
 ];
 
 const RATING_INACTIVITY_MS = 24 * 60 * 60 * 1000;
@@ -119,12 +120,28 @@ export const syncRatingNotifications = async (userId) => {
 // Sem classificações a média é null (e não 5,0): a tela mostra "Sem classificações".
 const emptyRatings = () => ({ ratings: [], average: null, total: 0, breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 } });
 
+const OLD_TAG_NAMES = {
+  'muito atencioso(a)': 'Atencioso(a)',
+  'respondeu rápido': 'Respondeu rápido',
+  'tutor confiável': 'Confiável',
+  'ajudou no resgate': 'Ajudou no resgate',
+  'ótima comunicação': 'Boa comunicação',
+  'muito pontual': 'Pontual',
+  'recomendo a todos': 'Recomendo',
+};
+
+// Etiquetas antigas tinham emoji e outro texto; converte para os nomes atuais.
+const normalizeTag = (tag) => {
+  const plain = stripEmoji(tag);
+  return OLD_TAG_NAMES[plain.toLowerCase()] || plain;
+};
+
 const parseTags = (value) => {
-  if (Array.isArray(value)) return value;
+  if (Array.isArray(value)) return value.map(normalizeTag);
   if (!value) return [];
   try {
     const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.map(normalizeTag) : [];
   } catch {
     return [];
   }

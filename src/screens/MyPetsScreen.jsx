@@ -58,7 +58,7 @@ const MyPetsScreen = ({ navigation }) => {
 
   const handleDeletePet = (pet) => {
     Alert.alert(
-      'Remover Pet',
+      'Remover pet',
       `Tem certeza que deseja remover ${pet.name} da sua lista de pets?`,
       [
         { text: 'Cancelar', style: 'cancel' },
@@ -81,23 +81,23 @@ const MyPetsScreen = ({ navigation }) => {
 
   const handleDeclareLost = (pet) => {
     Alert.alert(
-      '🚨 Declarar Desaparecimento',
+      'Declarar desaparecimento',
       `Seu pet ${pet.name} fugiu ou desapareceu?\n\nVamos criar um alerta de animal perdido no mapa e notificar os voluntários da região imediatamente.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: '🚨 Disparar Alerta Imediato',
+          text: 'Avisar agora',
           style: 'destructive',
           onPress: async () => {
             setDeclaringLostId(pet.id);
             try {
               const createdItem = await declarePetLost(user.id, pet, userProfile);
               Alert.alert(
-                '🚨 Alerta de Desaparecimento Ativo!',
+                'Alerta de desaparecimento ativo',
                 `A publicação de ${pet.name} foi criada e o alerta foi enviado para a comunidade da região.`,
                 [
                   {
-                    text: 'Ver Publicação',
+                    text: 'Ver publicação',
                     onPress: () => {
                       if (createdItem?.id) {
                         navigation.navigate('ItemDetail', { itemId: createdItem.id });
@@ -139,7 +139,7 @@ const MyPetsScreen = ({ navigation }) => {
             <MaterialIcons name="badge" size={24} color="#FFFFFF" />
           </View>
           <View style={{ flex: 1, marginLeft: 12 }}>
-            <Text style={[styles.bannerTitle, { color: colors.text }]}>Identificação & Carteira Digital</Text>
+            <Text style={[styles.bannerTitle, { color: colors.text }]}>Identificação e carteirinha digital</Text>
             <Text style={[styles.bannerSub, { color: colors.textSecondary }]}>
               Cadastre seus animais tutelados para organizar os dados do pet e ativar o alerta de desaparecimento caso ele fuja.
             </Text>
@@ -153,7 +153,7 @@ const MyPetsScreen = ({ navigation }) => {
           activeOpacity={0.85}
         >
           <MaterialIcons name="add" size={22} color="#FFFFFF" style={{ marginRight: 6 }} />
-          <Text style={styles.addNewPetBtnText}>Cadastrar Novo Pet</Text>
+          <Text style={styles.addNewPetBtnText}>Cadastrar novo pet</Text>
         </TouchableOpacity>
 
         {/* Lista de Pets */}
@@ -195,14 +195,14 @@ const MyPetsScreen = ({ navigation }) => {
                     </View>
 
                     <Text style={[styles.petMetaText, { color: colors.textSecondary }]} numberOfLines={1}>
-                      🏷️ {pet.breed || 'SRD'} • 📏 {pet.size || 'Médio'}
+                      {pet.breed || 'SRD'} • {pet.size || 'Médio'}
                     </Text>
                     <Text style={[styles.petMetaText, { color: colors.textSecondary }]} numberOfLines={1}>
-                      ⚧ {pet.gender || 'Macho'} • 🎨 {pet.color || 'Não informado'}
+                      {pet.gender || 'Macho'} • {pet.color || 'Não informado'}
                     </Text>
                     {pet.microchip ? (
                       <Text style={[styles.petChipText, { color: colors.primary }]} numberOfLines={1}>
-                        🔍 Microchip/registro: {pet.microchip}
+                        Microchip/registro: {pet.microchip}
                       </Text>
                     ) : null}
                   </View>
@@ -252,7 +252,7 @@ const MyPetsScreen = ({ navigation }) => {
                   ) : (
                     <>
                       <MaterialIcons name="warning" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-                      <Text style={styles.panicButtonText}>🚨 MEU PET FUGIU! (ACIONAR ALERTA)</Text>
+                      <Text style={styles.panicButtonText}>Meu pet fugiu</Text>
                     </>
                   )}
                 </TouchableOpacity>
