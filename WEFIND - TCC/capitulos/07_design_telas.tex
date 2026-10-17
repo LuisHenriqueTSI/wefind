@@ -399,6 +399,18 @@ Os avisos do sistema ficam reunidos na central de notificações, apresentada na
 
 Na Figura~\ref{fig:tela_notificacoes}.a, a central separa os avisos do sistema das mensagens em duas abas, permite filtrar por tipo de aviso (correspondências, avistamentos, alertas de proximidade e renovação) e destaca os itens ainda não lidos; as notificações ficam salvas por 30 dias. A Figura~\ref{fig:tela_notificacoes}.b mostra, no alto, o aviso de possível correspondência que chega ao celular, com o percentual de semelhança no título, aberto por cima da janela de correspondência descrita na Figura~\ref{fig:tela_correspondencias}.
 
+Para os usuários que autorizaram esse canal, os mesmos avisos chegam também pelo WhatsApp, com o mesmo título e o mesmo texto, como mostra a Figura~\ref{fig:tela_notificacoes_whatsapp}. A sequência da figura acompanha um caso de devolução, da solicitação ao encontro confirmado, seguida de um aviso de possível correspondência.
+
+\begin{figure}[H]
+    \centering
+    \caption{Avisos do WeFIND Recebidos pelo WhatsApp}
+    \label{fig:tela_notificacoes_whatsapp}
+    \includegraphics[width=0.5\textwidth]{imagens/04_telas_aplicativo/tela-notificacoes-whatsapp.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+No protótipo, as mensagens são enviadas pela Evolution API a partir do número de WhatsApp do próprio autor, conectado ao serviço para os testes. Por isso, no aparelho do autor, elas aparecem como enviadas por ele mesmo. Em uma versão em produção, o envio seria feito por um número institucional do WeFIND, e os códigos de verificação, que seguem pelo mesmo canal, não foram incluídos na figura.
+
 A comprovação de tutela, descrita na Seção~\ref{sec:tutela}, começa na ficha de um animal encontrado e termina no chat, com o encontro de devolução combinado. A Figura~\ref{fig:tela_comprovacao_tutela} mostra a parte feita pelo tutor.
 
 \begin{figure}[H]

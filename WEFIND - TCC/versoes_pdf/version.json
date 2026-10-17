@@ -649,7 +649,17 @@
                         "version":  130,
                         "filename":  "TCC_WeFIND_v130_17-10-2026-15h14.pdf",
                         "date":  "2026-10-17T15:14:19-03:00"
+                    },
+                    {
+                        "version":  131,
+                        "filename":  "TCC_WeFIND_v131_17-10-2026-15h41.pdf",
+                        "date":  "2026-10-17T15:41:51-03:00"
+                    },
+                    {
+                        "version":  132,
+                        "filename":  "TCC_WeFIND_v132_17-10-2026-15h47.pdf",
+                        "date":  "2026-10-17T15:47:16-03:00"
                     }
                 ],
-    "current_version":  130
+    "current_version":  132
 }

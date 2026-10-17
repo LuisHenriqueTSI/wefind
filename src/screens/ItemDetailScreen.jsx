@@ -1653,7 +1653,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                     <MaterialIcons name="auto-awesome" size={20} color="#10B981" style={{ marginRight: 6 }} />
                     <Text style={[styles.matchesTitle, { color: colors.text }]}>
-                      Matches Inteligentes ({potentialMatches.length})
+                      Possíveis correspondências ({potentialMatches.length})
                     </Text>
                   </View>
 
@@ -1661,7 +1661,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                     style={[styles.openCompareBtn, { backgroundColor: colors.primaryLight }]}
                     onPress={() => {
                       if (!user) {
-                        handleLoginRequired('Entre ou crie uma conta para ver e comparar os matches inteligentes.');
+                        handleLoginRequired('Entre ou crie uma conta para ver e comparar as possíveis correspondências.');
                         return;
                       }
                       setSelectedMatchIndex(0);
@@ -1670,7 +1670,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                     activeOpacity={0.8}
                   >
                     <MaterialIcons name="compare" size={15} color={colors.primary} style={{ marginRight: 4 }} />
-                    <Text style={[styles.openCompareBtnText, { color: colors.primary }]}>Ver Lista & Comparar</Text>
+                    <Text style={[styles.openCompareBtnText, { color: colors.primary }]}>Ver lista e comparar</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -1696,7 +1696,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                       style={[styles.matchCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: matchBadgeColor }]}
                       onPress={() => {
                         if (!user) {
-                          handleLoginRequired('Entre ou crie uma conta para ver e comparar os matches inteligentes.');
+                          handleLoginRequired('Entre ou crie uma conta para ver e comparar as possíveis correspondências.');
                           return;
                         }
                         setSelectedMatchIndex(idx);
@@ -1713,7 +1713,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                           </View>
                         )}
                         <View style={[styles.matchScoreBadge, { backgroundColor: matchBadgeColor }]}>
-                          <Text style={styles.matchScoreBadgeText}>{matchScore}% MATCH</Text>
+                          <Text style={styles.matchScoreBadgeText}>{matchScore}% parecido</Text>
                         </View>
                       </View>
 
