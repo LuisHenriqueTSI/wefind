@@ -282,11 +282,6 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ ok: false, error: 'verification-code-expired' }, 400);
     }
 
-    const deleteResult = await deleteVerificationCode(supabaseUrl, serviceRoleKey, email);
-    if (!deleteResult.ok) {
-      console.warn('[create-user] Falha ao deletar código de verificação:', deleteResult);
-    }
-
     const whatsappNotificationsEnabled = body.whatsapp_notifications_enabled !== false;
 
     const adminResponse = await fetch(`${supabaseUrl.replace(/\/$/, '')}/auth/v1/admin/users`, {
@@ -320,7 +315,23 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!adminResponse.ok) {
-      return jsonResponse({ ok: false, error: adminPayload.error?.message || adminPayload.message || 'failed-to-create-user' }, adminResponse.status);
+      // O Auth do Supabase explica o motivo em `msg` e `error_code`
+      const errorCode = String(adminPayload.error_code ?? adminPayload.code ?? '');
+      const reason = String(adminPayload.msg ?? adminPayload.message ?? (adminPayload.error as { message?: string })?.message ?? adminPayload.error ?? adminPayload.raw ?? '');
+      console.error('[create-user] Auth recusou o cadastro:', adminResponse.status, errorCode, reason);
+      const isEmailTaken = errorCode === 'email_exists' || errorCode === 'user_already_exists' || /already (been )?registered|already exists/i.test(reason);
+      // O código continua válido para uma nova tentativa (não é apagado aqui)
+      return jsonResponse({
+        ok: false,
+        error: isEmailTaken ? 'email-already-registered' : 'failed-to-create-user',
+        details: [errorCode, reason].filter(Boolean).join(': ') || `status ${adminResponse.status}`,
+      }, adminResponse.status);
+    }
+
+    // Conta criada: agora sim o código é invalidado
+    const deleteResult = await deleteVerificationCode(supabaseUrl, serviceRoleKey, email);
+    if (!deleteResult.ok) {
+      console.warn('[create-user] Falha ao deletar código de verificação:', deleteResult);
     }
 
     const createdUser = (adminPayload.user ?? adminPayload) as { id?: string };

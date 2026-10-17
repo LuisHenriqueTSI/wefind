@@ -213,6 +213,23 @@ export const signInWithGoogle = async () => {
   return sessionData;
 };
 
+// Traduz os códigos de erro da função create-user para mensagens claras
+const SIGNUP_ERROR_MESSAGES = {
+  'invalid-verification-code': 'Código incorreto. Use o código da mensagem mais recente do WhatsApp.',
+  'verification-code-expired': 'Este código expirou (vale 15 minutos). Toque em "Reenviar código".',
+  'verification-attempts-exceeded': 'Muitas tentativas erradas. Toque em "Reenviar código" para receber um novo.',
+  'verification-rate-limited': 'Aguarde 1 minuto antes de pedir um novo código.',
+  'email-already-registered': 'Este e-mail já tem uma conta no WeFIND. Faça login ou use "Esqueci minha senha".',
+  'missing-fields': 'Preencha nome, e-mail, senha e WhatsApp para continuar.',
+  'failed-to-create-user': 'Não foi possível criar a conta agora. Tente novamente em instantes.',
+};
+
+const describeSignUpError = (payload, fallback) => {
+  const code = payload?.error;
+  if (payload?.details) console.log('[signUp] Detalhe do servidor:', payload.details);
+  return SIGNUP_ERROR_MESSAGES[code] || (typeof code === 'string' && code.length > 0 && !/^[a-z-]+$/.test(code) ? code : fallback);
+};
+
 export const signUp = async (email, password, name, city, state, whatsapp = '') => {
   try {
     const payloadWhatsapp = normalizeWhatsapp(whatsapp);
@@ -231,7 +248,7 @@ export const signUp = async (email, password, name, city, state, whatsapp = '') 
     });
     const data = await response.json();
     if (!response.ok || !data.ok) {
-      throw new Error(data?.error || 'Não foi possível enviar o código de confirmação.');
+      throw new Error(describeSignUpError(data, 'Não foi possível enviar o código de confirmação.'));
     }
 
     return {
@@ -288,7 +305,7 @@ export const confirmSignUp = async ({ email, password, name, city, state, whatsa
     console.log('[confirmSignUp] Resposta da função de cadastro:', response.status);
 
     if (!response.ok) {
-      throw new Error(payload?.error || 'Falha ao confirmar o código de verificação.');
+      throw new Error(describeSignUpError(payload, 'Falha ao confirmar o código de verificação.'));
     }
 
     return { user: payload?.user, ok: true };
