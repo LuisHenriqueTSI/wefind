@@ -1572,6 +1572,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
         <View style={[styles.cardSection, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <TouchableOpacity
             style={styles.ownerHeader}
+            disabled={!item.owner_id && !owner.id}
             onPress={() => {
               if (isAnonymousReport) return;
               const targetId = item.owner_id || owner.id;
@@ -1615,7 +1616,9 @@ const ItemDetailScreen = ({ route, navigation }) => {
               ) : null}
             </View>
 
-            <MaterialIcons name="chevron-right" size={24} color={colors.textMuted} style={{ alignSelf: 'center' }} />
+            {(item.owner_id || owner.id) && (
+              <MaterialIcons name="chevron-right" size={24} color={colors.textMuted} style={{ alignSelf: 'center' }} />
+            )}
           </TouchableOpacity>
 
           {/* Se for terceiro anunciando em nome do tutor */}

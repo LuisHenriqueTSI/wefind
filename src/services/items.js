@@ -53,13 +53,29 @@ const getOwnerProfileSelection = async () => {
     : '';
 };
 
+const getPublicItemOwnerNames = async (itemIds = []) => {
+  const ids = itemIds.map(Number).filter(Number.isSafeInteger);
+  if (ids.length === 0) return {};
+
+  const { data, error } = await supabase.rpc('get_public_item_owner_names', {
+    p_item_ids: ids,
+  });
+  if (error) {
+    console.error('[getPublicItemOwnerNames] Não foi possível carregar os nomes públicos:', error.message);
+    return {};
+  }
+
+  return Object.fromEntries((data || []).map((row) => [row.item_id, row.owner_name]));
+};
+
 const attachPublicItemRelations = async (items = []) => {
   if (!items.length) return [];
 
   const itemIds = items.map(item => item.id).filter(Boolean);
-  const [{ data: photos, error: photosError }, { data: rewards, error: rewardsError }] = await Promise.all([
+  const [{ data: photos, error: photosError }, { data: rewards, error: rewardsError }, ownerNames] = await Promise.all([
     supabase.from('item_photos').select('id, item_id, url').in('item_id', itemIds),
     supabase.from('rewards').select('id, item_id, amount, currency, status, description').in('item_id', itemIds),
+    getPublicItemOwnerNames(itemIds),
   ]);
 
   if (photosError) {
@@ -83,7 +99,7 @@ const attachPublicItemRelations = async (items = []) => {
   return items.map(item => ({
     ...item,
     profiles: null,
-    owner_name: 'Tutor',
+    owner_name: ownerNames[item.id] || item.owner_name || 'Tutor',
     item_photos: photosByItem[item.id] || [],
     rewards: normalizeItemRewards({ ...item, rewards: rewardsByItem[item.id] || [] }),
     renewalInfo: getRenewalInfo(item),
@@ -858,6 +874,11 @@ export const getItemDetails = async (itemId) => {
       return null;
     }
 
+    if (isPublicRequest) {
+      const ownerNames = await getPublicItemOwnerNames([item.id]);
+      item.owner_name = ownerNames[item.id] || item.owner_name || 'Tutor';
+    }
+
     // Get photos
     const { data: photos } = await supabase
       .from('item_photos')
@@ -872,6 +893,8 @@ export const getItemDetails = async (itemId) => {
         .eq('id', item.owner_id)
         .single();
       profile = ownerProfile;
+    } else if (item.owner_name) {
+      profile = { name: item.owner_name };
     }
 
     // Get rewards

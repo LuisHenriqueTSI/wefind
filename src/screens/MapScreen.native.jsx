@@ -19,10 +19,11 @@ import {
   ROUTE_MODE_ORDER,
   buildGoogleMapsUrl,
   describeRouteStatus,
-  formatClueAge,
+  formatSightingAge,
+  formatSightingDateTime,
   getRouteMode,
   getRouteStatus,
-  getSightingHistoryAreas,
+  getSightingHistoryEntries,
 } from '../services/routeEligibility';
 import { fetchTransitItinerary } from '../services/transitRoute';
 import {
@@ -76,8 +77,8 @@ const SightingHistoryMarker = React.memo(({ area, index, onPress }) => {
       coordinate={{ latitude: area.latitude, longitude: area.longitude }}
       anchor={{ x: 0.5, y: 0.5 }}
       tracksViewChanges={tracksViewChanges}
-      title={`${formatClueAge(area.ageHours)}${area.isPrivate ? ' · em casa/quintal' : ''}`}
-      description={`Publicado por ${area.userName}`}
+      title={`${formatSightingAge(area.ageHours)}${area.isPrivate ? ' · em casa/quintal' : ''}`}
+      description={`${area.locationLabel} · ${area.userName} · ${formatSightingDateTime(area.createdAt)}`}
       onPress={onPress}
       zIndex={3}
     >
@@ -413,6 +414,7 @@ const MapScreen = ({ route, navigation }) => {
   // Card recolhido: a tela fica limpa só com a rota ou com o histórico no mapa
   const [cardCollapsed, setCardCollapsed] = useState(false);
   const [historyMode, setHistoryMode] = useState(false);
+  const [historyNow, setHistoryNow] = useState(Date.now());
   const handledRouteParamRef = useRef(null);
   const [resolvedItemAddress, setResolvedItemAddress] = useState('');
   // Situação da pista do animal selecionado (quente / morna / fria / protegida)
@@ -427,9 +429,13 @@ const MapScreen = ({ route, navigation }) => {
   const [selectedItemTrail, setSelectedItemTrail] = useState([]);
   const [cardHeight, setCardHeight] = useState(0);
   const isCardVisible = Boolean(selectedItem) && !cardCollapsed;
+  const historyEntries = useMemo(
+    () => getSightingHistoryEntries(selectedItem, selectedItemTrail, historyNow),
+    [selectedItem, selectedItemTrail, historyNow]
+  );
   const historyAreas = useMemo(
-    () => getSightingHistoryAreas(selectedItem, selectedItemTrail),
-    [selectedItem, selectedItemTrail]
+    () => historyEntries.filter((entry) => entry.isVisibleOnMap),
+    [historyEntries]
   );
   const isRouteActive = selectedItemCanHaveRoute && routeCoordinates.length > 1 && !historyMode;
 
@@ -441,6 +447,13 @@ const MapScreen = ({ route, navigation }) => {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!historyMode) return undefined;
+    setHistoryNow(Date.now());
+    const timer = setInterval(() => setHistoryNow(Date.now()), 60 * 1000);
+    return () => clearInterval(timer);
+  }, [historyMode]);
 
   useEffect(() => {
     Animated.timing(overlayOpacity, {
@@ -459,19 +472,27 @@ const MapScreen = ({ route, navigation }) => {
       return;
     }
 
+    setSelectedItemTrail([]);
     sightingsService.getItemSightingTrail(selectedItem)
       .then((steps) => {
         if (isMounted) {
           setSelectedItemTrail(steps || []);
           if (route?.params?.showTrail && steps && steps.length > 1 && mapRef.current) {
-            mapRef.current.fitToCoordinates(
-              steps.map(s => ({ latitude: s.latitude, longitude: s.longitude })),
-              { edgePadding: { top: 120, right: 60, bottom: 320, left: 60 }, animated: true }
-            );
+            const points = steps
+              .filter((step) => Number.isFinite(step.latitude) && Number.isFinite(step.longitude))
+              .map((step) => ({ latitude: step.latitude, longitude: step.longitude }));
+            if (points.length > 0) {
+              mapRef.current.fitToCoordinates(
+                points,
+                { edgePadding: { top: 120, right: 60, bottom: 320, left: 60 }, animated: true }
+              );
+            }
           }
         }
       })
-      .catch(() => {});
+      .catch((error) => {
+        console.warn('[MapScreen] Não foi possível carregar o histórico de avistamentos:', error?.message || error);
+      });
 
     return () => { isMounted = false; };
   }, [selectedItem?.id, selectedItem?.latitude, selectedItem?.longitude, selectedItem?.extra_fields?.sighting_count, route?.params?.showTrail]);
@@ -902,12 +923,13 @@ const MapScreen = ({ route, navigation }) => {
 
   // Histórico: recolhe o card e mostra no mapa os círculos dos avistamentos
   const showSightingHistory = useCallback(() => {
-    if (historyAreas.length === 0) return;
+    if (historyEntries.length === 0) return;
     clearRoute();
     setHistoryMode(true);
     setCardCollapsed(true);
     setTimeout(() => {
       const points = historyAreas.map((a) => ({ latitude: a.latitude, longitude: a.longitude }));
+      if (points.length === 0) return;
       if (points.length === 1) {
         mapRef.current?.animateToRegion({ ...points[0], latitudeDelta: 0.012, longitudeDelta: 0.012 }, 600);
       } else {
@@ -917,7 +939,7 @@ const MapScreen = ({ route, navigation }) => {
         });
       }
     }, 250);
-  }, [historyAreas, clearRoute]);
+  }, [historyEntries, historyAreas, clearRoute]);
 
   const exitSightingHistory = useCallback(() => {
     setHistoryMode(false);
@@ -1358,21 +1380,21 @@ const MapScreen = ({ route, navigation }) => {
         ))}
 
         {/* Histórico: um círculo por avistamento (mais antigos mais apagados) */}
-        {historyMode && historyAreas.map((area, index) => {
-          const tone = ROUTE_TONE_COLORS[area.freshness] || ROUTE_TONE_COLORS.cold;
+        {historyMode && historyAreas.map((entry, index) => {
+          const tone = ROUTE_TONE_COLORS[entry.freshness] || ROUTE_TONE_COLORS.cold;
           return (
             <Circle
-              key={`history-circle-${area.id}`}
-              center={{ latitude: area.latitude, longitude: area.longitude }}
-              radius={area.radiusM}
+              key={`history-circle-${entry.id}`}
+              center={{ latitude: entry.latitude, longitude: entry.longitude }}
+              radius={entry.radiusM}
               strokeColor={tone.stroke}
               fillColor={tone.fill}
               strokeWidth={index === 0 ? 2 : 1}
             />
           );
         })}
-        {historyMode && historyAreas.map((area, index) => (
-          <SightingHistoryMarker key={`history-marker-${area.id}`} area={area} index={index} />
+        {historyMode && historyAreas.map((entry, index) => (
+          <SightingHistoryMarker key={`history-marker-${entry.id}`} area={entry} index={index} />
         ))}
 
         {filteredItems
@@ -1539,10 +1561,10 @@ const MapScreen = ({ route, navigation }) => {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 13, fontWeight: '800', color: '#1E293B' }} numberOfLines={1}>
-                  {historyAreas.length === 1 ? '1 avistamento' : `${historyAreas.length} avistamentos`} · {selectedItem.title || 'Animal'}
+                  {historyEntries.length === 1 ? '1 avistamento' : `${historyEntries.length} avistamentos`} · {selectedItem.title || 'Animal'}
                 </Text>
                 <Text style={{ fontSize: 11, fontWeight: '600', color: '#64748B' }} numberOfLines={1}>
-                  Áreas aproximadas · 1 é o mais recente
+                  Recentes no mapa · avistamentos antigos arquivados
                 </Text>
               </View>
             </View>
@@ -1568,36 +1590,51 @@ const MapScreen = ({ route, navigation }) => {
         </View>
       )}
 
-      {/* Lista mínima do histórico: tempo e quem publicou; toque centraliza o círculo */}
-      {historyMode && cardCollapsed && historyAreas.length > 0 && (
+      {/* Histórico cronológico: todos os registros; só os que têm coordenadas centralizam o mapa */}
+      {historyMode && cardCollapsed && historyEntries.length > 0 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={[styles.historyStrip, { bottom: Math.max(insets.bottom + 12, 18) }]}
           contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
         >
-          {historyAreas.map((area, index) => {
-            const tone = ROUTE_TONE_COLORS[area.freshness] || ROUTE_TONE_COLORS.cold;
+          {historyEntries.map((entry, index) => {
+            const tone = entry.isVisibleOnMap
+              ? ROUTE_TONE_COLORS[entry.freshness] || ROUTE_TONE_COLORS.cold
+              : ROUTE_TONE_COLORS.cold;
             return (
               <TouchableOpacity
-                key={`history-chip-${area.id}`}
-                style={styles.historyChip}
+                key={`history-chip-${entry.id}`}
+                style={[styles.historyChip, !entry.isVisibleOnMap && { opacity: 0.72 }]}
                 activeOpacity={0.85}
+                disabled={!entry.isVisibleOnMap}
                 onPress={() => mapRef.current?.animateToRegion({
-                  latitude: area.latitude,
-                  longitude: area.longitude,
+                  latitude: entry.latitude,
+                  longitude: entry.longitude,
                   latitudeDelta: 0.008,
                   longitudeDelta: 0.008,
                 }, 500)}
+                accessibilityLabel={`${index + 1}. ${formatSightingAge(entry.ageHours)}, publicado por ${entry.userName}${entry.isArchived ? ', avistamento arquivado, área oculta do mapa' : entry.hasLocation ? '' : ', localização indisponível'}`}
               >
                 <View style={[styles.historyChipDot, { backgroundColor: tone.stroke }]}>
                   <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800' }}>{index + 1}</Text>
                 </View>
-                <View>
-                  <Text style={styles.historyChipTitle}>{formatClueAge(area.ageHours)}</Text>
+                <View style={{ maxWidth: 160 }}>
+                  <Text style={styles.historyChipTitle}>{formatSightingAge(entry.ageHours)}</Text>
                   <Text style={styles.historyChipText} numberOfLines={1}>
-                    {area.userName}{area.isPrivate ? ' · em casa' : ''}
+                    {entry.userName}{entry.isPrivate ? ' · em casa' : ''}
                   </Text>
+                  <Text style={styles.historyChipDate} numberOfLines={1}>
+                    {entry.locationLabel}
+                  </Text>
+                  <Text style={styles.historyChipDate} numberOfLines={1}>
+                    {formatSightingDateTime(entry.createdAt)}
+                  </Text>
+                  {!entry.isVisibleOnMap && (
+                    <Text style={styles.historyChipDate}>
+                      {entry.isArchived ? 'Arquivado · área oculta do mapa' : 'Localização indisponível'}
+                    </Text>
+                  )}
                 </View>
               </TouchableOpacity>
             );
@@ -1978,16 +2015,16 @@ const MapScreen = ({ route, navigation }) => {
           )}
 
           {/* Histórico: círculos dos avistamentos anteriores no mapa */}
-          {historyAreas.length > 0 && (
+          {historyEntries.length > 0 && (
             <TouchableOpacity
               style={styles.historyButton}
               onPress={showSightingHistory}
               activeOpacity={0.85}
-              accessibilityLabel="Ver histórico de avistamentos no mapa"
+              accessibilityLabel="Ver histórico de avistamentos"
             >
               <MaterialIcons name="history" size={16} color="#B45309" style={{ marginRight: 5 }} />
               <Text style={styles.historyButtonText}>
-                Ver histórico de avistamentos ({historyAreas.length})
+                Ver histórico de avistamentos ({historyEntries.length})
               </Text>
             </TouchableOpacity>
           )}
@@ -2451,6 +2488,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#64748B',
     maxWidth: 160,
+  },
+  historyChipDate: {
+    fontSize: 9.5,
+    fontWeight: '500',
+    color: '#64748B',
   },
   centerLocationButton: {
     position: 'absolute',

@@ -18,6 +18,7 @@
 export const ROUTE_HOT_HOURS = 6;
 export const ROUTE_MAX_HOURS = 48;
 export const ROUTE_AREA_RADIUS_M = 150;
+export const SIGHTING_MAP_RETENTION_HOURS = 7 * 24;
 const AREA_MIN_OFFSET_M = 30;
 const AREA_MAX_OFFSET_M = 70;
 
@@ -171,6 +172,35 @@ export const formatClueAge = (ageHours) => {
   return days === 1 ? 'há 1 dia' : `há ${days} dias`;
 };
 
+export const formatSightingAge = (ageHours) => {
+  if (ageHours == null || !Number.isFinite(ageHours)) return '';
+  const totalMinutes = Math.floor(Math.max(0, ageHours) * 60);
+  if (totalMinutes < 1) return 'agora mesmo';
+
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+  const parts = [];
+  if (days) parts.push(`${days} dia${days === 1 ? '' : 's'}`);
+  if (hours) parts.push(`${hours} h`);
+  if (minutes) parts.push(`${minutes} min`);
+
+  if (parts.length === 1) return `há ${parts[0]}`;
+  return `há ${parts.slice(0, -1).join(', ')} e ${parts[parts.length - 1]}`;
+};
+
+export const formatSightingDateTime = (value) => {
+  const time = toTime(value);
+  if (time == null) return '';
+  return new Date(time).toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 /** Textos prontos para a interface, conforme a situação da rota. */
 export const describeRouteStatus = (status) => {
   const age = formatClueAge(status?.ageHours);
@@ -200,9 +230,9 @@ const PRIVATE_HISTORY_RADIUS_M = 600;
  * rastro de `getItemSightingTrail`. Usa a mesma área deslocada da rota: nunca
  * o ponto exato marcado. O local de desaparecimento (casa do tutor) fica de fora;
  * o ponto de um animal visto solto na rua entra como o primeiro avistamento.
- * [{ id, latitude, longitude, radiusM, ageHours, freshness, userName, isPrivate }]
+ * Entries keep sighting metadata even when they cannot be placed on the map.
  */
-export const getSightingHistoryAreas = (item, trailSteps, now = Date.now()) => {
+export const getSightingHistoryEntries = (item, trailSteps, now = Date.now()) => {
   if (!item || !Array.isArray(trailSteps)) return [];
   const extra = item.extra_fields || {};
   const includeInitial = item.status === 'found' && extra.found_custody === 'spotted';
@@ -212,24 +242,36 @@ export const getSightingHistoryAreas = (item, trailSteps, now = Date.now()) => {
     .map((step) => {
       const point = getCoordinates(step.latitude, step.longitude);
       const seenAt = toTime(step.date);
-      if (!point || !seenAt) return null;
+      if (seenAt == null) return null;
       const isPrivate = step.animal_place === 'private';
       const id = String(step.id || `initial-${item.id}`);
-      const center = isPrivate ? point : getSearchAreaCenter(point, `${item.id}|${id}`);
+      const center = point
+        ? (isPrivate ? point : getSearchAreaCenter(point, `${item.id}|${id}`))
+        : null;
       const ageHours = Math.max(0, (now - seenAt) / HOUR_MS);
+      const isArchived = ageHours > SIGHTING_MAP_RETENTION_HOURS;
       return {
         id,
-        ...center,
+        latitude: center?.latitude ?? null,
+        longitude: center?.longitude ?? null,
         radiusM: isPrivate ? PRIVATE_HISTORY_RADIUS_M : ROUTE_AREA_RADIUS_M,
         ageHours,
         freshness: ageHours <= ROUTE_HOT_HOURS ? 'hot' : (ageHours <= ROUTE_MAX_HOURS ? 'warm' : 'cold'),
         userName: step.user_name || 'Membro da comunidade',
+        locationLabel: step.location_label || step.address || 'Localidade não informada',
         isPrivate,
+        createdAt: step.date,
+        hasLocation: Boolean(center),
+        isArchived,
+        isVisibleOnMap: Boolean(center) && !isArchived,
       };
     })
     .filter(Boolean)
     .sort((a, b) => a.ageHours - b.ageHours);
 };
+
+export const getSightingHistoryAreas = (item, trailSteps, now = Date.now()) =>
+  getSightingHistoryEntries(item, trailSteps, now).filter((entry) => entry.hasLocation);
 
 // ---------------------------------------------------------------------------
 // Meios de transporte da rota

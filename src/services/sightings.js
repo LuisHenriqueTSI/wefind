@@ -263,6 +263,24 @@ export const getSightings = async (itemId) => {
   }
 };
 
+export const getPublicSightingHistory = async (itemId) => {
+  const numericItemId = Number(itemId);
+  if (itemId == null || String(itemId).trim() === '' || !Number.isSafeInteger(numericItemId)) {
+    throw new TypeError('O identificador do animal deve ser um número inteiro.');
+  }
+
+  const { data, error } = await supabase.rpc('get_public_item_sighting_history', {
+    p_item_id: numericItemId,
+  });
+
+  if (error) {
+    console.error('[getPublicSightingHistory] Não foi possível carregar o histórico público:', error.message);
+    throw error;
+  }
+
+  return Array.isArray(data) ? data : [];
+};
+
 /** Quantos avistamentos um membro já compartilhou (para o perfil). */
 export const countUserSightings = async (userId) => {
   if (!userId) return 0;
@@ -761,7 +779,7 @@ export const getItemSightingTrail = async (item) => {
   try {
     if (!item?.id) return [];
 
-    const sightings = await getSightings(item.id);
+    const sightings = await getPublicSightingHistory(item.id);
     // Ordena do mais antigo para o mais recente para construir a linha do tempo cronológica
     const sortedSightings = (sightings || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
@@ -804,44 +822,31 @@ export const getItemSightingTrail = async (item) => {
     // 2. Pontos de Avistamento Subsequentes
     for (let i = 0; i < sortedSightings.length; i++) {
       const s = sortedSightings[i];
-      let sLat = s.contact_info?.coordinate?.latitude ?? s.contact_info?.location_details?.latitude;
-      let sLng = s.contact_info?.coordinate?.longitude ?? s.contact_info?.location_details?.longitude;
-
-      if ((sLat == null || sLng == null) && s.location) {
-        try {
-          const Location = await import('expo-location');
-          const results = await Location.geocodeAsync(s.location);
-          if (results && results.length > 0) {
-            sLat = results[0].latitude;
-            sLng = results[0].longitude;
-          }
-        } catch {}
-      }
-
-      if (sLat != null && sLng != null && Number.isFinite(Number(sLat)) && Number.isFinite(Number(sLng))) {
-        const isLatest = i === sortedSightings.length - 1;
-        const stepNum = trailSteps.length + 1;
-        trailSteps.push({
-          step: stepNum,
-          type: 'sighting',
-          id: s.id,
-          label: isLatest ? `${stepNum}. Último Avistamento (Mais Recente)` : `${stepNum}. Avistado na Rua`,
-          address: s.location || 'Local informado no mapa',
-          latitude: Number(sLat),
-          longitude: Number(sLng),
-          date: s.created_at,
-          description: s.description || 'Visto nesta região.',
-          photo_url: s.photo_url,
-          animal_place: s.contact_info?.animal_place === 'private' ? 'private' : 'street',
-          user_name: s.profiles?.name || 'Membro da Comunidade',
-          isLatest,
-        });
-      }
+      const sLat = Number(s.latitude);
+      const sLng = Number(s.longitude);
+      const hasCoordinates = Number.isFinite(sLat) && sLat !== 0 && Number.isFinite(sLng) && sLng !== 0;
+      const isLatest = i === sortedSightings.length - 1;
+      const stepNum = trailSteps.length + 1;
+      trailSteps.push({
+        step: stepNum,
+        type: 'sighting',
+        id: s.sighting_id,
+        label: isLatest ? `${stepNum}. Último Avistamento (Mais Recente)` : `${stepNum}. Avistado na Rua`,
+        address: s.location_label || 'Localidade não informada',
+        location_label: s.location_label || 'Localidade não informada',
+        latitude: hasCoordinates ? sLat : null,
+        longitude: hasCoordinates ? sLng : null,
+        date: s.created_at,
+        description: 'Avistamento registrado.',
+        animal_place: s.animal_place === 'private' ? 'private' : 'street',
+        user_name: s.user_name || 'Membro da Comunidade',
+        isLatest,
+      });
     }
 
     return trailSteps;
   } catch (err) {
-    console.warn('[getItemSightingTrail] Erro ao carregar rastro:', err.message);
-    return [];
+    console.warn('[getItemSightingTrail] Erro ao carregar rastro:', err?.message || err);
+    throw err;
   }
 };
