@@ -689,7 +689,12 @@
                         "version":  138,
                         "filename":  "TCC_WeFIND_v138_18-10-2026-01h14.pdf",
                         "date":  "2026-10-18T01:14:03-03:00"
+                    },
+                    {
+                        "version":  139,
+                        "filename":  "TCC_WeFIND_v139_18-10-2026-01h37.pdf",
+                        "date":  "2026-10-18T01:37:02-03:00"
                     }
                 ],
-    "current_version":  138
+    "current_version":  139
 }
