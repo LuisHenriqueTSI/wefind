@@ -2,17 +2,28 @@
 
 A pesquisa de campo e a análise de similares indicaram \textit{o que} o WeFIND precisava oferecer, mas não \textit{como} essas necessidades se converteriam em comportamento do sistema. Essa passagem cabe à análise e modelagem, que traduz necessidades em requisitos verificáveis, regras de negócio e modelos conceituais (Pressman; Maxim, 2021; Sommerville, 2019), permitindo delimitar o escopo e antecipar inconsistências antes da programação (Valente, 2023).
 
-No projeto WeFIND, a análise dos requisitos funcionais priorizou os fluxos centrais de busca e reencontro de animais, orientados pela pesquisa de campo (Capítulo 3). Os requisitos não funcionais foram revistos com base em atributos de qualidade da norma ISO/IEC 25010 (ISO, 2023), mantendo-se os critérios pertinentes ao sistema e passíveis de verificação. A modelagem foi documentada por meio da \textit{Unified Modeling Language} (UML), com diagramas de casos de uso e de classes.
+No projeto WeFIND, a análise dos requisitos funcionais priorizou os fluxos centrais de busca e reencontro de animais, orientados pela pesquisa de campo (Capítulo 3). Os requisitos não funcionais foram revistos com base em atributos de qualidade da norma ISO/IEC 25010 (ISO, 2023), mantendo-se os critérios pertinentes ao sistema e passíveis de verificação. A modelagem foi documentada por meio da UML, com diagramas de casos de uso e de classes.
 
 
 \subsection{Levantamento de Requisitos}
 
-A especificação de requisitos define formalmente as funções do aplicativo e suas restrições operacionais (Sommerville, 2019). No WeFIND, os requisitos funcionais centrais foram formulados a partir das necessidades identificadas na pesquisa de campo e da análise de sistemas similares (Capítulo 3). Para tornar o escopo mais claro e os modelos mais legíveis, operações correlatas foram agrupadas em requisitos que descrevem resultados observáveis para os usuários. A matriz de rastreabilidade entre necessidades, requisitos centrais e funcionalidades é apresentada no Apêndice D, que também registra as verificações funcionais manuais relatadas pelo autor.
+A especificação de requisitos define formalmente as funções do aplicativo e suas restrições operacionais (Sommerville, 2019). No WeFIND, os requisitos funcionais centrais foram formulados e ajustados a partir da análise de sistemas similares e das necessidades identificadas na pesquisa de campo (Capítulo 3), aplicada quando a implementação já estava em andamento. Para tornar o escopo mais claro e os modelos mais legíveis, operações correlatas foram agrupadas em requisitos que descrevem resultados observáveis para os usuários. A matriz de rastreabilidade entre necessidades, requisitos centrais e funcionalidades é apresentada no Apêndice D, que também registra as verificações funcionais manuais relatadas pelo autor.
 
 O escopo funcional central abrange criação e acesso à conta; atualização do perfil; consulta e gestão do ciclo de vida das publicações de animais perdidos ou encontrados; busca geográfica em lista e mapa; correspondência entre publicações; registro de avistamentos; comunicação entre participantes; notificações relacionadas à busca; geração e compartilhamento de cartazes de divulgação; comprovação de tutela antes da devolução de um animal encontrado; cadastro preventivo dos animais de estimação do tutor, com carteirinha digital; disponibilização de animais para adoção responsável; e denúncia e moderação básica de conteúdo.
 
 Outros recursos complementares do aplicativo não integram o escopo central nem os resultados avaliados neste trabalho.
 
+A avaliação de utilidade dos recursos ajuda a contextualizar as escolhas de escopo. A Figura~\ref{fig:pesquisa_prioridade_recursos} apresenta as notas atribuídas pelos 48 respondentes a diferentes funcionalidades do aplicativo.
+
+\begin{figure}[H]
+\centering
+\caption{Avaliação da utilidade dos recursos do aplicativo (48 respostas)}
+\label{fig:pesquisa_prioridade_recursos}
+\includegraphics[width=\textwidth]{imagens/01_pesquisa/grafico_forms_q45_prioridade_recursos.png}
+\fonte{Google Forms (2026).}
+\end{figure}
+
+O aviso automático de possível animal semelhante e a conversão do cadastro preventivo em alerta de animal perdido receberam notas 4 ou 5 de todos os participantes. O cadastro preventivo recebeu essas notas de 37 pessoas e o cartaz com código QR, de 31. As opiniões sobre adoção e recompensa foram mais variadas: 19 deram nota 2 à seção de adoção, enquanto a recompensa não recebeu nenhuma nota 5. O lembrete de renovação recebeu nota 3 de 26 participantes e nota 4 de 22. As distribuições completas por nota estão no Apêndice B.
 
 \subsubsection{Requisitos Funcionais}
 
@@ -25,12 +36,12 @@ O \hyperref[quadro:funcionais]{Quadro 2} consolida os 21 requisitos funcionais c
 \renewcommand{\arraystretch}{1.18}
 \begin{longtable}{|>{\centering\arraybackslash}p{1.3cm}|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{8.8cm}|}
 \hline
-\multicolumn{3}{|c|}{Quadro 2: Requisitos Funcionais do Sistema WeFIND} \\ \hline
+\multicolumn{3}{|c|}{Quadro 2 -- Requisitos Funcionais do Sistema WeFIND} \\ \hline
 ID & Nome do Requisito & Descrição do Comportamento Esperado \\ \hline
 \endfirsthead
 
 \hline
-\multicolumn{3}{|c|}{Quadro 2: Requisitos Funcionais do Sistema WeFIND (Continuação)} \\ \hline
+\multicolumn{3}{|c|}{Quadro 2 -- Requisitos Funcionais do Sistema WeFIND (Continuação)} \\ \hline
 ID & Nome do Requisito & Descrição do Comportamento Esperado \\ \hline
 \endhead
 
@@ -47,7 +58,7 @@ RF02 & Atualizar perfil & Permitir ao usuário consultar e atualizar seus dados 
 RF03 & Consultar publicações & Exibir publicações ativas de animais perdidos, encontrados ou disponíveis para adoção em lista, ordenada por padrão das mais próximas para as mais distantes da localização do usuário, e apresentar seus detalhes, incluindo imagens, características e local informado. \\ \hline
 RF04 & Publicar anúncio de animal & Permitir a usuários autenticados criar uma publicação sobre um animal perdido ou encontrado, informando características, descrição, imagens e localização selecionada ou confirmada no mapa; em publicações de animais perdidos, o autor pode indicar opcionalmente uma recompensa, com valor e descrição, e, em publicações de animais encontrados, pode optar por publicar o relato anonimamente, sem exibir seu nome e sua foto. \\ \hline
 RF05 & Atualizar publicação própria & Permitir ao autor editar ou excluir sua publicação e atualizar sua situação quando o animal for reencontrado. \\ \hline
-RF06 & Visualizar publicações no mapa & Apresentar em mapa as publicações ativas de animais perdidos ou encontrados, posicionadas conforme o local registrado. \\ \hline
+RF06 & Visualizar publicações no mapa & Apresentar em mapa as publicações ativas de animais perdidos, em posição aproximada, e de animais encontrados soltos na rua; animais acolhidos em casa e disponíveis para adoção não aparecem no mapa. \\ \hline
 RF07 & Pesquisar e filtrar publicações & Permitir localizar publicações por espécie, situação, características, distância e oferta de recompensa, considerando a localização informada pelo usuário, e alterar a ordenação da lista para as publicações mais próximas, mais recentes ou mais antigas. \\ \hline
 RF08 & Traçar rota até a pista mais recente & Apresentar uma rota, a pé, de bicicleta, de carro ou de ônibus, até uma área aproximada em torno da pista pública mais recente do animal (ponto onde foi encontrado solto na rua ou último avistamento na rua) registrada nas últimas 48 horas. Não oferecer rota até o local de desaparecimento, animais acolhidos em casa ou disponíveis para adoção. \\ \hline
 RF09 & Registrar avistamento & Permitir a usuário autenticado registrar um avistamento vinculado a uma publicação, com local, data ou horário, descrição e imagem opcional. \\ \hline
@@ -82,12 +93,12 @@ O \hyperref[quadro:nao_funcionais]{Quadro 3} sintetiza quatro requisitos não fu
 \renewcommand{\arraystretch}{1.18}
 \begin{longtable}{|>{\centering\arraybackslash}p{1.4cm}|>{\raggedright\arraybackslash}p{3.8cm}|>{\raggedright\arraybackslash}p{9.2cm}|}
 \hline
-\multicolumn{3}{|c|}{Quadro 3: Requisitos Não Funcionais do Sistema WeFIND} \\ \hline
+\multicolumn{3}{|c|}{Quadro 3 -- Requisitos Não Funcionais do Sistema WeFIND} \\ \hline
 ID & Requisito / Categoria & Critério Objetivo de Aceitação \\ \hline
 \endfirsthead
 
 \hline
-\multicolumn{3}{|c|}{Quadro 3: Requisitos Não Funcionais do Sistema WeFIND (Continuação)} \\ \hline
+\multicolumn{3}{|c|}{Quadro 3 -- Requisitos Não Funcionais do Sistema WeFIND (Continuação)} \\ \hline
 ID & Requisito / Categoria & Critério Objetivo de Aceitação \\ \hline
 \endhead
 
@@ -113,12 +124,12 @@ Os critérios selecionados concentram-se em autenticação e autorização (RNF0
 
 A modelagem de software é uma etapa fundamental no desenvolvimento de qualquer sistema, pois organiza visualmente a lógica, as regras e o funcionamento da aplicação antes e durante a escrita do código. Ao criar esquemas visuais padronizados, o desenvolvedor alinha as expectativas com os requisitos e evita inconsistências que poderiam comprometer a arquitetura ou a experiência de uso (Bezerra, 2015).
 
-No desenvolvimento da aplicação proposta, utilizou-se a \textit{Unified Modeling Language} (UML) como padrão para documentar o sistema. A UML permite representar o aplicativo por duas perspectivas: a comportamental, expressa nos diagramas de casos de uso que apresentam as ações disponibilizadas a cada perfil de usuário; e a estrutural, representada pelo diagrama de classes de domínio.
+No desenvolvimento da aplicação proposta, utilizou-se a UML como padrão para documentar o sistema. A UML permite representar o aplicativo por duas perspectivas: a comportamental, expressa nos diagramas de casos de uso que apresentam as ações disponibilizadas a cada perfil de usuário; e a estrutural, representada pelo diagrama de classes de domínio.
 
 
 \subsubsection{Diagrama de Casos de Uso}
 
-O diagrama de casos de uso da \textit{Unified Modeling Language} (UML) sintetiza as principais funcionalidades do sistema a partir do ponto de vista dos usuários. Ele apresenta as ações que cada perfil de usuário pode realizar dentro do aplicativo (Bezerra, 2015; Valente, 2023). Segundo Pressman e Maxim (2021), os casos de uso não precisam detalhar cada regra interna do sistema ou do banco de dados, mas sim apresentar as ações práticas que têm utilidade direta para as pessoas que utilizam a aplicação.
+O diagrama de casos de uso da UML sintetiza as principais funcionalidades do sistema a partir do ponto de vista dos usuários. Ele apresenta as ações que cada perfil de usuário pode realizar dentro do aplicativo (Bezerra, 2015; Valente, 2023). Segundo Pressman e Maxim (2021), os casos de uso não precisam detalhar cada regra interna do sistema ou do banco de dados, mas sim apresentar as ações práticas que têm utilidade direta para as pessoas que utilizam a aplicação.
 
 Para representar o sistema de forma clara, elaborou-se um diagrama geral de casos de uso com foco nas funções centrais do WeFIND. A Figura~\ref{fig:diagrama_casos_de_uso} apresenta essa visão geral; as especificações textuais dos casos de uso estão no Apêndice~A.
 

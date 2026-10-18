@@ -26,7 +26,7 @@ Pré-Condições & Possuir cadastro ativo no WeFIND. \\ \hline
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
 1. O usuário aciona a opção ``Entrar'' na tela inicial.\par
 2. O sistema exibe o formulário solicitando e-mail e senha.\par
-3. O usuário preenche as credenciais e toca em ``Entrar''.\par
+3. O usuário preenche as credenciais e toca em ``Entrar na Conta''.\par
 4. O sistema valida o formato sintático do e-mail e o comprimento da senha.\par
 5. O sistema submete a requisição ao Supabase Auth.\par
 6. O serviço valida as credenciais e retorna a sessão autenticada.\par
@@ -64,7 +64,7 @@ Resumo & Permite a novos membros criarem uma conta informando dados cadastrais e
 Pré-Condições & Dispositivo conectado à internet. \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-1. O usuário toca na opção ``Cadastre-se'' na tela de autenticação.\par
+1. O usuário toca na opção ``Criar nova conta'' na tela de autenticação.\par
 2. O sistema abre o formulário de registro solicitando nome completo, e-mail, telefone WhatsApp e senha.\par
 3. O usuário preenche as informações e confirma o cadastro.\par
 4. O sistema valida os campos, cria o registro no Supabase Auth e aciona por inclusão (\textit{«include»}) o caso de uso Verificar Código, disparando um código OTP de 6 dígitos via Evolution API para o WhatsApp informado.\par
@@ -110,7 +110,7 @@ Pré-Condições & Usuário autenticado e com permissão de localização ativa.
 5. O sistema executa obrigatoriamente por inclusão (\textit{<<include>>}) o caso de uso Selecionar Localização no Mapa, capturando as coordenadas geográficas.\par
 6. O usuário confirma a publicação.\par
 7. O sistema envia as fotos ao Storage e grava os dados na tabela \textit{items}.\par
-8. A publicação passa a ser exibida no mural e no mapa para a comunidade.
+8. A publicação passa a ser exibida no mural e, conforme as regras de privacidade (Seção~\ref{sec:privacidade}), no mapa.
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos Alternativos:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
@@ -122,7 +122,7 @@ Pré-Condições & Usuário autenticado e com permissão de localização ativa.
 4c. Imagem inválida ou tamanho excessivo: o sistema impede o envio e solicita a seleção de uma foto válida.\par
 5a. Ponto no mapa não demarcado: o sistema bloqueia a submissão e exige a marcação das coordenadas geográficas.
 } \\ \hline
-Pós-Condições & Publicação persistida, visível no mapa e disponível para a comunidade. \\ \hline
+Pós-Condições & Publicação persistida e disponível para a comunidade no mural e, quando permitido pelas regras de privacidade, no mapa. \\ \hline
 \end{tabular}
 \end{table}
 
@@ -143,9 +143,9 @@ Resumo & Permite a um membro da comunidade informar o local, a foto e a situaç�
 Pré-Condições & O animal deve estar publicado com status ``Perdido''. \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-1. Ao visualizar os detalhes de um animal perdido, o usuário aciona a opção ``Vi esse Pet''.\par
+1. Ao visualizar os detalhes de um animal perdido, o usuário aciona a opção ``Vi o Pet''.\par
 2. O sistema abre o modal de avistamento solicitando foto do local e relato.\par
-3. O usuário captura ou anexa uma fotografia do animal avistado.\par
+3. Opcionalmente, o usuário captura ou anexa uma fotografia do animal avistado.\par
 4. O sistema inclui obrigatoriamente (\textit{<<include>>}) o caso de uso Selecionar Localização no Mapa, capturando o ponto GPS do avistamento.\par
 5. O usuário confirma o envio do avistamento.\par
 6. O sistema grava o avistamento em \textit{sightings}, com a indicação de que o animal estava na rua ou em uma casa ou quintal; neste último caso, o ponto é guardado de forma aproximada.\par
@@ -181,7 +181,7 @@ Resumo & Viabiliza canal direto e privativo de troca de mensagens e imagens entr
 Pré-Condições & Ambos os usuários devem possuir cadastro ativo. \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-1. Na tela de detalhes da publicação, o usuário aciona o botão ``Entrar em Contato''.\par
+1. Na tela de detalhes da publicação, o usuário aciona o botão ``Conversar com responsável''.\par
 2. O sistema cria ou recupera a sala de conversa existente entre os dois usuários para aquele animal.\par
 3. O sistema abre a interface de chat em tempo real.\par
 4. O usuário digita a mensagem ou anexa uma foto e confirma o envio.\par
@@ -214,7 +214,7 @@ Identificador & UC06 \\ \hline
 Nome do Caso de Uso & Compartilhar Publicação \\ \hline
 Ator Principal & Usuário / Usuário Visitante \\ \hline
 Atores Secundários & Módulo Gerador de Código QR e API Nativa de Compartilhamento \\ \hline
-Resumo & Permite a qualquer usuário renderizar automaticamente artes gráficas diagramadas em múltiplos formatos (A4, formatos verticais e murais de redes sociais) contendo código QR para divulgação rápida. \\ \hline
+Resumo & Permite a qualquer usuário gerar automaticamente artes gráficas em múltiplos formatos (A4, com código QR, e formatos vertical e quadrado para redes sociais) para divulgação rápida. \\ \hline
 Pré-Condições & O animal deve possuir ao menos uma fotografia cadastrada. \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
@@ -297,7 +297,7 @@ Pré-Condições & Usuário autenticado; publicação do tipo ``Encontrado'' ati
 3. O usuário anexa as imagens pela galeria ou pela câmera e escreve uma mensagem ao autor da publicação.\par
 4. O usuário confirma o envio.\par
 5. O sistema registra a solicitação como pendente e avisa o autor da publicação por notificação e por uma mensagem automática no chat.\par
-6. O autor analisa o relato e as imagens no chat e, se conferirem, aciona ``Liberar Local''.\par
+6. O autor analisa o relato e as imagens no chat e, se conferirem, aciona ``Liberar local'', que abre a proposta de um ponto de encontro público sem revelar o endereço.\par
 7. O autor escolhe no mapa um ponto público de encontro, o dia, o horário e uma observação opcional, e envia a proposta (\textit{<<extend>>} Combinar Encontro de Devolução).\par
 8. O sistema aprova a solicitação, fixa a proposta no alto da conversa e notifica o solicitante.\par
 9. O solicitante confirma o encontro.\par
@@ -393,270 +393,15 @@ Pós-Condições & Publicação disponível para adoção no mural, com contato 
 \clearpage
 
 % ============================================================
-% APÊNDICE B: INSTRUMENTOS DE PESQUISA
+% APÊNDICE B: RESULTADOS DA PESQUISA DE CAMPO E INSTRUMENTO DE AVALIAÇÃO SUS
 % ============================================================
-\section*{APÊNDICE B: INSTRUMENTOS DE PESQUISA (QUESTIONÁRIO DE CAMPO E ESCALA SUS)}
+\section*{APÊNDICE B: RESULTADOS DA PESQUISA DE CAMPO E INSTRUMENTO DE AVALIAÇÃO SUS}
 \phantomsection
-\addcontentsline{toc}{section}{APÊNDICE B: INSTRUMENTOS DE PESQUISA (QUESTIONÁRIO DE CAMPO E ESCALA SUS)}
+\addcontentsline{toc}{section}{APÊNDICE B: RESULTADOS DA PESQUISA DE CAMPO E INSTRUMENTO DE AVALIAÇÃO SUS}
 
-Este apêndice documenta o instrumento de coleta de dados primários aplicado durante o diagnóstico exploratório (Google Forms) e o protocolo SUS aplicado na avaliação de usabilidade descrita no Capítulo 8.
+Este apêndice reúne a distribuição das respostas da pesquisa de campo e o instrumento da Escala de Usabilidade do Sistema (SUS) aplicado na avaliação descrita no Capítulo 8.
 
-\subsection*{B.1 Levantamento de Campo com Tutores (Gráficos Consolidados e Instrumento de Pesquisa)}
-
-Esta seção documenta os resultados consolidados da pesquisa de campo aplicada entre 1º e 11 de setembro de 2026 aos participantes voluntários na plataforma Google Forms, durante a etapa de diagnóstico empírico e levantamento de requisitos (Capítulo~3). A divulgação ocorreu em um grupo do Facebook relacionado à proteção animal. Até 11 de setembro, 20 pessoas haviam respondido ao formulário, composto por 18 perguntas. Quando indicado no texto ou nas figuras, uma questão incluída posteriormente possui 19 respostas válidas. As Figuras~B1 a B14 apresentam as distribuições percentuais das respostas obtidas nas dimensões investigadas.
-
-% Configuração da numeração de figuras do Apêndice B (Figura B1, B2, ...)
-\renewcommand{\thefigure}{B\arabic{figure}}
-\renewcommand{\theHfigure}{B\arabic{figure}}
-\setcounter{figure}{0}
-
-Para mapear o perfil do público participante e compreender a convivência direta com animais de estimação na amostra, o questionário investigou quais espécies domésticas são tuteladas pelos respondentes, conforme ilustrado na Figura~\ref{fig:forms_relacao_animais}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Relação dos participantes com animais de estimação e espécies tuteladas}
-    \label{fig:forms_relacao_animais}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_relacao_animais.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-Conforme demonstrado na Figura~\ref{fig:forms_relacao_animais} (pergunta de múltipla escolha), 80\% dos respondentes (16 voluntários) são tutores de cães e 70\% (14 voluntários) tutelam gatos, com outros 20\% (4 voluntários) cuidando de espécies adicionais como aves e equinos. Como a questão foi incluída posteriormente e não continha a opção ``não possuo animal'', seus resultados devem ser interpretados apenas como um retrato das respostas válidas obtidas nessa pergunta, sem permitir concluir sobre a totalidade da amostra.
-
-\clearpage
-
-Com o objetivo de identificar os principais gargalos e frustrações vivenciados durante a busca por animais perdidos nos canais convencionais, os participantes foram consultados sobre suas maiores dificuldades, conforme apresentado na Figura~\ref{fig:forms_dificuldades}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Maiores dificuldades encontradas na divulgação de animais perdidos}
-    \label{fig:forms_dificuldades}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_dificuldades_divulgacao.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-A apuração da Figura~\ref{fig:forms_dificuldades} aponta que 100\% dos participantes (19 respostas) sofrem com postagens que somem rapidamente das linhas do tempo nas redes sociais. Além disso, 89,5\% (17 respostas) apontaram a falta de mapas para saber se o pet foi visto por perto e a precariedade de informações morfológicas nas publicações. O medo de divulgar telefones pessoais foi relatado por 73,7\% dos tutores, e 42,1\% mencionaram a demora na montagem de cartazes e o desconhecimento sobre se a busca continua em andamento.
-
-\clearpage
-
-A busca por localização no mapa é um dos recursos centrais do WeFIND. Para mensurar o valor percebido dessa abordagem, questionou-se aos participantes o nível de utilidade de acompanhar publicações em um mapa interativo com filtro de proximidade, como mostra a Figura~\ref{fig:forms_utilidade_mapa}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Nível de utilidade de visualizar animais perdidos em mapa interativo}
-    \label{fig:forms_utilidade_mapa}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_utilidade_mapa.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-Os dados da Figura~\ref{fig:forms_utilidade_mapa} indicam avaliação positiva de todos os respondentes: 85\% (17 respostas) atribuíram nota máxima 5 e os restantes 15\% (3 respostas) conferiram nota 4 ao recurso de mapa georreferenciado. Nenhuma avaliação inferior foi assinalada. Esse resultado indica que, para o grupo consultado, a visualização em mapa é percebida como útil para orientar as buscas.
-
-\clearpage
-
-A tempestividade é determinante para o resgate de animais nas primeiras horas após o sumiço. O formulário avaliou o grau de relevância atribuído ao recebimento de alertas imediatos no smartphone segmentados por proximidade, conforme apresentado na Figura~\ref{fig:forms_relevancia_alertas}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Relevância do recebimento de alertas no celular por bairro ou região}
-    \label{fig:forms_relevancia_alertas}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_relevancia_alertas.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-Conforme indicado na Figura~\ref{fig:forms_relevancia_alertas}, 90\% dos participantes (18 respostas) atribuíram nota máxima (5) à relevância de receber notificações no celular quando um animal desaparecer nas proximidades. Outros 5\% atribuíram nota 4 e 5\% nota 3, sem avaliações negativas (notas 1 ou 2). O resultado foi considerado na definição do requisito de notificações (RF12).
-
-\clearpage
-
-Para verificar se os cidadãos colaborariam ativamente mesmo sem condições de acolher fisicamente um animal desorientado na rua, avaliou-se a intenção de registrar avistamentos rápidos com foto e coordenadas de GPS, conforme ilustrado na Figura~\ref{fig:forms_registro_avistamento}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Disposição dos participantes para registrar avistamento no mapa comunitário}
-    \label{fig:forms_registro_avistamento}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_registro_avistamento.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-Os resultados expostos na Figura~\ref{fig:forms_registro_avistamento} indicam disposição dos participantes em colaborar: 90\% dos entrevistados (18 voluntários) afirmaram com certeza que utilizariam a opção para registrar avistamentos no mapa e 10\% (2 voluntários) declararam que provavelmente utilizariam. Essa intenção declarada foi considerada no desenvolvimento do registro de avistamentos (RF09).
-
-\clearpage
-
-A confecção manual de cartazes de busca costuma consumir tempo precioso dos tutores em momentos de estresse. O questionário averiguou o impacto da geração automatizada de cartazes padronizados prontos para impressão e redes sociais, como exibido na Figura~\ref{fig:forms_cartaz_automatico}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Importância da geração automatizada de cartaz padronizado com código QR}
-    \label{fig:forms_cartaz_automatico}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_cartaz_automatico.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-A Figura~\ref{fig:forms_cartaz_automatico} indica a relevância atribuída à geração automática de cartazes: 80\% dos participantes (16 voluntários) avaliaram com nota máxima 5 e 20\% (4 voluntários) com nota 4 a disponibilização de cartazes automáticos com fotos e código QR dinâmico. Não houve avaliações neutras ou negativas, o que reforçou a inclusão desse recurso (RF15).
-
-\clearpage
-
-A segurança na troca de informações entre voluntários e tutores é um aspecto sensível na internet. A pesquisa avaliou a preferência dos usuários por um canal de mensagens instantâneas privativo dentro do aplicativo, conforme demonstrado na Figura~\ref{fig:forms_chat_tempo_real}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Avaliação da comunicação por chat privativo em tempo real sem expor telefone}
-    \label{fig:forms_chat_tempo_real}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_chat_tempo_real.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-A Figura~\ref{fig:forms_chat_tempo_real} mostra avaliação favorável ao chat interno: 75\% dos respondentes (15 participantes) atribuíram a nota máxima 5 e 20\% (4 participantes) a nota 4 à possibilidade de dialogar com quem encontrou o pet sem expor telefones particulares. Com 95\% de notas 4 ou 5 e apenas 5\% com nota 3, o recurso foi incluído nos requisitos centrais (RF11).
-
-\clearpage
-
-O questionário também investigou a preferência dos participantes sobre a exposição de endereços residenciais em páginas públicas, como detalhado na Figura~\ref{fig:forms_ocultacao_endereco}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Preferência sobre a ocultação do endereço residencial exato em publicações}
-    \label{fig:forms_ocultacao_endereco}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_ocultacao_endereco.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-Na Figura~\ref{fig:forms_ocultacao_endereco}, 80\% dos entrevistados (16 respostas) manifestaram preferência por manter o endereço residencial e o número predial ocultos do público geral. Outros 10\% declararam não se importar e 10\% mostraram-se indiferentes. Os resultados descrevem as respostas do grupo consultado.
-
-\clearpage
-
-O questionário também consultou os participantes sobre a apresentação de informações que auxiliem a verificar a responsabilidade por um animal, conforme ilustrado na Figura~\ref{fig:forms_comprovacao_tutela}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Validação da exigência de comprovação de tutela para resgate e prevenção de fraudes}
-    \label{fig:forms_comprovacao_tutela}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_comprovacao_tutela.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-Na Figura~\ref{fig:forms_comprovacao_tutela}, 70\% dos participantes aprovaram a apresentação de evidências documentais ou fotos antigas antes da restituição do animal (45\% destacaram a prevenção a golpes e 25\% apoiaram a medida desde que o fluxo fosse simples). Outros 25\% manifestaram receio de burocratização e 5\% não souberam opinar. Esse resultado fundamentou a inclusão do fluxo de comprovação de tutela (RF18), com envio simples de relato e fotos, para atender também aos participantes preocupados com a burocratização.
-
-\clearpage
-
-O formulário também investigou o interesse dos participantes em temas relacionados à adoção e ao acolhimento temporário, conforme exposto na Figura~\ref{fig:forms_adocao_lar_temporario}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Interesse na utilização de seção dedicada para adoção e cadastro de lar temporário}
-    \label{fig:forms_adocao_lar_temporario}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_adocao_lar_temporario.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-Na Figura~\ref{fig:forms_adocao_lar_temporario}, 70\% dos voluntários (14 respostas) afirmaram que utilizariam uma seção tanto para adoção quanto para oferecer lar temporário, e 20\% (4 respostas) manifestaram interesse em adoção. Esse resultado orientou a inclusão da adoção responsável no aplicativo (RF20); o cadastro de lar temporário não foi incluído no escopo deste trabalho.
-
-\clearpage
-
-O instrumento de pesquisa também avaliou a opinião dos participantes sobre a possibilidade de oferecer uma recompensa, conforme mostra a Figura~\ref{fig:forms_recompensa_resgate}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Receptividade à inclusão de recompensa pelo resgate diretamente no anúncio}
-    \label{fig:forms_recompensa_resgate}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_recompensa_resgate.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-Na Figura~\ref{fig:forms_recompensa_resgate}, 95\% dos participantes (19 respostas) apoiaram a possibilidade de oferecer recompensa financeira diretamente na publicação, enquanto 5\% indicaram que poderiam utilizá-la dependendo do caso. Esse resultado fundamentou a inclusão da recompensa opcional nas publicações de animais perdidos (RF04), exibida nos detalhes do anúncio e utilizável como filtro de busca (RF07).
-
-\clearpage
-
-Em cenários de emergência causados pelo sumiço de um pet, cada minuto despendido em cadastros extensos retarda o início das buscas. A pesquisa consultou a expectativa dos participantes quanto ao tempo máximo tolerado para criar e publicar um alerta, como detalhado na Figura~\ref{fig:forms_tempo_publicacao_alerta}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Expectativa de tempo para criação e publicação de um alerta de busca}
-    \label{fig:forms_tempo_publicacao_alerta}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_tempo_publicacao_alerta.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-Os resultados da Figura~\ref{fig:forms_tempo_publicacao_alerta} indicam que 85\% dos respondentes (17 participantes) esperam concluir o cadastro de um alerta em menos de 2 minutos, e os demais 15\% aceitam entre 2 e 5 minutos para o preenchimento de características completas. Nenhum respondente considerou o tempo irrelevante, consolidando o requisito de formulários com preenchimento assistido e etapas simplificadas.
-
-\clearpage
-
-Para validar o potencial de adesão prática da solução antes de sua disponibilização nas lojas oficiais, o questionário avaliou a disposição voluntária dos entrevistados em instalar e utilizar a aplicação em seus smartphones, conforme apresentado na Figura~\ref{fig:forms_intencao_instalacao}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Disposição dos participantes para instalar o aplicativo no smartphone}
-    \label{fig:forms_intencao_instalacao}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_intencao_instalacao.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-A Figura~\ref{fig:forms_intencao_instalacao} atesta a ampla receptividade da comunidade: 100\% dos participantes que responderam à questão declararam de maneira categórica que instalariam o aplicativo no aparelho, seja para apoiar resgates na vizinhança ou para proteger seus próprios pets. A ausência de respostas contrárias ou indecisas referenda a viabilidade social da plataforma WeFIND.
-
-\clearpage
-
-Por fim, a pesquisa buscou identificar quais recursos são vistos como os maiores atrativos do WeFIND em comparação com os meios tradicionais de divulgação (como redes sociais e aplicativos de mensagens), conforme exposto na Figura~\ref{fig:forms_diferencial_plataforma}.
-
-\begin{figure}[H]
-    \centering
-    \caption{Funcionalidade apontada como maior diferencial em relação às redes sociais}
-    \label{fig:forms_diferencial_plataforma}
-    \includegraphics[width=0.68\textwidth]{imagens/01_pesquisa/forms_diferencial_plataforma.png}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
-\end{figure}
-
-A apuração da Figura~\ref{fig:forms_diferencial_plataforma} aponta a centralização temática exclusiva como o principal diferencial para 45\% dos votantes (9 respostas), seguida pelo mapa interativo por proximidade (20\%, 4 respostas), pela emissão automática de cartazes padronizados (15\%, 3 respostas), pelo registro de avistamentos por GPS (10\%, 2 respostas) e pela privacidade do chat interno (10\%, 2 respostas). Esses dados expressam a percepção do grupo consultado e foram considerados na priorização das funcionalidades.
-
-
-
-Para documentar o instrumento aplicado, as Figuras~\ref{fig:questionario_parte1} a~\ref{fig:questionario_parte5} reproduzem as perguntas do formulário de pesquisa de campo, na forma como foram apresentadas aos participantes no Google Forms.
-
-\begin{figure}[H]
-    \centering
-    \caption{Questionário da pesquisa de campo no Google Forms -- parte 1 de 5}
-    \label{fig:questionario_parte1}
-    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte1.png}
-    \fonte{Autoria própria (Google Forms, 2026)}
-\end{figure}
-
-A primeira parte reúne as perguntas sobre identificação dos animais e experiências anteriores de perda. A segunda parte, apresentada na Figura~\ref{fig:questionario_parte2}, trata dos canais de divulgação utilizados, das dificuldades encontradas e da avaliação inicial do mapa, dos alertas e do registro de avistamentos.
-
-\begin{figure}[H]
-    \centering
-    \caption{Questionário da pesquisa de campo no Google Forms -- parte 2 de 5}
-    \label{fig:questionario_parte2}
-    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte2.png}
-    \fonte{Autoria própria (Google Forms, 2026)}
-\end{figure}
-
-A Figura~\ref{fig:questionario_parte3} reúne a terceira parte do questionário, com perguntas sobre o cartaz automático, o chat privado, a exibição do endereço, a comprovação de tutela e a seção de adoção e lar temporário.
-
-\begin{figure}[H]
-    \centering
-    \caption{Questionário da pesquisa de campo no Google Forms -- parte 3 de 5}
-    \label{fig:questionario_parte3}
-    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte3.png}
-    \fonte{Autoria própria (Google Forms, 2026)}
-\end{figure}
-
-A quarta parte do formulário, apresentada na Figura~\ref{fig:questionario_parte4}, aborda a recompensa no anúncio, os filtros considerados essenciais, o tempo esperado para publicar um alerta e a intenção de instalar o aplicativo.
-
-\begin{figure}[H]
-    \centering
-    \caption{Questionário da pesquisa de campo no Google Forms -- parte 4 de 5}
-    \label{fig:questionario_parte4}
-    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte4.png}
-    \fonte{Autoria própria (Google Forms, 2026)}
-\end{figure}
-
-Por fim, a Figura~\ref{fig:questionario_parte5} mostra a última pergunta do questionário, sobre a funcionalidade considerada o maior diferencial do WeFIND em relação às redes sociais.
-
-\begin{figure}[H]
-    \centering
-    \caption{Questionário da pesquisa de campo no Google Forms -- parte 5 de 5}
-    \label{fig:questionario_parte5}
-    \includegraphics[width=0.85\textwidth,height=18cm,keepaspectratio]{imagens/01_pesquisa/questionario_forms_parte5.png}
-    \fonte{Autoria própria (Google Forms, 2026)}
-\end{figure}
-
-\clearpage
+\input{pos-textuais/pesquisa_campo_resultados}
 
 \subsection*{B.2 Escala de Usabilidade do Sistema (SUS)}
 
@@ -699,7 +444,7 @@ Nº & Afirmação Avaliada & 1 & 2 & 3 & 4 & 5 \\ \hline
 
 Este guia prático foi elaborado para orientar tutores de animais domésticos, protetores independentes e membros da comunidade na utilização do aplicativo WeFIND. Organizado em formato de manual de instruções passo a passo, o documento apresenta capturas das telas do sistema e explica os principais fluxos de busca e divulgação de animais perdidos e encontrados.
 
-Para utilizar a ferramenta, o usuário necessita de um smartphone com sistema operacional Android ou iOS e conexão com a internet, seja por rede móvel celular ou Wi-Fi. Durante o uso, o aplicativo pode solicitar autorização para acessar a localização geográfica e a câmera ou galeria de fotos. Esses recursos apoiam a consulta de publicações próximas e o registro de fotografias.
+Para utilizar a ferramenta, o usuário necessita de um smartphone com sistema operacional Android, plataforma para a qual a versão de testes foi distribuída, e conexão com a internet, seja por rede móvel celular ou Wi-Fi. Durante o uso, o aplicativo pode solicitar autorização para acessar a localização geográfica e a câmera ou galeria de fotos. Esses recursos apoiam a consulta de publicações próximas e o registro de fotografias.
 
 O roteiro está estruturado em torno de cinco procedimentos da aplicação: a criação e gestão da conta; a consulta do mapa e das rotas; o cadastro de animais perdidos ou encontrados; a geração e o compartilhamento de cartazes; e a comunicação privada entre usuários.
 
@@ -716,7 +461,7 @@ Visando resguardar a privacidade e a segurança dos participantes, o sistema nã
 
 \subsection*{Passo 1: Autenticação e Criação de Conta}
 \noindent
-Ao iniciar o aplicativo WeFIND pela primeira vez, o cidadão visualiza a tela de autenticação, onde pode se identificar caso já possua conta ativa ou optar por ingressar na comunidade. Para novos participantes, o acesso inicia-se tocando na opção ``Cadastre-se'', que conduz ao formulário unificado de criação de conta. As interfaces correspondentes são apresentadas na Figura~\ref{fig:manual_login_cadastro}.
+Ao iniciar o aplicativo WeFIND pela primeira vez, o cidadão visualiza a tela de autenticação, onde pode se identificar caso já possua conta ativa ou optar por ingressar na comunidade. Para novos participantes, o acesso inicia-se tocando na opção ``Criar nova conta'', que conduz ao formulário unificado de criação de conta. As interfaces correspondentes são apresentadas na Figura~\ref{fig:manual_login_cadastro}.
 
 \begin{figure}[H]
     \centering
@@ -746,11 +491,11 @@ Para acessar a plataforma, o usuário informa seu e-mail e senha cadastrados na 
 
 \subsection*{Passo 2: Navegação no Mapa Interativo e Traçado de Rotas}
 \noindent
-Após o ingresso no aplicativo, o usuário pode consultar no mapa as publicações de animais perdidos e encontrados. A Figura~\ref{fig:manual_mapa_rotas} apresenta o mapa principal com marcadores e uma rota até o local associado à publicação selecionada.
+Após o ingresso no aplicativo, o usuário pode consultar no mapa as publicações de animais perdidos e encontrados. A Figura~\ref{fig:manual_mapa_rotas} apresenta o mapa principal com marcadores e uma rota até a área aproximada da pista mais recente do animal selecionado.
 
 \begin{figure}[H]
     \centering
-    \caption{Telas de Mapa Interativo e Traçado de Rota até o Animal}
+    \caption{Telas de Mapa Interativo e Rota até a Área da Pista}
     \label{fig:manual_mapa_rotas}
     \vspace{0.15cm}
     \begin{minipage}[t]{0.48\textwidth}
@@ -764,7 +509,7 @@ Após o ingresso no aplicativo, o usuário pode consultar no mapa as publicaçõ
         \centering
         \capturaTela{imagens/04_telas_aplicativo/tela-mapa-rota-animal.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura C2.b) Traçado de Rota ao Vivo}
+        {\small Figura C2.b) Rota até a Área da Pista}
     \end{minipage}
     \par\vspace{0.1cm}
     \fonte{Autoria própria (2026)}
@@ -776,7 +521,7 @@ A visualização da Figura~C2 evidencia a convergência entre geolocalização e
 
 \subsection*{Passo 3: Registro de Publicação de Animal Encontrado na Rua}
 \noindent
-Ao avistar ou resgatar um animal desorientado em vias públicas, o cidadão inicia o fluxo de cadastro comunitário acionando o botão central ``+'' na barra inferior de navegação. O assistente orienta o preenchimento por etapas sequenciais, associando características físicas, fotografias e coordenadas geográficas exatas. A Figura~\ref{fig:manual_cadastro_publicacao} detalha a etapa de caracterização do animal e o georreferenciamento no mapa interativo.
+Ao avistar ou resgatar um animal desorientado em vias públicas, o cidadão inicia o fluxo de cadastro comunitário acionando o botão central ``+'' na barra inferior de navegação. O assistente orienta o preenchimento por etapas sequenciais, associando características físicas, fotografias e a localização marcada no mapa. A Figura~\ref{fig:manual_cadastro_publicacao} detalha a etapa de caracterização do animal e o georreferenciamento no mapa interativo.
 
 \begin{figure}[H]
     \centering
@@ -875,7 +620,7 @@ O sistema de mensageria (Figura~C5) permite o contato privado entre os membros d
 
 Este apêndice apresenta a rastreabilidade entre as necessidades identificadas no Capítulo~3, os requisitos funcionais centrais do Capítulo~4 e as funcionalidades correspondentes no aplicativo.
 
-A Quadro~D1 também registra a verificação funcional manual relatada pelo autor. As verificações foram realizadas sem roteiro formal previamente documentado; por isso, a matriz não as apresenta como casos de teste padronizados nem como validação independente. O procedimento e suas limitações são descritos no Capítulo~8.
+O Quadro~D1 também registra a verificação funcional manual relatada pelo autor. As verificações foram realizadas sem roteiro formal previamente documentado; por isso, a matriz não as apresenta como casos de teste padronizados nem como validação independente. O procedimento e suas limitações são descritos no Capítulo~8.
 
 \vspace{0.3cm}
 {
@@ -885,13 +630,13 @@ A Quadro~D1 também registra a verificação funcional manual relatada pelo auto
 \setlength{\tabcolsep}{2.5pt}
 \begin{longtable}{|>{\raggedright\arraybackslash}p{4.1cm}|>{\centering\arraybackslash}p{1.8cm}|>{\raggedright\arraybackslash}p{5.4cm}|>{\raggedright\arraybackslash}p{2.7cm}|}
 \hline
-\multicolumn{4}{|c|}{Quadro D1: Matriz de Rastreabilidade do Sistema WeFIND} \\
+\multicolumn{4}{|c|}{Quadro D1 -- Matriz de Rastreabilidade do Sistema WeFIND} \\
 \multicolumn{4}{|c|}{(Necessidades $\rightarrow$ Requisitos $\rightarrow$ Funcionalidades $\rightarrow$ Verificação)} \\ \hline
 Necessidade identificada (pesquisa ou diagnóstico) & Requisito & Funcionalidade Implementada & Verificação manual \\ \hline
 \endfirsthead
 
 \hline
-\multicolumn{4}{|c|}{Quadro D1: Matriz de Rastreabilidade do Sistema WeFIND (Continuação)} \\
+\multicolumn{4}{|c|}{Quadro D1 -- Matriz de Rastreabilidade do Sistema WeFIND (Continuação)} \\
 \multicolumn{4}{|c|}{(Necessidades $\rightarrow$ Requisitos $\rightarrow$ Funcionalidades $\rightarrow$ Verificação)} \\ \hline
 Necessidade identificada (pesquisa ou diagnóstico) & Requisito & Funcionalidade Implementada & Verificação manual \\ \hline
 \endhead
@@ -908,23 +653,23 @@ Pesquisa apontou preocupação com exposição de telefones pessoais; dados bás
 Os meios atuais foram considerados insuficientes para reunir as informações necessárias sobre o animal. & RF03 & Consulta de publicações em lista e acesso a detalhes, imagens, características e local registrado. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Participantes relataram recorrer a redes sociais para divulgar animais perdidos. & RF04 & Cadastro de publicação de animal perdido ou encontrado com descrição, características, imagens, localização e, para animais perdidos, recompensa opcional. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Uma publicação precisa poder ser corrigida e encerrada quando a busca termina. & RF05 & Edição, encerramento e exclusão da própria publicação pelo autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-17 dos 19 respondentes indicaram ausência de mapas interativos como dificuldade nos meios atuais. & RF06 & Mapa interativo com marcadores das publicações de animais perdidos e encontrados. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+A ausência de mapa foi assinalada por 21 dos 48 respondentes (43,8\%); todos atribuíram nota 4 ou 5 à utilidade do mapa. & RF06 & Mapa interativo com marcadores das publicações de animais perdidos (em posição aproximada) e de animais encontrados soltos na rua. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 A busca em canais generalistas não oferece filtros próprios por características e distância. & RF07 & Pesquisa e filtros por espécie, situação, características, oferta de recompensa e raio de proximidade. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 A localização associada à publicação deve orientar a procura em campo. & RF08 & Rota a pé, de bicicleta, de carro ou de ônibus até a área da pista pública mais recente, com indicação de pista quente, morna ou fria. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Relatos comunitários podem fornecer pistas sobre onde e quando o animal foi visto. & RF09 & Registro de avistamento vinculado à publicação, com local, data/horário, descrição e imagem opcional. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Relatos incorretos ou desatualizados precisam ser consultáveis e corrigíveis pelo autor. & RF10 & Linha do tempo de avistamentos e edição ou remoção do relato pelo seu autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-14 dos 19 respondentes relataram preocupação com a exposição de telefones pessoais. & RF11 & Conversa privada entre usuários associada à publicação, com envio e recebimento de mensagens. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-Todos os 19 respondentes apontaram perda de alcance das publicações após algumas horas. & RF12 & Central de notificações para novos avistamentos, mensagens, correspondências, publicações próximas e lembretes relacionados às publicações do usuário. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+42 dos 48 respondentes (87,5\%) deram nota 4 ou 5 ao incômodo de expor o telefone; 23 preferem o chat privado do aplicativo. & RF11 & Conversa privada entre usuários associada à publicação, com envio e recebimento de mensagens. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+31 dos 48 respondentes (64,6\%) apontaram que as publicações desaparecem entre outras; todos manifestaram interesse em receber alertas de proximidade. & RF12 & Central de notificações para novos avistamentos, mensagens, correspondências, publicações próximas e lembretes relacionados às publicações do usuário. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 A comunidade precisa poder sinalizar conteúdo suspeito para análise. & RF13 & Envio de denúncia vinculada à publicação ou ao conteúdo reportado. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Denúncias exigem análise e ação administrativa para apoiar a integridade das informações. & RF14 & Consulta de denúncias e moderação do conteúdo pelo administrador. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-80\% dos respondentes avaliaram com nota máxima e 20\% com nota 4 a geração automatizada de cartazes. & RF15 & Geração de cartaz digital com informações da publicação e código QR para exportação ou compartilhamento. & Incluído na tarefa 3 da avaliação com participantes; resultado individual não registrado. \\ \hline
+31 dos 48 respondentes (64,6\%) deram nota 4 ou 5 ao cartaz com código QR; 17 (35,4\%) deram nota 3. & RF15 & Geração de cartaz digital com informações da publicação e código QR para exportação ou compartilhamento. & Incluído na tarefa 3 da avaliação com participantes; resultado individual não registrado. \\ \hline
 Publicações sem atualização podem permanecer visíveis após o fim da busca. & RF16 & Vigência de 30 dias, aviso três dias antes do vencimento, ocultação após expirar, renovação durante 30 dias de carência e remoção definitiva, após esse prazo, pela rotina local para publicações do usuário autenticado. & Verificação individual não registrada. \\ \hline
 A comparação entre anúncios perdidos e encontrados pode apoiar a identificação de possíveis correspondências. & RF17 & Comparação automática de publicações por espécie, características físicas e distância, com apresentação de sugestões de correspondência e confirmação final pelos usuários. & Teste com 20 pares fictícios (Seção 8.3): 8 de 10 pares do mesmo animal sugeridos e 6 de 10 pares diferentes sugeridos por engano. \\ \hline
-70\% dos participantes aprovaram a exigência de comprovação antes da devolução do animal, para prevenir golpes. & RF18 & Solicitação de devolução com relato e fotos, análise pelo autor da publicação, aprovação ou recusa e encontro de devolução em local público combinado pelo chat, com confirmação, remarcação ou cancelamento e notificação a cada etapa. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Todos os 48 respondentes pediriam prova de tutela antes da devolução: 32 sempre e 16 se desconfiassem da pessoa. & RF18 & Solicitação de devolução com relato e fotos, análise pelo autor da publicação, aprovação ou recusa e encontro de devolução em local público combinado pelo chat, com confirmação, remarcação ou cancelamento e notificação a cada etapa. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Observação do autor em grupos do \textit{Facebook}: quem anuncia ter encontrado um animal recebe julgamentos nos comentários (sem estudo formal). & RF04 & Opção de publicar o relato de animal encontrado anonimamente, com ``Relato anônimo da comunidade'' no lugar do nome e da foto do autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-70\% dos respondentes declararam que seus animais não têm microchip de identificação. & RF19 & Cadastro preventivo dos animais de estimação, carteirinha digital com código QR e contato do tutor, e conversão do cadastro em publicação de animal perdido. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-70\% dos respondentes afirmaram que usariam uma seção para adoção e lar temporário. & RF20 & Publicação para adoção e disponibilização de animal encontrado para adoção após sete dias de busca pelo tutor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-70\% dos participantes apontaram a prevenção de golpes como motivo para exigir comprovação antes da devolução, o que indica a necessidade de confiança entre desconhecidos. & RF21 & Classificação entre membros após uma conversa, com estrelas, etiquetas e comentário, e média exibida no perfil público. & Verificação ainda não registrada. \\ \hline
+23 dos 48 respondentes (47,9\%) marcaram que seus animais não usam nenhuma forma de identificação da lista; um marcou microchip. & RF19 & Cadastro preventivo dos animais de estimação, carteirinha digital com código QR e contato do tutor, e conversão do cadastro em publicação de animal perdido. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+21 dos 48 respondentes (43,8\%) atribuíram nota 4 ou 5 à utilidade da seção de adoção; 19 (39,6\%) deram nota 2. & RF20 & Publicação para adoção e disponibilização de animal encontrado para adoção após sete dias de busca pelo tutor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+21 dos 48 respondentes (43,8\%) aceitariam avaliar com estrelas e comentário uma pessoa que ajudou; 27 (56,3\%) responderam talvez. & RF21 & Classificação entre membros após uma conversa, com estrelas, etiquetas e comentário, e média exibida no perfil público. & Verificado pelo autor em outubro de 2026, após a avaliação com participantes (Seção 8.1). \\ \hline
 \end{longtable}
 }
 
@@ -947,7 +692,7 @@ Este apêndice registra os dados necessários para identificar o pacote analisad
 \small
 \begin{tabular}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{10.8cm}|}
 \hline
-\multicolumn{2}{|c|}{Quadro E1: Identificação do pacote submetido à análise estática} \\ \hline
+\multicolumn{2}{|c|}{Quadro E1 -- Identificação do pacote submetido à análise estática} \\ \hline
 Dado & Valor \\ \hline
 Data da análise & 14 de outubro de 2026 \\ \hline
 Ferramenta & Mobile Security Framework (MobSF), versão 4.5.4 \\ \hline

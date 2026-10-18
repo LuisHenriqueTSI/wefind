@@ -1,7 +1,7 @@
 \section{TESTES E AVALIAÇÃO}
 \setcounter{quadro}{4}
 
-Um aplicativo que funciona no aparelho do desenvolvedor ainda precisa ser examinado por outros ângulos: se cumpre os fluxos previstos, se as sugestões automáticas acertam, se pessoas que nunca o usaram conseguem operá-lo e se apresenta pontos frágeis de segurança. No WeFIND, essas perspectivas correspondem às verificações funcionais manuais, ao teste do mecanismo de correspondência, à avaliação de usabilidade com tutores de animais e à análise estática do APK com o MobSF. Os testes ajudam a revelar falhas antes que o produto chegue aos usuários (Pressman; Maxim, 2021), mas não demonstram a ausência de defeitos; por isso, cada atividade é apresentada com seus procedimentos, resultados e limites.
+Um aplicativo que funciona no aparelho do desenvolvedor ainda precisa ser examinado por outros ângulos: se cumpre os fluxos previstos, se as sugestões automáticas acertam, se pessoas que nunca o usaram conseguem operá-lo e se apresenta pontos frágeis de segurança. No WeFIND, essas perspectivas correspondem às verificações funcionais manuais, à análise estática do APK com o MobSF, ao teste do mecanismo de correspondência e à avaliação de usabilidade com tutores de animais. Os testes ajudam a revelar falhas antes que o produto chegue aos usuários (Pressman; Maxim, 2021), mas não demonstram a ausência de defeitos; por isso, cada atividade é apresentada com seus procedimentos, resultados e limites.
 
 \subsection{Verificação Funcional Manual}
 
@@ -58,35 +58,35 @@ O mecanismo de correspondência (RF17) foi testado separadamente, porque a avali
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|c|l|p{8.2cm}|c|}
         \hline
-        \multicolumn{4}{|c|}{Quadro 5: Pontuação do mecanismo de correspondência nos pares de teste} \\ \hline
+        \multicolumn{4}{|c|}{Quadro 5 -- Pontuação do mecanismo de correspondência nos pares de teste} \\ \hline
         Par & Situação & Diferença entre os anúncios e distância & Pontuação \\ \hline
-        V1 & Mesmo animal & Descrições iguais; 0,6 km & 85\% \\ \hline
-        V2 & Mesmo animal & Quem encontrou não informou o sexo nem a raça (Poodle); 1,4 km & 69\% \\ \hline
-        V3 & Mesmo animal & Gato preto; sexo e idade não informados por quem encontrou; 0,3 km & 73\% \\ \hline
-        V4 & Mesmo animal & Cor Dourado × Amarelo; raça Labrador × sem raça definida; 2,1 km & 39\% \\ \hline
-        V5 & Mesmo animal & Descrições iguais; 3,2 km & 88\% \\ \hline
-        V6 & Mesmo animal & Cor Laranja com Branco × Laranja; 0,9 km & 85\% \\ \hline
-        V7 & Mesmo animal & Porte Médio × Grande; idade Idoso × Adulto; 1,8 km & 66\% \\ \hline
-        V8 & Mesmo animal & Raça Shih Tzu × Shih-tzu; cor Branco com Dourado × Branco com Caramelo; 2,6 km & 52\% \\ \hline
-        V9 & Mesmo animal & Descrições iguais; 6,5 km & 75\% \\ \hline
-        V10 & Mesmo animal & Porte Pequeno × Médio; cor Cinza × Cinza com Branco; 0,5 km & 76\% \\ \hline
-        D1 & Animais diferentes & Dois cães caramelo sem raça definida, com descrições iguais; 2,8 km & 80\% \\ \hline
-        D2 & Animais diferentes & Sexos opostos; 1,0 km & 0\% \\ \hline
-        D3 & Animais diferentes & Gato × cachorro; 0,4 km & 0\% \\ \hline
-        D4 & Animais diferentes & Porte Pequeno × Grande; 1,5 km & 0\% \\ \hline
-        D5 & Animais diferentes & Idade Filhote × Idoso, demais dados iguais; 1,1 km & 65\% \\ \hline
-        D6 & Animais diferentes & Cor Caramelo × Marrom; 0,7 km & 41\% \\ \hline
-        D7 & Animais diferentes & Duas gatas pretas e brancas, sexo não informado em uma; 4,0 km & 76\% \\ \hline
-        D8 & Animais diferentes & Raça Pastor Alemão × Rottweiler, mesma cor; 2,0 km & 60\% \\ \hline
-        D9 & Animais diferentes & Descrições iguais; 25 km & 55\% \\ \hline
-        D10 & Animais diferentes & Idade Adulto × Filhote; cor Caramelo com Branco × Caramelo; 3,0 km & 75\% \\ \hline
+        V1 & Mesmo animal & Descrições iguais; 0,6 km & 85 \\ \hline
+        V2 & Mesmo animal & Quem encontrou não informou o sexo nem a raça (Poodle); 1,4 km & 69 \\ \hline
+        V3 & Mesmo animal & Gato preto; sexo e idade não informados por quem encontrou; 0,3 km & 73 \\ \hline
+        V4 & Mesmo animal & Cor Dourado × Amarelo; raça Labrador × sem raça definida; 2,1 km & 39 \\ \hline
+        V5 & Mesmo animal & Descrições iguais; 3,2 km & 88 \\ \hline
+        V6 & Mesmo animal & Cor Laranja com Branco × Laranja; 0,9 km & 85 \\ \hline
+        V7 & Mesmo animal & Porte Médio × Grande; idade Idoso × Adulto; 1,8 km & 66 \\ \hline
+        V8 & Mesmo animal & Raça Shih Tzu × Shih-tzu; cor Branco com Dourado × Branco com Caramelo; 2,6 km & 52 \\ \hline
+        V9 & Mesmo animal & Descrições iguais; 6,5 km & 75 \\ \hline
+        V10 & Mesmo animal & Porte Pequeno × Médio; cor Cinza × Cinza com Branco; 0,5 km & 76 \\ \hline
+        D1 & Animais diferentes & Dois cães caramelo sem raça definida, com descrições iguais; 2,8 km & 80 \\ \hline
+        D2 & Animais diferentes & Sexos opostos; 1,0 km & 0 \\ \hline
+        D3 & Animais diferentes & Gato × cachorro; 0,4 km & 0 \\ \hline
+        D4 & Animais diferentes & Porte Pequeno × Grande; 1,5 km & 0 \\ \hline
+        D5 & Animais diferentes & Idade Filhote × Idoso, demais dados iguais; 1,1 km & 65 \\ \hline
+        D6 & Animais diferentes & Cor Caramelo × Marrom; 0,7 km & 41 \\ \hline
+        D7 & Animais diferentes & Duas gatas pretas e brancas, sexo não informado em uma; 4,0 km & 76 \\ \hline
+        D8 & Animais diferentes & Raça Pastor Alemão × Rottweiler, mesma cor; 2,0 km & 60 \\ \hline
+        D9 & Animais diferentes & Descrições iguais; 25 km & 55 \\ \hline
+        D10 & Animais diferentes & Idade Adulto × Filhote; cor Caramelo com Branco × Caramelo; 3,0 km & 75 \\ \hline
     \end{tabular}
     \fonte{Autoria própria (2026)}
 \end{table}
 
-O aplicativo exibe como sugestão os pares com pontuação a partir de 55\% e envia aviso a partir de 60\%. No limite de 55\%, oito dos dez pares do mesmo animal foram sugeridos, mas seis dos dez pares de animais diferentes também foram, o que resulta em 8 sugestões corretas entre 14 (57\%). No limite de 60\%, usado nos avisos, os acertos continuam oito e as sugestões erradas caem para cinco, ou 8 corretas entre 13 (62\%).
+O aplicativo exibe como sugestão os pares com pontuação a partir de 55 pontos e envia aviso a partir de 60 pontos. No limite de 55 pontos, oito dos dez pares do mesmo animal foram sugeridos, mas seis dos dez pares de animais diferentes também foram, o que resulta em 8 sugestões corretas entre 14 (57\%). No limite de 60 pontos, usado nos avisos, os acertos continuam oito e as sugestões erradas caem para cinco, ou 8 corretas entre 13 (62\%).
 
-As duas correspondências perdidas (V4 e V8) aconteceram porque o algoritmo trata como diferentes palavras que descrevem a mesma coisa: as cores Dourado, Amarelo e Caramelo e a raça escrita com e sem hífen. Nesses casos, a diferença de cor ainda aplica uma penalidade. Entre as sugestões erradas, três mostram critérios que pesam pouco: a diferença entre filhote e idoso (D5), a distância de 25 km (D9) e duas raças definidas diferentes (D8) reduzem a pontuação, mas não o bastante para afastar o par. Os outros dois casos (D1 e D7) são animais diferentes descritos de forma idêntica, que nenhum critério baseado apenas nos campos do cadastro consegue separar; para eles, só a comparação das fotografias ajudaria. O resultado confirma que a pontuação deve ser lida como sugestão a ser conferida pelas pessoas, como prevê o RF17, e aponta os ajustes descritos no Capítulo 9.
+As duas correspondências perdidas (V4 e V8) aconteceram porque o algoritmo trata como diferentes palavras que descrevem a mesma coisa. No V4, as cores Dourado e Amarelo não têm palavra em comum, e a diferença de cor aplica uma penalidade de 25 pontos; no V8, a raça escrita com e sem hífen (Shih Tzu e Shih-tzu) é tratada como duas raças distintas, com penalidade de 20 pontos. Entre as seis sugestões erradas, quatro mostram critérios que pesam pouco ou nada: a diferença entre filhote e idoso (D5), a distância de 25 km (D9) e duas raças definidas diferentes (D8) reduzem a pontuação, mas não o bastante para afastar o par, e a diferença entre adulto e filhote (D10) nem chega a ser penalizada. Os outros dois casos (D1 e D7) são animais diferentes descritos de forma idêntica, que nenhum critério baseado apenas nos campos do cadastro consegue separar; para eles, só a comparação das fotografias ajudaria. O resultado confirma que a pontuação deve ser lida como sugestão a ser conferida pelas pessoas, como prevê o RF17, e aponta os ajustes descritos no Capítulo 9.
 
 \subsection{Avaliação de Usabilidade}
 
@@ -133,7 +133,7 @@ Todos os 12 participantes confirmaram ser tutores de animais domésticos, perfil
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|p{8.4cm}|r|r|}
         \hline
-        \multicolumn{3}{|c|}{Quadro 6: Autopercepção dos participantes sobre a conclusão das tarefas} \\ \hline
+        \multicolumn{3}{|c|}{Quadro 6 -- Autopercepção dos participantes sobre a conclusão das tarefas} \\ \hline
         Resposta & Participantes & Percentual \\ \hline
         Concluíram todas as cinco tarefas com facilidade & 12 & 100\% \\ \hline
         Concluíram todas, mas tiveram dúvida em alguma etapa & 0 & 0\% \\ \hline
@@ -155,7 +155,7 @@ Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo S
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|c|r|c|r|c|r|}
         \hline
-        \multicolumn{6}{|c|}{Quadro 7: Escores individuais da Escala de Usabilidade do Sistema} \\ \hline
+        \multicolumn{6}{|c|}{Quadro 7 -- Escores individuais da Escala de Usabilidade do Sistema} \\ \hline
         Participante & Escore &
         Participante & Escore &
         Participante & Escore \\ \hline
@@ -179,7 +179,7 @@ Para identificar as dimensões específicas da experiência que mais se destacar
     \renewcommand{\arraystretch}{1.15}
     \begin{tabular}{|c|p{9.0cm}|r|}
         \hline
-        \multicolumn{3}{|c|}{Quadro 8: Média das respostas por afirmação do questionário} \\ \hline
+        \multicolumn{3}{|c|}{Quadro 8 -- Média das respostas por afirmação do questionário} \\ \hline
         Item & Aspecto avaliado & Média \\ \hline
         1 & Intenção de utilizar o sistema com frequência & 4,50 \\ \hline
         2 & Complexidade desnecessária (negativo) & 1,50 \\ \hline
@@ -207,7 +207,7 @@ Dentre as sugestões práticas mencionadas, destacaram-se: aumentar o destaque v
 
 Como percepção qualitativa de uso, os participantes relataram fluidez durante a navegação entre as abas e ausência de travamentos ou encerramentos inesperados.
 
-Em síntese, os fluxos principais funcionaram sem erros nas verificações realizadas, a análise estática indicou os pontos de configuração a revisar o teste da correspondência mostrou acertos na maior parte dos pares do mesmo animal, mas também sugestões erradas, e a avaliação de usabilidade indicou alta satisfação dos participantes, com média SUS de 93,33, além de sugestões concretas para a evolução da interface.
+Em síntese, os fluxos principais funcionaram sem erros nas verificações realizadas, a análise estática indicou os pontos de configuração a revisar, o teste da correspondência mostrou acertos na maior parte dos pares do mesmo animal, mas também sugestões erradas, e a avaliação de usabilidade indicou alta satisfação dos participantes, com média SUS de 93,33, além de sugestões concretas para a evolução da interface.
 
 \subsection{Limitações da Avaliação}
 

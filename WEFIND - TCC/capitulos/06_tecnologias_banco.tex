@@ -16,7 +16,7 @@ Para situar os componentes e as integrações utilizados na aplicação, a Figur
     \fonte{Autoria própria (2026), com auxílio de ferramenta de inteligência artificial}
 \end{figure}
 
-A Figura~\ref{fig:arquitetura_wefind} apresenta três componentes: o cliente móvel, os serviços de backend do Supabase e o provedor externo de mensageria. O aplicativo concentra a interface e os recursos do dispositivo; o Supabase oferece autenticação, banco de dados, armazenamento, atualização em tempo real e funções de borda; e a Evolution API, hospedada no Render, realiza o envio de mensagens pelo WhatsApp. O aplicativo não se comunica diretamente com a Evolution API: as solicitações de envio passam pelas funções de borda, que guardam a credencial do serviço. Nos avisos do sistema, o aplicativo informa apenas o identificador do destinatário, e a própria função de borda consulta o número de WhatsApp e a autorização de envio no banco; assim, o telefone de um usuário não é transmitido ao aparelho de quem dispara o aviso. Pelo mesmo motivo, as consultas do mural e dos detalhes da publicação não trazem o e-mail nem o telefone do autor. O WhatsApp só é obtido na geração do cartaz, por uma função do banco que devolve o número apenas quando o autor autorizou exibi-lo ou quando o pedido é feito pelo próprio autor.
+A Figura~\ref{fig:arquitetura_wefind} apresenta três componentes: o cliente móvel, os serviços de backend do Supabase e o provedor externo de mensageria. O aplicativo concentra a interface e os recursos do dispositivo; o Supabase oferece autenticação, banco de dados, armazenamento, atualização em tempo real e funções de borda; e a Evolution API, hospedada no Render, realiza o envio de mensagens pelo WhatsApp. O aplicativo não se comunica diretamente com a Evolution API: as solicitações de envio passam pelas funções de borda, que guardam a credencial do serviço. Nos avisos do sistema, o aplicativo informa apenas o identificador do destinatário, e a própria função de borda consulta o número de WhatsApp e a autorização de envio no banco; assim, o telefone de um usuário não é transmitido ao aparelho de quem dispara o aviso. Pelo mesmo motivo, as consultas do mural e dos detalhes da publicação não trazem o e-mail nem o telefone do autor. No fluxo do aplicativo, o WhatsApp só é solicitado na geração do cartaz, por uma função do banco que devolve o número apenas quando o autor autorizou exibi-lo ou quando o pedido é feito pelo próprio autor. Essas medidas limitam os dados que o aplicativo carrega, mas, na versão atual, ainda não impedem no banco que um usuário autenticado consulte diretamente o perfil de outro (Seção~9.2).
 
 A aplicação móvel foi desenvolvida com React Native, React e Expo. A Figura~\ref{fig:principais_tecnologias} destaca as principais tecnologias adotadas no projeto.
 
@@ -62,7 +62,7 @@ Para este projeto, o PostgreSQL foi selecionado por oferecer um modelo relaciona
 
 O Supabase também foi preferido a implementar e operar, no escopo do projeto, serviços próprios para autenticação, persistência e armazenamento. Essa decisão reduz a quantidade de infraestrutura que precisa ser administrada diretamente no projeto, mas não elimina a dependência das configurações e da disponibilidade do provedor.
 
-As políticas de segurança em nível de linha (RLS) são configuradas no banco, com regras específicas para cada tabela. No esquema consultado, a leitura anônima de dados de perfis, publicações e avistamentos foi restringida; as regras de avistamentos e conversas também limitam o acesso conforme autenticação e participação.
+As políticas de segurança em nível de linha (RLS) são configuradas no banco, com regras específicas para cada tabela. No esquema consultado, a leitura anônima de dados de perfis, publicações e avistamentos foi restringida; as regras de avistamentos e conversas também limitam o acesso conforme autenticação e participação. Visitantes sem conta consultam o mural por meio de uma função do banco que devolve apenas campos públicos e coordenadas arredondadas para duas casas decimais (cerca de 1~km). Para usuários autenticados, porém, as políticas ainda permitem ler todas as colunas das publicações, inclusive as coordenadas do ponto marcado, e os perfis de outros usuários; nesses casos, a ocultação é feita pela interface do aplicativo, limitação discutida na Seção~9.2.
 
 As funções de borda concentram operações que usam credenciais de provedores externos. A chave da Evolution API é mantida como variável de ambiente no servidor, fora do aplicativo móvel; a função de mensageria exige uma sessão autenticada para receber solicitações de envio. Quando a solicitação traz um número informado pelo aplicativo, o que ocorre apenas na confirmação de troca de WhatsApp, a função aceita somente um código de seis dígitos e monta o texto no servidor, de modo que não pode ser usada para enviar mensagens livres a qualquer número.
 
@@ -109,13 +109,13 @@ O WeFIND compara publicações não resolvidas de animais perdidos e encontrados
 \renewcommand{\arraystretch}{1.12}
 \begin{longtable}{|>{\raggedright\arraybackslash}p{3.3cm}|>{\raggedright\arraybackslash}p{8.4cm}|>{\centering\arraybackslash}p{2.5cm}|}
 \hline
-\multicolumn{3}{|c|}{Quadro 4: Critérios e Pesos do Algoritmo de Correspondência do WeFIND} \\ \hline
+\multicolumn{3}{|c|}{Quadro 4 -- Critérios e Pesos do Algoritmo de Correspondência do WeFIND} \\ \hline
 \label{quadro:matching}
 Critério Avaliado & Condição Lógica e Regra de Negócio & Pontuação \\ \hline
 \endfirsthead
 
 \hline
-\multicolumn{3}{|c|}{Quadro 4: Critérios e Pesos do Algoritmo de Correspondência (Continuação)} \\ \hline
+\multicolumn{3}{|c|}{Quadro 4 -- Critérios e Pesos do Algoritmo de Correspondência (Continuação)} \\ \hline
 Critério Avaliado & Condição Lógica e Regra de Negócio & Pontuação \\ \hline
 \endhead
 
