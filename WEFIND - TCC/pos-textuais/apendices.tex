@@ -5,7 +5,7 @@
 \phantomsection
 \addcontentsline{toc}{section}{APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO}
 
-Esta seção apresenta a especificação textual de dez casos de uso que compõem o escopo funcional central da plataforma WeFIND, descrevendo atores, pré-condições, fluxos principais, alternativas e exceções.
+Esta seção apresenta a especificação textual de casos de uso selecionados do escopo funcional central da plataforma WeFIND. Os casos agrupam operações relacionadas e descrevem atores, pré-condições, fluxos principais, alternativas e exceções; por isso, não correspondem individualmente a cada requisito funcional.
 
 \vspace{0.5cm}
 
@@ -85,8 +85,6 @@ Pré-Condições & Dispositivo conectado à internet. \\ \hline
 Pós-Condições & Conta criada, com telefone confirmado por código e pronta para autenticação. \\ \hline
 \end{tabular}
 \end{table}
-
-\clearpage
 
 \subsection*{Caso de Uso UC03: Manter Publicação}
 \noindent
@@ -387,6 +385,213 @@ Pré-Condições & Usuário autenticado; para animais encontrados, publicação 
 2a. Período de busca não concluído: o sistema informa quantos dias faltam e mantém a publicação ativa como animal encontrado.
 } \\ \hline
 Pós-Condições & Publicação disponível para adoção no mural, com contato pelo chat. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC11: Consultar e Pesquisar Publicações}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC11 \\ \hline
+Nome do Caso de Uso & Consultar e Pesquisar Publicações \\ \hline
+Ator Principal & Usuário Visitante ou Usuário Autenticado \\ \hline
+Atores Secundários & Serviço de Localização e Serviço de Mapas \\ \hline
+Resumo & Permite consultar publicações de animais, pesquisar e filtrar anúncios e visualizar sua localização aproximada no mapa. \\ \hline
+Pré-Condições & Aplicativo conectado à internet. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário abre o mural de publicações.\par
+2. O sistema apresenta os anúncios ativos de animais perdidos, encontrados ou disponíveis para adoção, ordenados por proximidade quando há localização disponível.\par
+3. O usuário pesquisa ou filtra os anúncios por espécie, situação, características, distância ou oferta de recompensa, podendo alterar a ordenação.\par
+4. O usuário seleciona uma publicação.\par
+5. O sistema apresenta os detalhes do anúncio, incluindo imagens, características e local informado.\par
+6. Se desejar, o usuário visualiza as publicações no mapa, que apresenta apenas as localizações permitidas pelas regras de privacidade.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Consulta do mapa: o usuário escolhe a visualização em mapa e consulta as publicações disponíveis nessa visualização.\par
+5a. Traçar rota: quando há uma pista pública recente elegível, o usuário solicita uma rota até a área aproximada dessa pista.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Nenhuma publicação corresponde à pesquisa: o sistema informa que não encontrou anúncios com os critérios selecionados.\par
+5b. Localização não disponível: o sistema mantém a consulta aos anúncios, sem aplicar ordenação por proximidade.
+} \\ \hline
+Pós-Condições & Publicações consultadas conforme os critérios escolhidos, sem alteração dos anúncios. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC12: Manter Avistamentos Próprios}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC12 \\ \hline
+Nome do Caso de Uso & Manter Avistamentos Próprios \\ \hline
+Ator Principal & Usuário Autenticado (autor do avistamento) \\ \hline
+Atores Secundários & Banco de Dados (PostgreSQL) e Serviço de Mapas \\ \hline
+Resumo & Permite consultar os avistamentos associados a uma publicação e editar ou remover os relatos enviados pelo próprio usuário. \\ \hline
+Pré-Condições & Usuário autenticado e com ao menos um avistamento associado à publicação. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário abre uma publicação com avistamentos registrados.\par
+2. O sistema apresenta os avistamentos associados à publicação em lista e no mapa, do mais recente para o mais antigo, com as localizações representadas de forma aproximada.\par
+3. O usuário seleciona um avistamento de sua autoria.\par
+4. O usuário escolhe editar o relato, atualiza as informações e confirma a alteração.\par
+5. O sistema salva e apresenta os dados atualizados.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4a. Remover avistamento: o usuário solicita a remoção do próprio relato e confirma a ação; o sistema o exclui da publicação.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Avistamento de outro autor: o sistema não permite que o usuário edite ou remova o relato de outra pessoa.
+} \\ \hline
+Pós-Condições & Avistamentos consultados; quando editado ou removido, o relato próprio fica atualizado ou deixa de ser exibido. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC13: Consultar Notificações}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC13 \\ \hline
+Nome do Caso de Uso & Consultar Notificações \\ \hline
+Ator Principal & Usuário Autenticado \\ \hline
+Atores Secundários & Serviço de Notificações e, quando disponível e autorizado, serviço de notificações do dispositivo ou WhatsApp \\ \hline
+Resumo & Permite consultar avisos relacionados à atividade do usuário e às buscas por animais. \\ \hline
+Pré-Condições & Usuário autenticado. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário abre a central de notificações.\par
+2. O sistema apresenta os avisos disponíveis, como novos avistamentos, mensagens, possíveis correspondências, publicações próximas e lembretes de renovação.\par
+3. O usuário seleciona uma notificação para consultar o evento relacionado.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Aviso externo: quando há suporte do dispositivo e a permissão necessária, o sistema também pode enviar notificações locais ou push; usuários que autorizarem podem receber avisos pelo WhatsApp.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2b. Nenhuma notificação disponível: o sistema informa que não há avisos para consultar.
+} \\ \hline
+Pós-Condições & O usuário consulta os avisos registrados para sua conta. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC14: Consultar Sugestões de Correspondência}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC14 \\ \hline
+Nome do Caso de Uso & Consultar Sugestões de Correspondência \\ \hline
+Ator Principal & Usuário Autenticado \\ \hline
+Atores Secundários & Serviço de Correspondência entre Publicações \\ \hline
+Resumo & Permite consultar sugestões de possíveis correspondências entre anúncios ativos de animais perdidos e encontrados. \\ \hline
+Pré-Condições & Usuário autenticado e com publicação ativa de animal perdido ou encontrado. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário abre a área de sugestões de correspondência.\par
+2. O sistema compara publicações ativas de animais perdidos e encontrados considerando espécie, características físicas e distância geográfica.\par
+3. O sistema apresenta as publicações que podem corresponder ao anúncio do usuário.\par
+4. O usuário seleciona uma sugestão e consulta os detalhes da publicação relacionada.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Sugestão recebida por notificação: o usuário abre a notificação de possível correspondência e consulta os detalhes do anúncio sugerido.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Nenhuma correspondência sugerida: o sistema informa que não há sugestões disponíveis no momento.
+} \\ \hline
+Pós-Condições & Sugestões consultadas; a identificação de uma correspondência permanece sob responsabilidade dos usuários. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC15: Classificar Membro}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC15 \\ \hline
+Nome do Caso de Uso & Classificar Membro \\ \hline
+Ator Principal & Usuário Autenticado (avaliador) \\ \hline
+Atores Secundários & Serviço de Mensagens e Banco de Dados (PostgreSQL) \\ \hline
+Resumo & Permite classificar outro membro com quem o usuário trocou mensagens, após 24 horas sem novas mensagens entre ambos. \\ \hline
+Pré-Condições & Usuário autenticado, não pode ser o próprio perfil avaliado, e deve ter trocado mensagens com o outro membro; a última mensagem entre eles deve ter sido enviada há pelo menos 24 horas. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário acessa o perfil público de outro membro elegível.\par
+2. O sistema apresenta a opção de classificar e informa que a classificação está disponível.\par
+3. O usuário escolhe de uma a cinco estrelas e, opcionalmente, seleciona etiquetas de elogio e escreve um comentário.\par
+4. O usuário confirma o envio da classificação.\par
+5. O sistema registra a classificação e atualiza a média, o total e a distribuição das notas exibidas no perfil público.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Classificação disponível: ao completar 24 horas sem novas mensagens, o sistema envia o aviso ``Classificação disponível'' e apresenta a opção no perfil público.\par
+3a. Sem comentário ou etiquetas: o usuário envia a classificação somente com a nota em estrelas.\par
+5a. Excluir classificação própria: o avaliador solicita a exclusão de uma classificação que já enviou.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1a. Conversa recente ou inexistente: o sistema não libera a classificação antes de 24 horas sem novas mensagens.\par
+1b. Perfil próprio: o sistema não permite que o usuário classifique a si mesmo.\par
+4a. Classificação já enviada: o sistema impede o envio de outra classificação pelo mesmo avaliador para aquele membro.
+} \\ \hline
+Pós-Condições & Classificação registrada e refletida no perfil público; se excluída pelo avaliador, deixa de compor as notas exibidas. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC16: Manter Perfil}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC16 \\ \hline
+Nome do Caso de Uso & Manter Perfil \\ \hline
+Ator Principal & Usuário Autenticado \\ \hline
+Atores Secundários & Banco de Dados (PostgreSQL) \\ \hline
+Resumo & Permite ao usuário consultar e atualizar os dados básicos de seu perfil e contato. \\ \hline
+Pré-Condições & Usuário autenticado. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário acessa a área de seu perfil.\par
+2. O sistema apresenta os dados básicos cadastrados.\par
+3. O usuário altera os dados que deseja atualizar e confirma a operação.\par
+4. O sistema valida e salva as alterações, apresentando o perfil atualizado.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Consulta sem alterações: o usuário visualiza os dados do perfil e encerra a consulta.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Dados inválidos: o sistema informa os campos que precisam ser corrigidos e não salva as alterações.
+} \\ \hline
+Pós-Condições & Dados do perfil consultados ou atualizados. \\ \hline
 \end{tabular}
 \end{table}
 
