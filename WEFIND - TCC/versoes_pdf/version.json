@@ -844,7 +844,27 @@
                         "version":  169,
                         "filename":  "TCC_WeFIND_v169_18-10-2026-17h14.pdf",
                         "date":  "2026-10-18T17:14:07-03:00"
+                    },
+                    {
+                        "version":  170,
+                        "filename":  "TCC_WeFIND_v170_18-10-2026-17h19.pdf",
+                        "date":  "2026-10-18T17:19:49-03:00"
+                    },
+                    {
+                        "version":  171,
+                        "filename":  "TCC_WeFIND_v171_18-10-2026-17h25.pdf",
+                        "date":  "2026-10-18T17:25:41-03:00"
+                    },
+                    {
+                        "version":  172,
+                        "filename":  "TCC_WeFIND_v172_18-10-2026-17h30.pdf",
+                        "date":  "2026-10-18T17:30:58-03:00"
+                    },
+                    {
+                        "version":  173,
+                        "filename":  "TCC_WeFIND_v173_18-10-2026-17h54.pdf",
+                        "date":  "2026-10-18T17:54:25-03:00"
                     }
                 ],
-    "current_version":  169
+    "current_version":  173
 }

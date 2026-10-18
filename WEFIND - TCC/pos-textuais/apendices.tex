@@ -292,43 +292,21 @@ Pós-Condições & Denúncia encerrada e publicação mantida ou removida confor
 \end{tabular}
 \end{table}
 
-O administrador acessa o painel pelo menu do perfil, ilustrado na Figura~\ref{fig:acesso_administracao}. Na aba ``Denúncias'', pode consultar o conteúdo reportado e escolher ``Manter'' ou ``Excluir'' (Figura~\ref{fig:painel_denuncias}). A aba ``Usuários'' apresenta a consulta de perfis e as ações disponíveis para as contas (Figura~\ref{fig:administracao_usuarios}).
-
-\begin{figure}[H]
-    \centering
-    \caption{Acesso ao Painel Administrativo}
-    \label{fig:acesso_administracao}
-    \capturaTela{imagens/04_telas_aplicativo/tela-acesso-administracao.png}
-    \fonte{Autoria própria (2026)}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \caption{Painel Administrativo com as Denúncias Pendentes}
-    \label{fig:painel_denuncias}
-    \capturaTela{imagens/04_telas_aplicativo/tela-painel-denuncias-administrador.png}
-    \fonte{Autoria própria (2026)}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \caption{Aba de Gerenciamento de Usuários}
-    \label{fig:administracao_usuarios}
-    \capturaTela{imagens/04_telas_aplicativo/tela-administracao-usuarios.png}
-    \fonte{Autoria própria (2026)}
-\end{figure}
-
-\clearpage
+As telas do painel administrativo relacionadas a este caso de uso são apresentadas separadamente no \hyperref[apendice:painel-administrativo]{Apêndice F}.
 
 \clearpage
 
 \subsection*{Caso de Uso UC08: Solicitar Comprovação de Tutela}
-\noindent
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
 \hline
+\multicolumn{2}{|c|}{Especificação} \\ \hline
+\endfirsthead
+\hline
+\multicolumn{2}{|c|}{Caso de Uso UC08: Solicitar Comprovação de Tutela (Continuação)} \\ \hline
+\endhead
+\hline
+\endfoot
+\endlastfoot
 Identificador & UC08 \\ \hline
 Nome do Caso de Uso & Solicitar Comprovação de Tutela \\ \hline
 Ator Principal & Usuário Autenticado (solicitante) \\ \hline
@@ -360,8 +338,7 @@ Pré-Condições & Usuário autenticado; publicação do tipo ``Encontrado'' ati
 3a. Mensagem vazia: o sistema exige a descrição de como o usuário comprova ser o tutor antes de permitir o envio.
 } \\ \hline
 Pós-Condições & Solicitação registrada e analisada; em caso de aprovação, encontro de devolução combinado em local público, sem liberação do endereço residencial. \\ \hline
-\end{tabular}
-\end{table}
+\end{longtable}
 
 
 \clearpage
@@ -924,7 +901,6 @@ Observação do autor em grupos do \textit{Facebook}: quem anuncia ter encontrad
 21 dos 48 respondentes (43,8\%) aceitariam avaliar com estrelas e comentário uma pessoa que ajudou; 27 (56,3\%) responderam talvez. & RF21 & Classificação entre membros após uma conversa, com estrelas, etiquetas e comentário, e média exibida no perfil público. & Verificado pelo autor em outubro de 2026, após a avaliação com participantes (Seção 8.1). \\ \hline
 \end{longtable}
 }
-
 \clearpage
 
 % ============================================================
@@ -962,5 +938,45 @@ Resumo SHA-256 & \parbox[t]{10.5cm}{\itshape\small f383cd85\allowbreak36142706\a
 Além da análise automatizada do APK, o código e as migrações do projeto foram inspecionados manualmente. Nessa inspeção, foi observado o uso de HTTPS na comunicação, com o tratamento de senhas delegado ao Supabase Auth e o uso de PKCE no fluxo OAuth. Também foram observadas políticas de segurança em nível de linha (RLS) nas tabelas que possuem regras definidas, além de validações de entrada. Os códigos temporários são gerados por fonte criptograficamente segura, apenas o resumo SHA-256 deles é armazenado e cada código aceita no máximo cinco tentativas. Por fim, a função de mensageria exige autenticação, e os dados sensíveis são removidos dos registros de log.
 
 Essa inspeção estática não verificou de forma independente a infraestrutura hospedada, as configurações de backup e restauração, a expiração global de sessões ou a disponibilidade dos provedores utilizados. Também não foram realizados testes de invasão nem avaliação dinâmica do aplicativo.
+
+\clearpage
+
+% ============================================================
+% APÊNDICE F: TELAS DO PAINEL ADMINISTRATIVO
+% ============================================================
+\section*{APÊNDICE F: TELAS DO PAINEL ADMINISTRATIVO}
+\phantomsection
+\label{apendice:painel-administrativo}
+\addcontentsline{toc}{section}{APÊNDICE F: TELAS DO PAINEL ADMINISTRATIVO}
+
+Este apêndice reúne as capturas de tela do painel administrativo, separadas das especificações textuais dos casos de uso. O administrador acessa o painel pelo menu do perfil (Figura~\ref{fig:acesso_administracao}). Na aba ``Denúncias'', consulta o conteúdo reportado e pode escolher ``Manter'' ou ``Excluir'' a publicação (Figura~\ref{fig:painel_denuncias}). A aba ``Usuários'' permite consultar perfis e as ações administrativas disponíveis para as contas (Figura~\ref{fig:administracao_usuarios}).
+
+\renewcommand{\thefigure}{F\arabic{figure}}
+\renewcommand{\theHfigure}{F\arabic{figure}}
+\setcounter{figure}{0}
+
+\begin{figure}[H]
+    \centering
+    \caption{Acesso ao Painel Administrativo}
+    \label{fig:acesso_administracao}
+    \capturaTela{imagens/04_telas_aplicativo/tela-acesso-administracao.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Painel Administrativo com as Denúncias Pendentes}
+    \label{fig:painel_denuncias}
+    \capturaTela{imagens/04_telas_aplicativo/tela-painel-denuncias-administrador.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Aba de Gerenciamento de Usuários}
+    \label{fig:administracao_usuarios}
+    \capturaTela{imagens/04_telas_aplicativo/tela-administracao-usuarios.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
 
 \clearpage
