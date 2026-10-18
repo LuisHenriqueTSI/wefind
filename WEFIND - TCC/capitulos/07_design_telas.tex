@@ -270,6 +270,8 @@ O formulário unificado de registro contempla as três situações da plataforma
 
 A Figura~\ref{fig:tela_registro_perdi_encontrei}.a representa o registro de um animal perdido, com foco nas características necessárias à busca. A Figura~\ref{fig:tela_registro_perdi_encontrei}.b corresponde ao cadastro de um animal encontrado, em que a pessoa informa se está com o animal ou se apenas o viu na rua e pode exigir a comprovação de tutela antes de iniciar o chat. A Figura~\ref{fig:tela_registro_perdi_encontrei}.c mostra a opção ``Para Adoção'', usada para animais resgatados, ninhadas ou animais de abrigo sem tutor conhecido. A publicação entra direto no mural como animal para adoção. O avistamento não faz parte desse formulário, pois é registrado a partir de uma publicação já existente, como mostra a Figura~\ref{fig:tela_rota_pistas}.a. A escolha da modalidade define os campos exibidos e reduz ambiguidades no envio das informações.
 
+Para características com opções predefinidas, como espécie, sexo, porte, idade e cor, o formulário utiliza seletores em vez de exigir que o usuário digite cada informação. Essa escolha busca agilizar o preenchimento e padronizar os dados usados na busca e na identificação de possíveis correspondências.
+
 Na modalidade ``Encontrei'', o formulário também oferece a opção ``Publicar este relato anonimamente'', cuja motivação é explicada na Seção~\ref{sec:privacidade}. Com ela marcada, o card no mural e a ficha mostram ``Relato anônimo da comunidade'' no lugar do nome e da foto de quem publicou, como mostra a Figura~\ref{fig:tela_publicacao_anonima}. A publicação continua funcionando como as demais. Outras pessoas podem registrar avistamentos, e o tutor pode pedir a devolução.
 
 \begin{figure}[H]
@@ -364,14 +366,14 @@ Para divulgar o caso fora do aplicativo e conversar com outros usuários, o WeFI
 
 \begin{figure}[H]
     \centering
-    \caption{Gerador de Cartazes e Mensagens Privadas}
+    \caption{Compartilhamento de Cartaz e Mensagens Privadas}
     \label{fig:tela_cartaz_mensagens}
     \vspace{0.15cm}
     \begin{minipage}[t]{0.31\textwidth}
         \centering
         \capturaTela{imagens/04_telas_aplicativo/figura21_tela_cartaz.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.a) Gerador de Cartazes}
+        {\small Figura~\thefigure.a) Compartilhamento de Cartaz}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.31\textwidth}
@@ -391,7 +393,7 @@ Para divulgar o caso fora do aplicativo e conversar com outros usuários, o WeFI
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:tela_cartaz_mensagens}.a, o gerador monta o cartaz com a foto, as características do animal e o local do desaparecimento, nos formatos A4, com código QR, vertical para \textit{stories} ou quadrado para o \textit{feed}, e permite compartilhá-lo ou copiar um texto com o link da publicação. Ao gerar o cartaz, o autor escolhe se o seu WhatsApp aparece na arte, e essa escolha vale também quando outras pessoas compartilham a publicação. Por padrão, o telefone fica de fora, e o contato é feito pelo chat do aplicativo, por meio do código QR. O código leva a uma página pública do WeFIND que não mostra endereço nem telefone. Essa página orienta quem viu o cartaz a abrir a publicação no aplicativo, ou a instalá-lo, para registrar um avistamento ou conversar com o responsável. A Figura~\ref{fig:tela_cartaz_mensagens}.b mostra a central de mensagens, com as conversas agrupadas por publicação, e a Figura~\ref{fig:tela_cartaz_mensagens}.c, uma conversa privada entre o tutor e uma pessoa que viu o animal, que exibe uma dica de segurança para combinar a entrega do animal apenas após a comprovação de tutela.
+Na Figura~\ref{fig:tela_cartaz_mensagens}.a, a tela permite selecionar o cartaz com QR code ou os formatos para \textit{stories/status} e \textit{feed} quadrado e compartilhar a imagem pelo aplicativo. O cartaz reúne a foto, as características do animal e o local do desaparecimento; o autor também pode escolher se o seu WhatsApp aparece na arte, e essa escolha vale quando outras pessoas compartilham a publicação. Por padrão, o telefone fica de fora, e o contato é feito pelo chat do aplicativo, por meio do código QR. O código leva a uma página pública do WeFIND que não mostra endereço nem telefone. Essa página orienta quem viu o cartaz a abrir a publicação no aplicativo, ou a instalá-lo, para registrar um avistamento ou conversar com o responsável. A Figura~\ref{fig:tela_cartaz_mensagens}.b mostra a central de mensagens, com as conversas agrupadas por publicação, e a Figura~\ref{fig:tela_cartaz_mensagens}.c, uma conversa privada entre o tutor e uma pessoa que viu o animal, que exibe uma dica de segurança para combinar a entrega do animal apenas após a comprovação de tutela.
 
 Os avisos do sistema ficam reunidos na central de notificações, apresentada na Figura~\ref{fig:tela_notificacoes}. Nela, o usuário acompanha lembretes de renovação, novos avistamentos, mensagens e as possíveis correspondências encontradas pelo mecanismo heurístico. Quando uma correspondência é encontrada, o aviso também chega como notificação no celular.
 

@@ -9,7 +9,7 @@ Antes da avaliação com participantes, o autor realizou verificações manuais 
 
 Ao longo do desenvolvimento, o histórico de versões registra correções em diferentes fluxos. Entre elas, estão a navegação para o mapa a partir do modo visitante, a abertura e a persistência das conversas e o tratamento das mensagens de erro no cadastro com verificação. Essas correções ocorreram durante a evolução do aplicativo e não correspondem a falhas observadas na verificação funcional de setembro, na qual não houve erros que impedissem a conclusão dos fluxos percorridos. Revisões posteriores também levaram a ajustes no histórico de avistamentos e na denúncia de publicações.
 
-A avaliação com participantes, descrita na Seção~8.4, foi feita em setembro de 2026, com a versão do aplicativo disponível naquele mês. As funções incluídas depois dela, como Meus Pets e a carteirinha digital (RF19), a adoção (RF20), a ordenação do mural por proximidade, as regras de privacidade da Seção~\ref{sec:privacidade}, a autorização do WhatsApp no cartaz, a nova central de notificações, a rota até a pista mais recente com o histórico de avistamentos, a publicação anônima, a classificação de membros e o encontro de devolução combinado pelo chat, foram verificadas apenas pelo autor, em outubro de 2026, e não fizeram parte das tarefas avaliadas pelos participantes. A geração e o compartilhamento do cartaz (RF15) também foram incluídos na terceira tarefa do roteiro aplicado aos participantes. Como o questionário avaliou a conclusão do conjunto de tarefas, não houve registro isolado do resultado dessa funcionalidade.
+A avaliação com participantes, descrita na Seção~8.4, foi realizada em setembro de 2026 e corresponde à versão do aplicativo disponível naquele período. As funcionalidades incorporadas ou alteradas posteriormente não fizeram parte das tarefas avaliadas pelos participantes e, portanto, não estão abrangidas pelos resultados de usabilidade; foram verificadas apenas pelo autor. Entre elas estão recursos de gestão dos animais do tutor, adoção, privacidade, notificações, histórico de avistamentos, publicação anônima, classificação de membros e combinação do encontro de devolução pelo chat.
 
 Além das verificações funcionais, foi realizada uma inspeção estática manual do código e das migrações, na qual foram identificadas práticas relacionadas à proteção da comunicação e dos dados, à autenticação e ao controle de acesso. O detalhamento dos controles observados está no Apêndice E.
 
@@ -51,17 +51,31 @@ Na análise de código, foram registrados zero alertas altos, sete avisos e trê
 
 \subsection{Teste do Mecanismo de Correspondência}
 
-O mecanismo de correspondência (RF17) foi testado separadamente, porque a avaliação com participantes não permite saber se as sugestões estão certas. Em 16 de outubro de 2026, a função de pontuação do aplicativo foi executada fora do aparelho sobre 20 pares de anúncios fictícios, montados com as mesmas opções de espécie, sexo, porte, idade e cor do formulário de cadastro e com coordenadas em Pelotas. Dez pares descrevem o mesmo animal, anunciado como perdido pelo tutor e como encontrado por outra pessoa, com as diferenças que costumam aparecer entre as duas descrições, como um campo não informado ou um porte estimado de forma diferente. Os outros dez descrevem animais diferentes, mas parecidos. O \hyperref[quadro:teste_correspondencia]{Quadro 5} apresenta a pontuação obtida em cada par.
+O mecanismo de correspondência (RF17) foi testado separadamente, porque a avaliação com participantes não permite saber se as sugestões estão certas. Em outubro de 2026, a função de pontuação do aplicativo foi executada fora do aparelho sobre 20 pares de anúncios fictícios, montados com as mesmas opções de espécie, sexo, porte, idade e cor do formulário de cadastro e com coordenadas em Pelotas. Dez pares descrevem o mesmo animal, anunciado como perdido pelo tutor e como encontrado por outra pessoa, com as diferenças que costumam aparecer entre as duas descrições, como um campo não informado ou um porte estimado de forma diferente. Os outros dez descrevem animais diferentes, mas parecidos. O \hyperref[quadro:teste_correspondencia]{Quadro 5} apresenta a pontuação obtida em cada par.
 
-\begin{table}[H]
-    \centering
-    \phantomsection\hypertarget{quadro:teste_correspondencia}{}\label{quadro:teste_correspondencia}
+{
     \small
     \renewcommand{\arraystretch}{1.15}
-    \begin{tabular}{|c|l|p{8.2cm}|c|}
+    \begin{longtable}{|>{\centering\arraybackslash}p{0.9cm}|>{\raggedright\arraybackslash}p{2.6cm}|>{\raggedright\arraybackslash}p{7.2cm}|>{\centering\arraybackslash}p{1.8cm}|}
         \hline
-        \multicolumn{4}{|c|}{Quadro 5 -- Pontuação do mecanismo de correspondência nos pares de teste} \\ \hline
+        \multicolumn{4}{|p{12.5cm}|}{\centering Quadro 5 -- Pontuação do mecanismo de correspondência nos pares de teste} \\ \hline
+        \phantomsection\hypertarget{quadro:teste_correspondencia}{}\label{quadro:teste_correspondencia}
         Par & Situação & Diferença entre os anúncios e distância & Pontuação \\ \hline
+        \endfirsthead
+
+        \hline
+        \multicolumn{4}{|p{12.5cm}|}{\centering Quadro 5 -- Pontuação do mecanismo de correspondência nos pares de teste (Continuação)} \\ \hline
+        Par & Situação & Diferença entre os anúncios e distância & Pontuação \\ \hline
+        \endhead
+
+        \hline
+        \multicolumn{4}{|r|}{\textit{Continua na próxima página}} \\ \hline
+        \endfoot
+
+        \hline
+        \multicolumn{4}{|c|}{Fonte: Autoria própria (2026)} \\ \hline
+        \endlastfoot
+
         V1 & Mesmo animal & Descrições iguais; 0,6 km & 85 \\ \hline
         V2 & Mesmo animal & Quem encontrou não informou o sexo nem a raça (Poodle); 1,4 km & 69 \\ \hline
         V3 & Mesmo animal & Gato preto; sexo e idade não informados por quem encontrou; 0,3 km & 73 \\ \hline
@@ -82,9 +96,8 @@ O mecanismo de correspondência (RF17) foi testado separadamente, porque a avali
         D8 & Animais diferentes & Raça Pastor Alemão × Rottweiler, mesma cor; 2,0 km & 60 \\ \hline
         D9 & Animais diferentes & Descrições iguais; 25 km & 55 \\ \hline
         D10 & Animais diferentes & Idade Adulto × Filhote; cor Caramelo com Branco × Caramelo; 3,0 km & 75 \\ \hline
-    \end{tabular}
-    \fonte{Autoria própria (2026)}
-\end{table}
+    \end{longtable}
+}
 
 O aplicativo exibe como sugestão os pares com pontuação a partir de 55 pontos e envia aviso a partir de 60 pontos. No limite de 55 pontos, oito dos dez pares do mesmo animal foram sugeridos, mas seis dos dez pares de animais diferentes também foram, o que resulta em 8 sugestões corretas entre 14 (57\%). No limite de 60 pontos, usado nos avisos, os acertos continuam oito e as sugestões erradas caem para cinco, ou 8 corretas entre 13 (62\%).
 
@@ -102,7 +115,7 @@ Para mensurar esses fatores de forma padronizada, adotou-se o modelo conceitual 
 
 \subsubsection{Procedimentos da Avaliação}
 
-A estratégia de avaliação estruturou-se na execução prática de um roteiro guiado por tarefas em dispositivos móveis, seguida pelo preenchimento de um formulário eletrônico de retorno disponibilizado via Google Forms, denominado ``WeFIND -- Teste de Usabilidade e Avaliação da Aplicação''. Em setembro de 2026, o convite para participar foi divulgado em um grupo do Facebook, cujo nome foi omitido. O APK do WeFIND foi disponibilizado para download em uma página de apresentação (landing page) criada para o projeto e hospedada no GitHub Pages, serviço de hospedagem de páginas do GitHub. Assim, as pessoas interessadas puderam obter o aplicativo, realizar as tarefas propostas e, ao final, responder ao formulário, que incluía a escala SUS e perguntas abertas sobre a experiência de uso. A amostra foi composta por 12 participantes voluntários, todos declarados tutores de animais de estimação. Assim como na pesquisa de campo, o formulário não solicitou dados de identificação, e o envio das respostas foi considerado manifestação de consentimento (Brasil, 2016).
+A estratégia de avaliação estruturou-se na execução prática de um roteiro guiado por tarefas em dispositivos móveis, seguida pelo preenchimento de um formulário eletrônico de retorno disponibilizado via Google Forms, denominado ``WeFIND -- Teste de Usabilidade e Avaliação da Aplicação''. Em setembro de 2026, o convite para participar foi divulgado no grupo público do Facebook ``Desenvolvimento de Softwares (Linguagens de Programação)'' e enviado também a amigos próximos. O APK do WeFIND foi disponibilizado para download em uma página de apresentação (landing page) criada para o projeto e hospedada no GitHub Pages, serviço de hospedagem de páginas do GitHub. Assim, as pessoas interessadas puderam obter o aplicativo, realizar as tarefas propostas e, ao final, responder ao formulário, que incluía a escala SUS e perguntas abertas sobre a experiência de uso. A amostra foi composta por 12 participantes voluntários, todos declarados tutores de animais de estimação. Assim como na pesquisa de campo, o formulário não solicitou dados de identificação, e o envio das respostas foi considerado manifestação de consentimento (Brasil, 2016).
 
 A Figura~\ref{fig:landing_page_wefind} apresenta a página utilizada para disponibilizar o aplicativo, com o acesso ao download do APK.
 

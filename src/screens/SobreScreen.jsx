@@ -73,7 +73,7 @@ const ETAPAS = [
 ];
 
 const EXTRAS = [
-  { icon: 'qr-code-2', titulo: 'Cartaz com QR code', texto: 'Imagem pronta para imprimir ou postar, nos formatos A4, stories e feed.' },
+  { icon: 'qr-code-2', titulo: 'Cartaz com QR code', texto: 'Cartaz com QR code para imprimir ou formatos para stories/status e feed quadrado.' },
   { icon: 'near-me', titulo: 'Mais perto primeiro', texto: 'O mural mostra primeiro os animais perto de você. Nos filtros, escolha o raio e a ordem.' },
   { icon: 'notifications-active', titulo: 'Avisos no app e no WhatsApp', texto: 'Avistamentos, mensagens, possíveis correspondências e lembretes de renovação.' },
   { icon: 'flag', titulo: 'Denúncias e moderação', texto: 'Conteúdo suspeito pode ser denunciado e é analisado pela administração.' },
