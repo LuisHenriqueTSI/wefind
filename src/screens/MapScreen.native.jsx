@@ -19,7 +19,6 @@ import {
   ROUTE_MODES,
   ROUTE_MODE_ORDER,
   buildGoogleMapsUrl,
-  describeRouteStatus,
   formatSightingAge,
   formatSightingDateTime,
   getRouteMode,
@@ -415,13 +414,13 @@ const MapScreen = ({ route, navigation }) => {
   // Card recolhido: a tela fica limpa só com a rota ou com o histórico no mapa
   const [cardCollapsed, setCardCollapsed] = useState(false);
   const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
+  const [showRouteOptions, setShowRouteOptions] = useState(false);
   const [historyMode, setHistoryMode] = useState(false);
   const [historyNow, setHistoryNow] = useState(Date.now());
   const handledRouteParamRef = useRef(null);
   const [resolvedItemAddress, setResolvedItemAddress] = useState('');
   // Situação da pista do animal selecionado (quente / morna / fria / protegida)
   const selectedRouteStatus = useMemo(() => getRouteStatus(selectedItem), [selectedItem]);
-  const selectedRouteDescription = useMemo(() => describeRouteStatus(selectedRouteStatus), [selectedRouteStatus]);
   const selectedItemCanHaveRoute = selectedRouteStatus.available;
   const isRouteActive = routeCoordinates.length > 1 && !historyMode;
 
@@ -664,7 +663,13 @@ const MapScreen = ({ route, navigation }) => {
       const osrm = await fetchOsrmRoute(from, to, travelMode);
       const coords = osrm ? osrm.coords : [from, to];
       const distanceM = osrm ? osrm.distanceM : (calculateDistanceKm(from.latitude, from.longitude, to.latitude, to.longitude) || 0) * 1000;
-      segments = [{ key: 'route', mode: travelMode.key, coordinates: coords, color: COLORS.primary, dashed: !osrm }];
+      segments = [{
+        key: 'route',
+        mode: travelMode.key,
+        coordinates: coords,
+        color: COLORS.primary,
+        dashed: travelMode.key === 'foot' || !osrm,
+      }];
       info = {
         distanceText: formatRouteDistance(distanceM),
         durationMin: osrm ? osrm.durationMin : Math.max(1, Math.round(distanceM / travelMode.metersPerMin)),
@@ -722,6 +727,7 @@ const MapScreen = ({ route, navigation }) => {
     navTargetRef.current = null;
     setCardCollapsed(false);
     setShowAdditionalInfo(false);
+    setShowRouteOptions(false);
     setHistoryMode(false);
   }, []);
 
@@ -743,6 +749,7 @@ const MapScreen = ({ route, navigation }) => {
     clearRoute();
     setSelectedItem(null);
     setCardCollapsed(false);
+    setShowRouteOptions(false);
     setHistoryMode(false);
   }, [clearRoute]);
 
@@ -761,6 +768,7 @@ const MapScreen = ({ route, navigation }) => {
     const status = getRouteStatus(item);
     if (!status.available) return;
 
+    setShowRouteOptions(false);
     setActiveRouteTarget(status.area);
     setHistoryMode(false);
     setCardCollapsed(true);
@@ -1426,15 +1434,15 @@ const MapScreen = ({ route, navigation }) => {
         }}
       >
         {/* Área de busca da pista (nunca o ponto exato) */}
-        {(activeRouteTarget || selectedRouteStatus.area) && !historyMode && (
+        {activeRouteTarget && !historyMode && (
           <Circle
             center={{
-              latitude: (activeRouteTarget || selectedRouteStatus.area).latitude,
-              longitude: (activeRouteTarget || selectedRouteStatus.area).longitude,
+              latitude: activeRouteTarget.latitude,
+              longitude: activeRouteTarget.longitude,
             }}
-            radius={(activeRouteTarget || selectedRouteStatus.area).radiusM}
-            strokeColor={ROUTE_TONE_COLORS[activeRouteTarget?.freshness || selectedRouteStatus.freshness]?.stroke || '#94A3B8'}
-            fillColor={ROUTE_TONE_COLORS[activeRouteTarget?.freshness || selectedRouteStatus.freshness]?.fill || 'rgba(148, 163, 184, 0.15)'}
+            radius={activeRouteTarget.radiusM}
+            strokeColor={ROUTE_TONE_COLORS[activeRouteTarget.freshness || selectedRouteStatus.freshness]?.stroke || '#94A3B8'}
+            fillColor={ROUTE_TONE_COLORS[activeRouteTarget.freshness || selectedRouteStatus.freshness]?.fill || 'rgba(148, 163, 184, 0.15)'}
             strokeWidth={2}
           />
         )}
@@ -1785,6 +1793,7 @@ const MapScreen = ({ route, navigation }) => {
               accessibilityHint="Abre o histórico cronológico no mapa"
             >
               <MaterialIcons name="history" size={21} color="#64748B" />
+              <Text style={styles.historyIconButtonText}>Histórico</Text>
             </TouchableOpacity>
           )}
 
@@ -1793,7 +1802,7 @@ const MapScreen = ({ route, navigation }) => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-          {/* 1. Autor e data da publicação; distância alinhada à direita */}
+          {/* 1. Autor e data da publicação */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingRight: historyEntries.length > 0 ? 100 : 32 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
               {ownerAvatar ? (
@@ -1820,16 +1829,6 @@ const MapScreen = ({ route, navigation }) => {
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              {selectedDistanceKm != null && (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <MaterialIcons name="near-me" size={11} color="#64748B" style={{ marginRight: 2 }} />
-                  <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
-                    {selectedDistanceKm < 1 ? '< 1 km' : `${selectedDistanceKm < 10 ? selectedDistanceKm.toFixed(1) : Math.round(selectedDistanceKm)} km`}
-                  </Text>
-                </View>
-              )}
-            </View>
           </View>
 
           {/* 2. Foto + Título + Badges de Status, Espécie e Custódia */}
@@ -1875,6 +1874,15 @@ const MapScreen = ({ route, navigation }) => {
               {resolvedItemAddress || formatItemFullAddress(selectedItem)}
             </Text>
           </View>
+
+          {selectedDistanceKm != null && (
+            <View style={styles.infoDistanceRow}>
+              <MaterialIcons name="near-me" size={13} color="#64748B" style={{ marginRight: 5 }} />
+              <Text style={styles.infoDistanceText}>
+                {selectedDistanceKm < 1 ? '< 1 km' : `${selectedDistanceKm < 10 ? selectedDistanceKm.toFixed(1) : Math.round(selectedDistanceKm)} km`} de você
+              </Text>
+            </View>
+          )}
 
           <View style={styles.infoSecondaryActions}>
             <TouchableOpacity
@@ -1944,60 +1952,6 @@ const MapScreen = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* Banner de Último Avistamento (se houver) */}
-          {Boolean(selectedItem.extra_fields?.sighting_count > 0 || selectedItem.extra_fields?.last_sighting_at) && (
-            <View style={styles.infoInlineDetail}>
-              <MaterialIcons name="visibility" size={14} color="#64748B" style={{ marginRight: 5 }} />
-              <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#475569', flex: 1 }}>
-                {selectedItem.extra_fields?.sighting_count > 1
-                  ? `${selectedItem.extra_fields.sighting_count} avistamentos registrados`
-                  : 'Avistado recentemente neste local'}
-              </Text>
-            </View>
-          )}
-
-          {/* Situação da pista: explica quando há rota e quando não há */}
-          {selectedRouteDescription && (
-            <View style={styles.infoInlineDetail}>
-              <MaterialIcons
-                name={ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.icon || 'info-outline'}
-                size={14}
-                color="#64748B"
-                style={{ marginRight: 5 }}
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.infoInlineText}>
-                  {selectedRouteDescription.title} · {selectedRouteDescription.text}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Meio de transporte da rota (o tempo é recalculado na escolha) */}
-          {selectedItemCanHaveRoute && (
-            <View style={[styles.routeModeRow, { marginTop: 0, marginBottom: 8 }]}>
-              {ROUTE_MODE_ORDER.map((key) => {
-                const mode = ROUTE_MODES[key];
-                const active = routeMode === key;
-                return (
-                  <TouchableOpacity
-                    key={key}
-                    onPress={() => handleChangeRouteMode(key)}
-                    disabled={loadingRoute}
-                    style={[styles.routeModeChip, active && styles.routeModeChipActive]}
-                    activeOpacity={0.8}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                    accessibilityLabel={`Rota ${mode.shortLabel}`}
-                  >
-                    <MaterialIcons name={mode.icon} size={15} color={active ? '#FFFFFF' : '#475569'} />
-                    <Text style={[styles.routeModeChipText, active && { color: '#FFFFFF' }]}>{mode.label}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
-
             </>
           )}
 
@@ -2035,22 +1989,59 @@ const MapScreen = ({ route, navigation }) => {
                   paddingHorizontal: 14,
                   paddingVertical: 10,
                 }}
-                // Rota já traçada: só recolhe o card de novo para mostrar o mapa
-                onPress={() => (isRouteActive ? setCardCollapsed(true) : showRoutePreview(selectedItem))}
+                // A rota ativa recolhe o card; a primeira ação abre a escolha de transporte.
+                onPress={() => (isRouteActive ? setCardCollapsed(true) : setShowRouteOptions(value => !value))}
                 disabled={loadingRoute}
                 activeOpacity={0.85}
               >
                 {loadingRoute ? (
                   <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 4 }} />
                 ) : (
-                  <MaterialIcons name={isRouteActive ? 'map' : getRouteMode(routeMode).icon} size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
+                  <MaterialIcons
+                    name={isRouteActive ? 'map' : (showRouteOptions ? 'close' : getRouteMode(routeMode).icon)}
+                    size={16}
+                    color="#FFFFFF"
+                    style={{ marginRight: 4 }}
+                  />
                 )}
                 <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
-                  {isRouteActive ? 'Ver rota' : 'Traçar rota'}
+                  {isRouteActive ? 'Ver rota' : (showRouteOptions ? 'Cancelar' : 'Traçar rota')}
                 </Text>
               </TouchableOpacity>
             )}
           </View>
+
+          {selectedItemCanHaveRoute && showRouteOptions && (
+            <View style={{ marginTop: 10 }}>
+              <Text style={{ color: '#64748B', fontSize: 11, fontWeight: '700', marginBottom: 7 }}>
+                Escolha como deseja ir
+              </Text>
+              <View style={styles.routeModeRow}>
+                {ROUTE_MODE_ORDER.map((key) => {
+                  const mode = ROUTE_MODES[key];
+                  const active = routeMode === key;
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      onPress={() => {
+                        handleChangeRouteMode(key);
+                        showRoutePreview(selectedItem, null, key);
+                      }}
+                      disabled={loadingRoute}
+                      style={[styles.routeModeChip, active && styles.routeModeChipActive]}
+                      activeOpacity={0.8}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                      accessibilityLabel={`Traçar rota ${mode.shortLabel}`}
+                    >
+                      <MaterialIcons name={mode.icon} size={15} color={active ? '#FFFFFF' : '#475569'} />
+                      <Text style={[styles.routeModeChipText, active && { color: '#FFFFFF' }]}>{mode.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
         </View>
       )}
 
@@ -2506,6 +2497,22 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '600',
   },
+  infoDistanceRow: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    marginTop: 5,
+    marginBottom: 3,
+  },
+  infoDistanceText: {
+    color: '#475569',
+    fontSize: 10.5,
+    fontWeight: '700',
+  },
   infoStatusRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2536,13 +2543,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 54,
-    width: 40,
     height: 36,
     borderRadius: 12,
     backgroundColor: '#F1F5F9',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
     zIndex: 11,
+  },
+  historyIconButtonText: {
+    color: '#475569',
+    fontSize: 11,
+    fontWeight: '700',
   },
   additionalInfoToggleText: {
     color: '#64748B',

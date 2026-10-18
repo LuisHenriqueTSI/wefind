@@ -1116,6 +1116,22 @@ const ItemDetailScreen = ({ route, navigation }) => {
             </View>
           </View>
         )}
+        {!isOwner && !isAdmin && (
+          <View style={[styles.reportPublicationFooter, { borderTopColor: colors.divider }]}>
+            <TouchableOpacity
+              style={styles.reportPublicationButton}
+              onPress={handleOpenReport}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel="Denunciar publicação"
+            >
+              <MaterialIcons name="flag" size={14} color={colors.textMuted} />
+              <Text style={[styles.reportPublicationText, { color: colors.textMuted }]}>
+                Denunciar publicação
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* 3. ADOÇÃO E CUSTÓDIA (AVISOS DISCRETOS E MODERNOS) */}
@@ -2520,6 +2536,20 @@ const styles = StyleSheet.create({
   commentContactsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   contactTag: { flexDirection: 'row', alignItems: 'center', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   contactTagText: { fontSize: 11.5, fontWeight: '700' },
+  reportPublicationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    minHeight: 28,
+    paddingHorizontal: 2,
+  },
+  reportPublicationText: { fontSize: 11.5, fontWeight: '500' },
+  reportPublicationFooter: {
+    alignItems: 'flex-end',
+    marginTop: 12,
+    paddingTop: 7,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
 
   // Modals
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.45)', justifyContent: 'center', alignItems: 'center', padding: 20 },

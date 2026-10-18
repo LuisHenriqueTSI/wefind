@@ -33,7 +33,9 @@ const AdvancedFiltersModal = ({
 
   // Avoid error if localFilters is undefined
   const safeFilters = localFilters || {};
-  const activeCount = Object.values(safeFilters).filter(v => v !== 'all').length;
+  const activeCount = Object.entries(safeFilters)
+    .filter(([key, value]) => key !== 'animalGroup' && value !== 'all')
+    .length;
 
   const handleApply = () => {
     onApply(safeFilters);
@@ -43,6 +45,7 @@ const AdvancedFiltersModal = ({
   const handleClear = () => {
     const emptyFilters = {
       animalType: 'all',
+      animalGroup: 'all',
       size: 'all',
       gender: 'all',
       age: 'all',
@@ -53,14 +56,14 @@ const AdvancedFiltersModal = ({
     setLocalFilters(emptyFilters);
   };
 
-  const renderSection = (title, field, options) => (
+  const renderSection = (title, field, options, { selectedValue, onSelect } = {}) => (
     <View style={styles.section}>
       <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
         {title}
       </Text>
       <View style={styles.pillContainer}>
         {options.map((opt) => {
-          const isSelected = (safeFilters[field] || 'all') === opt.value;
+          const isSelected = (selectedValue ?? safeFilters[field] ?? 'all') === opt.value;
           return (
             <TouchableOpacity
               key={opt.value}
@@ -75,7 +78,13 @@ const AdvancedFiltersModal = ({
                   { backgroundColor: colors.primary, borderColor: colors.primary },
                 ],
               ]}
-              onPress={() => setLocalFilters({ ...safeFilters, [field]: opt.value })}
+              onPress={() => {
+                if (onSelect) {
+                  onSelect(opt.value);
+                  return;
+                }
+                setLocalFilters({ ...safeFilters, [field]: opt.value });
+              }}
               activeOpacity={0.7}
             >
               <Text
@@ -128,18 +137,37 @@ const AdvancedFiltersModal = ({
                 { label: 'Todas', value: 'all' },
                 { label: 'Cachorro', value: 'cachorro' },
                 { label: 'Gato', value: 'gato' },
-                { label: 'Ave', value: 'ave' },
-                { label: 'Cavalo', value: 'cavalo' },
-                { label: 'Bovino', value: 'bovino' },
                 { label: 'Outro', value: 'outro' },
-              ])}
+              ], {
+                selectedValue: safeFilters.animalGroup === 'outro'
+                  ? 'outro'
+                  : (safeFilters.animalType || 'all'),
+                onSelect: value => setLocalFilters({
+                  ...safeFilters,
+                  animalType: value,
+                  animalGroup: value === 'outro' ? 'outro' : 'all',
+                }),
+              })}
+
+              {(safeFilters.animalGroup === 'outro' || safeFilters.animalType === 'outro') && (
+                renderSection('Espécies principais', 'animalType', [
+                  { label: 'Ave', value: 'ave' },
+                  { label: 'Bovino', value: 'bovino' },
+                  { label: 'Cavalo', value: 'cavalo' },
+                ], {
+                  onSelect: value => setLocalFilters({
+                    ...safeFilters,
+                    animalType: value,
+                    animalGroup: 'outro',
+                  }),
+                })
+              )}
               
               {renderSection('Porte', 'size', [
                 { label: 'Todos', value: 'all' },
                 { label: 'Pequeno', value: 'pequeno' },
                 { label: 'Médio', value: 'medio' },
                 { label: 'Grande', value: 'grande' },
-                { label: 'Gigante', value: 'gigante' },
               ])}
 
               {renderSection('Sexo', 'gender', [

@@ -226,37 +226,6 @@ const AdminScreen = ({ navigation }) => {
     );
   };
 
-  const handleToggleUserAdmin = (targetUser) => {
-    const isTargetAdmin = targetUser.adm === true || targetUser.adm === 'true' || targetUser.role === 'admin';
-    const newRole = isTargetAdmin ? 'user' : 'admin';
-
-    Alert.alert(
-      isTargetAdmin ? 'Remover Cargo Admin' : 'Promover para Admin',
-      `Deseja ${isTargetAdmin ? 'remover privilégios de administrador de' : 'conceder privilégios de super admin para'} "${targetUser.name || targetUser.email}"?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Confirmar',
-          onPress: async () => {
-            try {
-              await userService.updateUserRole(targetUser.id, newRole);
-              setUsersList((prev) =>
-                prev.map((u) =>
-                  u.id === targetUser.id
-                    ? { ...u, role: newRole, adm: !isTargetAdmin }
-                    : u
-                )
-              );
-              Alert.alert('Sucesso', `Cargo atualizado para "${newRole}" com sucesso!`);
-            } catch (error) {
-              Alert.alert('Erro', 'Não foi possível alterar o cargo: ' + error.message);
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const handleDeleteUserAdmin = (targetUser) => {
     Alert.alert(
       'Excluir Usuário (Super Admin)',
@@ -400,6 +369,14 @@ const AdminScreen = ({ navigation }) => {
     },
   ];
 
+  const adminTabs = [
+    { key: 'overview', label: 'Denúncias', count: reports.length },
+    { key: 'verifications', label: 'Comprovações', count: verifications.length },
+    { key: 'items', label: 'Publicações', count: items.length },
+    { key: 'users', label: 'Usuários', count: usersList.length },
+    { key: 'stories', label: 'Mural', count: stories.length },
+  ];
+
   const filteredItems = items.filter((i) => {
     if (!itemSearch.trim()) return true;
     const term = itemSearch.toLowerCase().trim();
@@ -434,107 +411,65 @@ const AdminScreen = ({ navigation }) => {
         />
       }
     >
-      {/* HEADER SUPER ADMIN */}
-      <View style={[styles.headingRow, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+      <View style={styles.headingRow}>
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-            <MaterialIcons name="shield" size={20} color="#D97706" />
-            <Text style={{ fontSize: 11, fontWeight: '900', color: '#D97706', letterSpacing: 0.8 }}>
-              ACESSO SUPER ADMINISTRADOR
-            </Text>
+          <View style={styles.headingTitleRow}>
+            <Text style={[styles.title, { color: colors.text }]}>Administração</Text>
+            <View style={[styles.adminBadge, { backgroundColor: colors.primaryLight }]}>
+              <MaterialIcons name="shield" size={13} color={colors.primary} />
+              <Text style={[styles.adminBadgeText, { color: colors.primary }]}>ADMIN</Text>
+            </View>
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>Controle Geral do Sistema</Text>
-          <Text style={{ fontSize: 12.5, color: colors.textSecondary, marginTop: 2 }}>
-            Gerenciamento direto de banco de dados, usuários, publicações e moderação.
+          <Text style={[styles.headingSubtitle, { color: colors.textSecondary }]}>
+            Gerencie publicações, usuários e solicitações.
           </Text>
         </View>
       </View>
 
-      {/* METRICAS CARDS */}
       <View style={styles.metricsGrid}>
         {metrics.map((metric) => (
           <View key={metric.label} style={[styles.metricCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
-            <View style={[styles.metricIcon, { backgroundColor: metric.background }]}>
-              <MaterialIcons name={metric.icon} size={20} color={metric.color} />
+            <View style={styles.metricTopRow}>
+              <MaterialIcons name={metric.icon} size={16} color={metric.color} />
+              <Text style={[styles.metricValue, { color: colors.text }]}>{metric.value}</Text>
             </View>
-            <Text style={[styles.metricValue, { color: colors.text }]}>{metric.value}</Text>
             <Text style={[styles.metricLabel, { color: colors.textSecondary }]}>{metric.label}</Text>
           </View>
         ))}
       </View>
 
-      {/* ABAS DE NAVEGAÇÃO ADMIN */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          onPress={() => setActiveTab('overview')}
-          style={[
-            styles.tabButton,
-            { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: colors.cardBorder },
-            activeTab === 'overview' && [styles.tabButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
-          ]}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabButtonText, { color: activeTab === 'overview' ? '#FFFFFF' : colors.textSecondary }]}>
-            Denúncias ({reports.length})
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => setActiveTab('verifications')}
-          style={[
-            styles.tabButton,
-            { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: colors.cardBorder },
-            activeTab === 'verifications' && [styles.tabButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
-          ]}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabButtonText, { color: activeTab === 'verifications' ? '#FFFFFF' : colors.textSecondary }]}>
-            Comprovações ({verifications.length})
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => setActiveTab('items')}
-          style={[
-            styles.tabButton,
-            { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: colors.cardBorder },
-            activeTab === 'items' && [styles.tabButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
-          ]}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabButtonText, { color: activeTab === 'items' ? '#FFFFFF' : colors.textSecondary }]}>
-            Pets ({items.length})
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => setActiveTab('users')}
-          style={[
-            styles.tabButton,
-            { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: colors.cardBorder },
-            activeTab === 'users' && [styles.tabButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
-          ]}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabButtonText, { color: activeTab === 'users' ? '#FFFFFF' : colors.textSecondary }]}>
-            Usuários ({usersList.length})
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => setActiveTab('stories')}
-          style={[
-            styles.tabButton,
-            { backgroundColor: isDark ? '#1E293B' : '#F1F5F9', borderColor: colors.cardBorder },
-            activeTab === 'stories' && [styles.tabButtonActive, { backgroundColor: colors.primary, borderColor: colors.primary }],
-          ]}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabButtonText, { color: activeTab === 'stories' ? '#FFFFFF' : colors.textSecondary }]}>
-            Mural ({stories.length})
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.tabScroller}
+        contentContainerStyle={styles.tabContainer}
+      >
+        {adminTabs.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              onPress={() => setActiveTab(tab.key)}
+              style={[
+                styles.tabButton,
+                {
+                  backgroundColor: isActive ? colors.primaryLight : 'transparent',
+                },
+              ]}
+              activeOpacity={0.8}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+            >
+              <Text style={[styles.tabButtonText, { color: isActive ? colors.primary : colors.textSecondary }]}>
+                {tab.label}
+                <Text style={[styles.tabCountText, { color: isActive ? colors.primary : colors.textMuted }]}>
+                  {' '}({tab.count})
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       {/* CONTEÚDO DA ABA 1: DENÚNCIAS */}
       {activeTab === 'overview' && (
@@ -904,16 +839,6 @@ const AdminScreen = ({ navigation }) => {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.userActionBtn, { backgroundColor: isDark ? '#1E293B' : '#FEF3C7', borderColor: '#FDE68A' }]}
-                      onPress={() => handleToggleUserAdmin(u)}
-                    >
-                      <MaterialIcons name="shield" size={14} color="#D97706" style={{ marginRight: 4 }} />
-                      <Text style={[styles.userActionBtnText, { color: '#B45309' }]}>
-                        {isTargetAdmin ? 'Revogar ADM' : 'Tornar ADM'}
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
                       style={[styles.userActionBtn, { backgroundColor: '#FEE2E2', borderColor: '#FECACA' }]}
                       onPress={() => handleDeleteUserAdmin(u)}
                     >
@@ -982,23 +907,23 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   deniedTitle: { fontSize: 20, fontWeight: '800', marginTop: 12 },
   deniedText: { fontSize: 14, textAlign: 'center', marginTop: 6 },
-  headingRow: {
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 14,
-  },
-  title: { fontSize: 20, fontWeight: '900', letterSpacing: -0.3 },
-  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
-  metricCard: { flex: 1, minWidth: '47%', padding: 12, borderRadius: 12, borderWidth: 1 },
-  metricIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  metricValue: { fontSize: 22, fontWeight: '900' },
-  metricLabel: { fontSize: 12, fontWeight: '600', marginTop: 2 },
-  tabContainer: { flexDirection: 'row', gap: 6, marginBottom: 16 },
-  tabButton: { flex: 1, paddingVertical: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1 },
-  tabButtonActive: {},
-  tabButtonText: { fontSize: 11.5, fontWeight: '800' },
-  sectionHeader: { marginBottom: 10 },
+  headingRow: { marginBottom: 16 },
+  headingTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  adminBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 6 },
+  adminBadgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.4 },
+  title: { fontSize: 21, fontWeight: '800', letterSpacing: -0.4 },
+  headingSubtitle: { fontSize: 12.5, lineHeight: 18, marginTop: 3 },
+  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
+  metricCard: { flexBasis: '48%', flexGrow: 1, minWidth: '46%', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1 },
+  metricTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 },
+  metricValue: { fontSize: 19, fontWeight: '700' },
+  metricLabel: { fontSize: 11.5, fontWeight: '600' },
+  tabScroller: { flexGrow: 0, marginHorizontal: -16, marginBottom: 16 },
+  tabContainer: { flexDirection: 'row', gap: 6, paddingHorizontal: 16 },
+  tabButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
+  tabButtonText: { fontSize: 12, fontWeight: '700' },
+  tabCountText: { fontSize: 11, fontWeight: '500' },
+  sectionHeader: { marginBottom: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '800' },
   sectionSubtitle: { fontSize: 12, marginTop: 2 },
   searchBox: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, height: 44, borderRadius: 14, borderWidth: 1, marginBottom: 12 },
@@ -1016,11 +941,11 @@ const styles = StyleSheet.create({
   reasonLabel: { fontSize: 11, fontWeight: '800', marginBottom: 2 },
   reasonText: { fontSize: 12.5, fontWeight: '700' },
   details: { fontSize: 11.5, marginTop: 4 },
-  reviewActions: { flexDirection: 'row', gap: 8, justifyContent: 'flex-end' },
-  actionOutlineBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
-  keepButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, borderWidth: 1 },
+  reviewActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end' },
+  actionOutlineBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 9, borderRadius: 11, borderWidth: 1 },
+  keepButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 11, borderWidth: 1 },
   keepText: { fontSize: 12.5, fontWeight: '800', marginLeft: 4 },
-  removeButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  removeButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 13, paddingVertical: 9, borderRadius: 11 },
   removeText: { color: '#FFFFFF', fontSize: 12.5, fontWeight: '800', marginLeft: 4 },
   adminItemCard: { padding: 12, borderRadius: 12, borderWidth: 1, marginBottom: 8 },
   adminItemTitle: { fontSize: 14, fontWeight: '800' },
@@ -1031,7 +956,7 @@ const styles = StyleSheet.create({
   userAvatarBox: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   userAvatarImg: { width: 36, height: 36 },
   adminUserName: { fontSize: 13.5, fontWeight: '800' },
-  userActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: 'transparent' },
+  userActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, paddingVertical: 9, borderRadius: 10, borderWidth: 1, borderColor: 'transparent' },
   userActionBtnText: { fontSize: 11.5, fontWeight: '800' },
   storyAdminCard: { padding: 12, borderRadius: 12, borderWidth: 1, marginBottom: 8 },
   storyIconBox: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },

@@ -237,6 +237,27 @@ Pós-Condições & Cartaz digital gerado para impressão física ou compartilham
 
 \clearpage
 
+\subsection*{Fluxo de Denúncia pela Comunidade}
+\noindent
+O usuário autenticado pode iniciar uma denúncia na ficha da publicação, selecionar o motivo (conteúdo falso ou enganoso, conteúdo inadequado, informações de contato suspeitas ou outro), acrescentar detalhes opcionais e enviar o relato para análise. A denúncia permanece pendente até a avaliação administrativa. Enquanto houver uma denúncia pendente para a mesma publicação, o mesmo usuário não pode enviar outra.
+
+\begin{figure}[H]
+    \centering
+    \caption{Envio de Denúncia de uma Publicação}
+    \label{fig:denuncia_usuario}
+    \capturaTela{imagens/04_telas_aplicativo/tela-denuncia-publicacao.png}
+    \par\vspace{0.12cm}
+    {\small Figura~\thefigure.a) Ficha da Publicação com a Ação de Denunciar}
+    \par\vspace{0.2cm}
+    \capturaTela{imagens/04_telas_aplicativo/tela-formulario-denuncia.png}
+    \par\vspace{0.12cm}
+    {\small Figura~\thefigure.b) Seleção do Motivo e Envio da Denúncia}
+    \par\vspace{0.12cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\clearpage
+
 \subsection*{Caso de Uso UC07: Manter Moderação e Denúncias}
 \noindent
 \begin{table}[H]
@@ -248,28 +269,54 @@ Identificador & UC07 \\ \hline
 Nome do Caso de Uso & Manter Moderação e Denúncias \\ \hline
 Ator Principal & Administrador \\ \hline
 Atores Secundários & Banco de Dados (PostgreSQL) \\ \hline
-Resumo & Permite ao administrador inspecionar relatórios de denúncia enviados pela comunidade sobre anúncios indevidos, aplicando sanções ou exclusão do conteúdo. \\ \hline
+Resumo & Permite ao administrador analisar denúncias enviadas pela comunidade e decidir entre manter ou excluir a publicação reportada. \\ \hline
 Pré-Condições & Conta autenticada com perfil de administrador (\textit{isAdmin = true}). \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-1. O administrador acessa a tela de moderação do sistema.\par
-2. O sistema lista os anúncios que receberam denúncias dos usuários com o respectivo motivo.\par
-3. O administrador examina as fotos, o texto e os dados do anúncio reportado.\par
-4. O administrador seleciona a ação cabível: desconsiderar denúncia, suspender anúncio ou excluir publicação.\par
-5. O sistema atualiza o status do anúncio e da denúncia conforme a decisão tomada.
+1. O administrador acessa o painel pelo menu do perfil.\par
+2. O sistema lista as denúncias pendentes com a publicação, o autor da denúncia e o motivo informado.\par
+3. O administrador abre a publicação para examinar seu conteúdo.\par
+4. O administrador escolhe manter a publicação ou excluí-la.\par
+5. O sistema encerra a denúncia; se a opção de exclusão for escolhida, remove também a publicação.
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos Alternativos:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-4a. Descarte de denúncia infundada: o administrador constata a conformidade do anúncio e arquiva o chamado mantendo a publicação ativa.\par
-4b. Solicitação de ajuste: o administrador suspende temporariamente o anúncio e solicita alterações de dados ao usuário.
+4a. Manter publicação: o administrador constata que não é necessária a remoção, encerra a denúncia e mantém o anúncio visível.\par
+4b. Excluir publicação: o administrador considera necessária a remoção e o sistema exclui o anúncio ao encerrar a denúncia.
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos de Exceção:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-4c. Infração grave ou fraude dolosa: o administrador exclui o anúncio e suspende preventivamente a conta do usuário infrator.
+5a. Falha ao atualizar a denúncia: o sistema informa que não foi possível concluir a operação.
 } \\ \hline
-Pós-Condições & Denúncia analisada e publicação mantida, suspensa ou removida conforme a decisão do administrador. \\ \hline
+Pós-Condições & Denúncia encerrada e publicação mantida ou removida conforme a decisão do administrador. \\ \hline
 \end{tabular}
 \end{table}
+
+O administrador acessa o painel pelo menu do perfil, ilustrado na Figura~\ref{fig:acesso_administracao}. Na aba ``Denúncias'', pode consultar o conteúdo reportado e escolher ``Manter'' ou ``Excluir'' (Figura~\ref{fig:painel_denuncias}). A aba ``Usuários'' apresenta a consulta de perfis e as ações disponíveis para as contas (Figura~\ref{fig:administracao_usuarios}).
+
+\begin{figure}[H]
+    \centering
+    \caption{Acesso ao Painel Administrativo}
+    \label{fig:acesso_administracao}
+    \capturaTela{imagens/04_telas_aplicativo/tela-acesso-administracao.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Painel Administrativo com as Denúncias Pendentes}
+    \label{fig:painel_denuncias}
+    \capturaTela{imagens/04_telas_aplicativo/tela-painel-denuncias-administrador.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Aba de Gerenciamento de Usuários}
+    \label{fig:administracao_usuarios}
+    \capturaTela{imagens/04_telas_aplicativo/tela-administracao-usuarios.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
 
 \clearpage
 

@@ -744,6 +744,7 @@ const HomeScreen = ({ navigation, route }) => {
     status: 'all',
     category: 'animal',
     animalType: 'all',
+    animalGroup: 'all',
     showMyItems: false,
   });
   const [searchTerm, setSearchTerm] = useState('');
@@ -1141,6 +1142,7 @@ const HomeScreen = ({ navigation, route }) => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState({
     animalType: 'all',
+    animalGroup: 'all',
     size: 'all',
     gender: 'all',
     age: 'all',
@@ -1164,6 +1166,7 @@ const HomeScreen = ({ navigation, route }) => {
   const handleResetAdvancedFilters = () => {
     setAdvancedFilters({
       animalType: 'all',
+      animalGroup: 'all',
       size: 'all',
       gender: 'all',
       age: 'all',
