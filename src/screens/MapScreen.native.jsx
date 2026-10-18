@@ -11,10 +11,11 @@ import * as sightingsService from '../services/sightings';
 import SightingModal from '../components/SightingModal';
 import PetMapMarker from '../components/PetMapMarker';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import COLORS from '../constants/theme';
 import {
   DEFAULT_ROUTE_MODE,
+  ROUTE_AREA_RADIUS_M,
+  ROUTE_MAX_HOURS,
   ROUTE_MODES,
   ROUTE_MODE_ORDER,
   buildGoogleMapsUrl,
@@ -357,7 +358,6 @@ const buildSelectedChips = (item) => {
 
 const MapScreen = ({ route, navigation }) => {
   const { user } = useAuth();
-  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const mapRef = useRef(null);
   const [items, setItems] = useState([]);
@@ -404,6 +404,7 @@ const MapScreen = ({ route, navigation }) => {
   const [routeMode, setRouteMode] = useState(DEFAULT_ROUTE_MODE);
   // Trechos desenhados (um só para a pé/bicicleta/carro; um por perna no ônibus)
   const [routeSegments, setRouteSegments] = useState([]);
+  const [activeRouteTarget, setActiveRouteTarget] = useState(null);
   // Navegação: a câmera acompanha o usuário e a rota encolhe conforme ele anda
   const [isNavigating, setIsNavigating] = useState(false);
   const [followUser, setFollowUser] = useState(true);
@@ -413,6 +414,7 @@ const MapScreen = ({ route, navigation }) => {
   const routeRequestIdRef = useRef(0);
   // Card recolhido: a tela fica limpa só com a rota ou com o histórico no mapa
   const [cardCollapsed, setCardCollapsed] = useState(false);
+  const [showAdditionalInfo, setShowAdditionalInfo] = useState(false);
   const [historyMode, setHistoryMode] = useState(false);
   const [historyNow, setHistoryNow] = useState(Date.now());
   const handledRouteParamRef = useRef(null);
@@ -421,6 +423,7 @@ const MapScreen = ({ route, navigation }) => {
   const selectedRouteStatus = useMemo(() => getRouteStatus(selectedItem), [selectedItem]);
   const selectedRouteDescription = useMemo(() => describeRouteStatus(selectedRouteStatus), [selectedRouteStatus]);
   const selectedItemCanHaveRoute = selectedRouteStatus.available;
+  const isRouteActive = routeCoordinates.length > 1 && !historyMode;
 
   // Sighting Modal State
   const [sightingModalVisible, setSightingModalVisible] = useState(false);
@@ -437,8 +440,6 @@ const MapScreen = ({ route, navigation }) => {
     () => historyEntries.filter((entry) => entry.isVisibleOnMap),
     [historyEntries]
   );
-  const isRouteActive = selectedItemCanHaveRoute && routeCoordinates.length > 1 && !historyMode;
-
   // Último meio de transporte escolhido
   useEffect(() => {
     AsyncStorage.getItem(ROUTE_MODE_STORAGE_KEY)
@@ -708,24 +709,31 @@ const MapScreen = ({ route, navigation }) => {
   }, []);
 
   const handleSelectItem = useCallback((item) => {
+    routeRequestIdRef.current += 1;
     setSelectedItem(item);
     setIsNavigating(false);
+    setLoadingRoute(false);
     setRouteSegments([]);
     setRouteCoordinates([]);
     setRouteInfo(null);
+    setActiveRouteTarget(null);
     setNavProgress(null);
     routeEndpointsRef.current = null;
+    navTargetRef.current = null;
     setCardCollapsed(false);
+    setShowAdditionalInfo(false);
     setHistoryMode(false);
   }, []);
 
   const clearRoute = useCallback(() => {
     routeRequestIdRef.current += 1;
     routeEndpointsRef.current = null;
+    navTargetRef.current = null;
     setIsNavigating(false);
     setRouteSegments([]);
     setRouteCoordinates([]);
     setRouteInfo(null);
+    setActiveRouteTarget(null);
     setNavProgress(null);
     setLoadingRoute(false);
   }, []);
@@ -753,6 +761,7 @@ const MapScreen = ({ route, navigation }) => {
     const status = getRouteStatus(item);
     if (!status.available) return;
 
+    setActiveRouteTarget(status.area);
     setHistoryMode(false);
     setCardCollapsed(true);
 
@@ -772,6 +781,7 @@ const MapScreen = ({ route, navigation }) => {
 
     if (!current) {
       // Sem a localização do usuário, o próprio Google Maps calcula o caminho
+      setActiveRouteTarget(null);
       setCardCollapsed(false);
       openInGoogleMaps(item, modeKey);
       return;
@@ -779,6 +789,63 @@ const MapScreen = ({ route, navigation }) => {
 
     await calculateRoute(current, status.area, true, modeKey);
   }, [userCoords, routeMode, calculateRoute, openInGoogleMaps]);
+
+  const showSightingRoute = useCallback(async (entry) => {
+    if (
+      !entry?.isVisibleOnMap
+      || entry.isPrivate
+      || entry.ageHours > ROUTE_MAX_HOURS
+      || !Number.isFinite(entry.latitude)
+      || !Number.isFinite(entry.longitude)
+    ) return;
+
+    const target = {
+      latitude: entry.latitude,
+      longitude: entry.longitude,
+      radiusM: entry.radiusM || ROUTE_AREA_RADIUS_M,
+      freshness: entry.freshness,
+      isSighting: true,
+      label: `avistamento de ${entry.userName}`,
+    };
+    setActiveRouteTarget(target);
+    setHistoryMode(false);
+    setCardCollapsed(true);
+
+    let current = userCoords;
+    if (!current) {
+      try {
+        const { status: permission } = await Location.getForegroundPermissionsAsync();
+        if (permission === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          if (loc?.coords) {
+            current = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
+            setUserCoords(current);
+          }
+        }
+      } catch (error) {
+        console.warn('[MapScreen] Não foi possível obter a localização para a rota:', error?.message);
+      }
+    }
+
+    if (!current) {
+      setActiveRouteTarget(null);
+      setCardCollapsed(false);
+      Linking.openURL(buildGoogleMapsUrl(target, routeMode)).catch(() => {
+        Alert.alert('Não foi possível abrir o Google Maps', 'Verifique se há um aplicativo de mapas instalado.');
+      });
+      return;
+    }
+
+    await calculateRoute(current, target, true, routeMode);
+  }, [userCoords, routeMode, calculateRoute]);
+
+  const openCurrentRouteInGoogleMaps = useCallback((modeKey = routeMode) => {
+    const target = activeRouteTarget || getRouteStatus(selectedItem).area;
+    if (!target) return;
+    Linking.openURL(buildGoogleMapsUrl(target, modeKey)).catch(() => {
+      Alert.alert('Não foi possível abrir o Google Maps', 'Verifique se há um aplicativo de mapas instalado.');
+    });
+  }, [activeRouteTarget, selectedItem, routeMode]);
 
   // Troca o meio de transporte e recalcula a rota (e o tempo) já traçada.
   // Navegando, recalcula a partir de onde o usuário está agora.
@@ -795,8 +862,8 @@ const MapScreen = ({ route, navigation }) => {
   // Inicia a rota traçada: a câmera acompanha o usuário e a rota é atualizada
   // conforme ele anda, até chegar na área onde o pet foi visto.
   const startNavigation = useCallback(async () => {
-    const status = getRouteStatus(selectedItem);
-    if (!status.available || routeCoordinates.length < 2) return;
+    const target = activeRouteTarget || routeEndpointsRef.current?.to;
+    if (!target || routeCoordinates.length < 2) return;
 
     let permission = 'denied';
     try {
@@ -808,7 +875,7 @@ const MapScreen = ({ route, navigation }) => {
       return;
     }
 
-    navTargetRef.current = status.area;
+    navTargetRef.current = target;
     lastRerouteAtRef.current = Date.now();
     setCardCollapsed(true);
     setFollowUser(true);
@@ -821,7 +888,7 @@ const MapScreen = ({ route, navigation }) => {
       pitch: 45,
       zoom: 17.5,
     }, { duration: 700 });
-  }, [selectedItem, routeCoordinates, userCoords]);
+  }, [activeRouteTarget, routeCoordinates, userCoords]);
 
   // Botão de centralizar durante a navegação: volta a seguir o usuário
   const resumeFollowingUser = useCallback(() => {
@@ -854,7 +921,9 @@ const MapScreen = ({ route, navigation }) => {
       setCardCollapsed(false);
       Alert.alert(
         'Você chegou à área',
-        'O pet foi visto por aqui. Procure com calma nos arredores e chame pelo nome. Viu o pet? Registre em "Vi o Pet".'
+        target.isSighting
+          ? 'Você chegou à área aproximada do avistamento. Procure com calma nos arredores. Viu o pet? Registre em "Vi o Pet".'
+          : 'O pet foi visto por aqui. Procure com calma nos arredores e chame pelo nome. Viu o pet? Registre em "Vi o Pet".'
       );
       return;
     }
@@ -1357,12 +1426,15 @@ const MapScreen = ({ route, navigation }) => {
         }}
       >
         {/* Área de busca da pista (nunca o ponto exato) */}
-        {selectedRouteStatus.area && !historyMode && (
+        {(activeRouteTarget || selectedRouteStatus.area) && !historyMode && (
           <Circle
-            center={{ latitude: selectedRouteStatus.area.latitude, longitude: selectedRouteStatus.area.longitude }}
-            radius={selectedRouteStatus.area.radiusM}
-            strokeColor={ROUTE_TONE_COLORS[selectedRouteStatus.freshness]?.stroke || '#94A3B8'}
-            fillColor={ROUTE_TONE_COLORS[selectedRouteStatus.freshness]?.fill || 'rgba(148, 163, 184, 0.15)'}
+            center={{
+              latitude: (activeRouteTarget || selectedRouteStatus.area).latitude,
+              longitude: (activeRouteTarget || selectedRouteStatus.area).longitude,
+            }}
+            radius={(activeRouteTarget || selectedRouteStatus.area).radiusM}
+            strokeColor={ROUTE_TONE_COLORS[activeRouteTarget?.freshness || selectedRouteStatus.freshness]?.stroke || '#94A3B8'}
+            fillColor={ROUTE_TONE_COLORS[activeRouteTarget?.freshness || selectedRouteStatus.freshness]?.fill || 'rgba(148, 163, 184, 0.15)'}
             strokeWidth={2}
           />
         )}
@@ -1424,7 +1496,9 @@ const MapScreen = ({ route, navigation }) => {
         const distanceText = (isNavigating && navProgress?.distanceText) || routeInfo.distanceText;
         const subtitle = routeInfo.note
           || (transit ? [transit.departureText, transit.arrivalText].filter(Boolean).join(' · ') : '')
-          || (routeInfo.approximate ? 'Distância em linha reta até a área' : `Até a área onde ${selectedItem?.title || 'o pet'} foi visto`);
+          || (activeRouteTarget?.isSighting
+            ? `Até ${activeRouteTarget.label}`
+            : (routeInfo.approximate ? 'Distância em linha reta até a área' : `Até a área onde ${selectedItem?.title || 'o pet'} foi visto`));
         return (
           <View style={[styles.activeRouteBanner, { top: cardCollapsed ? Math.max(insets.top + 8, 44) : Math.max(insets.top + 64, 100) }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -1448,6 +1522,18 @@ const MapScreen = ({ route, navigation }) => {
               </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                {activeRouteTarget?.isSighting && historyEntries.length > 0 && (
+                  <TouchableOpacity
+                    onPress={showSightingHistory}
+                    style={[styles.routeBannerIconBtn, { flexDirection: 'row', alignItems: 'center', gap: 3 }]}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel="Escolher outro avistamento para a rota"
+                  >
+                    <MaterialIcons name="history" size={16} color="#475569" />
+                    <Text style={{ color: '#475569', fontSize: 10.5, fontWeight: '700' }}>Trocar</Text>
+                  </TouchableOpacity>
+                )}
                 {isNavigating ? (
                   <TouchableOpacity
                     onPress={stopNavigation}
@@ -1471,7 +1557,7 @@ const MapScreen = ({ route, navigation }) => {
                       <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 11.5 }}>Iniciar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      onPress={() => openInGoogleMaps(selectedItem, routeInfo.modeKey)}
+                      onPress={() => openCurrentRouteInGoogleMaps(routeInfo.modeKey)}
                       style={styles.routeBannerIconBtn}
                       accessibilityLabel="Abrir no Google Maps"
                     >
@@ -1602,41 +1688,65 @@ const MapScreen = ({ route, navigation }) => {
             const tone = entry.isVisibleOnMap
               ? ROUTE_TONE_COLORS[entry.freshness] || ROUTE_TONE_COLORS.cold
               : ROUTE_TONE_COLORS.cold;
+            const canRouteToSighting = entry.isVisibleOnMap
+              && !entry.isPrivate
+              && entry.ageHours <= ROUTE_MAX_HOURS;
             return (
-              <TouchableOpacity
+              <View
                 key={`history-chip-${entry.id}`}
                 style={[styles.historyChip, !entry.isVisibleOnMap && { opacity: 0.72 }]}
-                activeOpacity={0.85}
-                disabled={!entry.isVisibleOnMap}
-                onPress={() => mapRef.current?.animateToRegion({
-                  latitude: entry.latitude,
-                  longitude: entry.longitude,
-                  latitudeDelta: 0.008,
-                  longitudeDelta: 0.008,
-                }, 500)}
-                accessibilityLabel={`${index + 1}. ${formatSightingAge(entry.ageHours)}, publicado por ${entry.userName}${entry.isArchived ? ', avistamento arquivado, área oculta do mapa' : entry.hasLocation ? '' : ', localização indisponível'}`}
               >
-                <View style={[styles.historyChipDot, { backgroundColor: tone.stroke }]}>
-                  <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800' }}>{index + 1}</Text>
-                </View>
-                <View style={{ maxWidth: 160 }}>
-                  <Text style={styles.historyChipTitle}>{formatSightingAge(entry.ageHours)}</Text>
-                  <Text style={styles.historyChipText} numberOfLines={1}>
-                    {entry.userName}{entry.isPrivate ? ' · em casa' : ''}
-                  </Text>
-                  <Text style={styles.historyChipDate} numberOfLines={1}>
-                    {entry.locationLabel}
-                  </Text>
-                  <Text style={styles.historyChipDate} numberOfLines={1}>
-                    {formatSightingDateTime(entry.createdAt)}
-                  </Text>
-                  {!entry.isVisibleOnMap && (
-                    <Text style={styles.historyChipDate}>
-                      {entry.isArchived ? 'Arquivado · área oculta do mapa' : 'Localização indisponível'}
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+                  activeOpacity={0.85}
+                  disabled={!entry.isVisibleOnMap}
+                  onPress={() => mapRef.current?.animateToRegion({
+                    latitude: entry.latitude,
+                    longitude: entry.longitude,
+                    latitudeDelta: 0.008,
+                    longitudeDelta: 0.008,
+                  }, 500)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${index + 1}. ${formatSightingAge(entry.ageHours)}, publicado por ${entry.userName}${entry.isArchived ? ', avistamento arquivado, área oculta do mapa' : entry.hasLocation ? '' : ', localização indisponível'}`}
+                >
+                  <View style={[styles.historyChipDot, { backgroundColor: tone.stroke }]}>
+                    <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '800' }}>{index + 1}</Text>
+                  </View>
+                  <View style={{ maxWidth: 160 }}>
+                    <Text style={styles.historyChipTitle}>{formatSightingAge(entry.ageHours)}</Text>
+                    <Text style={styles.historyChipText} numberOfLines={1}>
+                      {entry.userName}{entry.isPrivate ? ' · em casa' : ''}
                     </Text>
-                  )}
-                </View>
-              </TouchableOpacity>
+                    <Text style={styles.historyChipDate} numberOfLines={1}>
+                      {entry.locationLabel}
+                    </Text>
+                    <Text style={styles.historyChipDate} numberOfLines={1}>
+                      {formatSightingDateTime(entry.createdAt)}
+                    </Text>
+                    {!entry.isVisibleOnMap && (
+                      <Text style={styles.historyChipDate}>
+                        {entry.isArchived ? 'Arquivado · área oculta do mapa' : 'Localização indisponível'}
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+                {canRouteToSighting && (
+                  <TouchableOpacity
+                    style={styles.historyRouteButton}
+                    onPress={() => showSightingRoute(entry)}
+                    disabled={loadingRoute}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Traçar rota até o avistamento publicado por ${entry.userName}`}
+                  >
+                    <MaterialIcons name="directions" size={16} color="#FFFFFF" />
+                    <Text style={styles.historyRouteButtonText}>Rota</Text>
+                  </TouchableOpacity>
+                )}
+                {entry.isVisibleOnMap && !entry.isPrivate && entry.ageHours > ROUTE_MAX_HOURS && (
+                  <Text style={styles.historyRouteUnavailable}>Sem rota</Text>
+                )}
+              </View>
             );
           })}
         </ScrollView>
@@ -1665,9 +1775,26 @@ const MapScreen = ({ route, navigation }) => {
           <TouchableOpacity style={styles.infoClose} onPress={dismissCard} activeOpacity={0.7}>
             <MaterialIcons name="close" size={18} color="#64748B" />
           </TouchableOpacity>
+          {historyEntries.length > 0 && (
+            <TouchableOpacity
+              style={styles.historyIconButton}
+              onPress={showSightingHistory}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Ver histórico de avistamentos ativos e arquivados, ${historyEntries.length} registros`}
+              accessibilityHint="Abre o histórico cronológico no mapa"
+            >
+              <MaterialIcons name="history" size={21} color="#64748B" />
+            </TouchableOpacity>
+          )}
 
-          {/* 1. Header do Tutor + Data + Distância */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingRight: 32 }}>
+          <ScrollView
+            style={styles.infoCardContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+          {/* 1. Autor e data da publicação; distância alinhada à direita */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, paddingRight: historyEntries.length > 0 ? 100 : 32 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
               {ownerAvatar ? (
                 <Image
@@ -1681,28 +1808,27 @@ const MapScreen = ({ route, navigation }) => {
                   </Text>
                 </View>
               )}
-              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#1E293B' }} numberOfLines={1}>
-                {ownerName}
-              </Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#1E293B' }} numberOfLines={1}>
+                  {ownerName}
+                </Text>
+                {selectedDateFormatted ? (
+                  <Text style={{ fontSize: 10.5, color: '#64748B', fontWeight: '500' }} numberOfLines={1}>
+                    {selectedDateFormatted}
+                  </Text>
+                ) : null}
+              </View>
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               {selectedDistanceKm != null && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(5, 150, 105, 0.15)' : COLORS.primaryLight, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-                  <MaterialIcons name="near-me" size={11} color={colors.primary} style={{ marginRight: 2 }} />
-                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: colors.primaryDark }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <MaterialIcons name="near-me" size={11} color="#64748B" style={{ marginRight: 2 }} />
+                  <Text style={{ fontSize: 10.5, fontWeight: '600', color: '#64748B' }}>
                     {selectedDistanceKm < 1 ? '< 1 km' : `${selectedDistanceKm < 10 ? selectedDistanceKm.toFixed(1) : Math.round(selectedDistanceKm)} km`}
                   </Text>
                 </View>
               )}
-              {selectedDateFormatted ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <MaterialIcons name="event" size={12} color="#94A3B8" style={{ marginRight: 2 }} />
-                  <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '600' }}>
-                    {selectedDateFormatted}
-                  </Text>
-                </View>
-              ) : null}
             </View>
           </View>
 
@@ -1715,7 +1841,7 @@ const MapScreen = ({ route, navigation }) => {
                 resizeMode="cover"
               />
             ) : (
-              <View style={{ width: 72, height: 72, borderRadius: 14, marginRight: 12, backgroundColor: statusColor + '18', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 72, height: 72, borderRadius: 14, marginRight: 12, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
                 <MaterialIcons name="pets" size={30} color={statusColor} />
               </View>
             )}
@@ -1725,59 +1851,13 @@ const MapScreen = ({ route, navigation }) => {
                 {selectedItem.title || 'Animal'}
               </Text>
 
-              {/* Badges Flutuantes */}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
-                {/* Status */}
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: statusColor + '18',
-                  borderColor: statusColor + '40',
-                  borderWidth: 1,
-                  borderRadius: 7,
-                  paddingHorizontal: 6,
-                  paddingVertical: 2,
-                }}>
-                  <Text style={{ color: statusColor, fontWeight: '800', fontSize: 10.5 }}>
-                    {statusLabel}
-                  </Text>
-                </View>
-
-                {/* Espécie */}
+              <View style={styles.infoStatusRow}>
+                <Text style={{ color: statusColor, fontWeight: '700', fontSize: 11 }}>
+                  {statusLabel}
+                </Text>
                 {selectedSpecies ? (
-                  <View style={{
-                    backgroundColor: '#F1F5F9',
-                    borderRadius: 7,
-                    paddingHorizontal: 6,
-                    paddingVertical: 2,
-                    borderWidth: 1,
-                    borderColor: '#E2E8F0',
-                  }}>
-                    <Text style={{ color: '#475569', fontWeight: '700', fontSize: 10.5 }}>
-                      {selectedSpecies}
-                    </Text>
-                  </View>
+                  <Text style={styles.infoSpecies}>{selectedSpecies}</Text>
                 ) : null}
-
-                {/* Status na Rua: Perdido ou Visto na Rua */}
-                {selectedItem.status === 'lost' && (
-                  <View style={{ backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1, borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 }}>
-                    <Text style={{ color: '#DC2626', fontWeight: '700', fontSize: 10.5 }}>Perdido na rua</Text>
-                  </View>
-                )}
-
-                {/* Custódia (se encontrado e não for adoção) */}
-                {!isAdoption && selectedItem.status === 'found' && (
-                  selectedItem.extra_fields?.found_custody === 'spotted' ? (
-                    <View style={{ backgroundColor: '#FEF3C7', borderColor: '#FDE68A', borderWidth: 1, borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 }}>
-                      <Text style={{ color: '#B45309', fontWeight: '700', fontSize: 10.5 }}>Visto na rua</Text>
-                    </View>
-                  ) : (
-                    <View style={{ backgroundColor: '#DCFCE7', borderColor: '#BBF7D0', borderWidth: 1, borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 }}>
-                      <Text style={{ color: '#15803D', fontWeight: '700', fontSize: 10.5 }}>Em lar temporário</Text>
-                    </View>
-                  )
-                )}
               </View>
             </View>
           </View>
@@ -1789,25 +1869,42 @@ const MapScreen = ({ route, navigation }) => {
             </Text>
           ) : null}
 
+          <View style={styles.infoLocationRow}>
+            <MaterialIcons name="place" size={15} color="#64748B" style={{ marginRight: 5 }} />
+            <Text style={styles.infoLocationText} numberOfLines={1}>
+              {resolvedItemAddress || formatItemFullAddress(selectedItem)}
+            </Text>
+          </View>
+
+          <View style={styles.infoSecondaryActions}>
+            <TouchableOpacity
+              style={styles.additionalInfoToggle}
+              onPress={() => setShowAdditionalInfo((visible) => !visible)}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showAdditionalInfo }}
+            >
+              <Text style={styles.additionalInfoToggleText}>
+                {showAdditionalInfo ? 'Menos informações' : 'Mais informações'}
+              </Text>
+              <MaterialIcons name={showAdditionalInfo ? 'expand-less' : 'expand-more'} size={18} color="#64748B" />
+            </TouchableOpacity>
+          </View>
+
+          {showAdditionalInfo && (
+            <>
+          {!isAdoption && selectedItem.status === 'found' && (
+            <Text style={styles.additionalInfoNote}>
+              {selectedItem.extra_fields?.found_custody === 'spotted' ? 'Visto na rua' : 'Em lar temporário'}
+            </Text>
+          )}
           {/* 4. Chips de Atributos Minimalistas com Emojis e Bolinha de Cor */}
           {selectedChips.length > 0 && (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 8 }}>
+            <View style={styles.infoAttributes}>
               {selectedChips.map((chip) => {
                 if (chip.isColor) {
                   return (
-                    <View
-                      key={chip.key}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        backgroundColor: '#F8FAFC',
-                        borderRadius: 7,
-                        paddingHorizontal: 7,
-                        paddingVertical: 2.5,
-                        borderWidth: 1,
-                        borderColor: '#E2E8F0',
-                      }}
-                    >
+                    <View key={chip.key} style={styles.infoAttribute}>
                       <View
                         style={{
                           width: 8,
@@ -1825,79 +1922,8 @@ const MapScreen = ({ route, navigation }) => {
                     </View>
                   );
                 }
-
-                if (chip.isCollar) {
-                  return (
-                    <View
-                      key={chip.key}
-                      style={{
-                        backgroundColor: isDark ? 'rgba(5, 150, 105, 0.15)' : COLORS.primaryLight,
-                        borderRadius: 7,
-                        paddingHorizontal: 7,
-                        paddingVertical: 2.5,
-                        borderWidth: 1,
-                        borderColor: isDark ? colors.primary : COLORS.primaryBorder,
-                      }}
-                    >
-                      <Text style={{ fontSize: 11, color: colors.primaryDark, fontWeight: '600' }}>
-                        {chip.text}
-                      </Text>
-                    </View>
-                  );
-                }
-
-                if (chip.isNeutered) {
-                  return (
-                    <View
-                      key={chip.key}
-                      style={{
-                        backgroundColor: '#ECFDF5',
-                        borderRadius: 7,
-                        paddingHorizontal: 7,
-                        paddingVertical: 2.5,
-                        borderWidth: 1,
-                        borderColor: '#A7F3D0',
-                      }}
-                    >
-                      <Text style={{ fontSize: 11, color: '#1E3E24', fontWeight: '600' }}>
-                        {chip.text}
-                      </Text>
-                    </View>
-                  );
-                }
-
-                if (chip.isTrait) {
-                  return (
-                    <View
-                      key={chip.key}
-                      style={{
-                        backgroundColor: '#FDF2F8',
-                        borderRadius: 7,
-                        paddingHorizontal: 7,
-                        paddingVertical: 2.5,
-                        borderWidth: 1,
-                        borderColor: '#FBCFE8',
-                      }}
-                    >
-                      <Text style={{ fontSize: 11, color: '#BE185D', fontWeight: '700' }}>
-                        {chip.text}
-                      </Text>
-                    </View>
-                  );
-                }
-
                 return (
-                  <View
-                    key={chip.key}
-                    style={{
-                      backgroundColor: '#F8FAFC',
-                      borderRadius: 7,
-                      paddingHorizontal: 7,
-                      paddingVertical: 2.5,
-                      borderWidth: 1,
-                      borderColor: '#E2E8F0',
-                    }}
-                  >
+                  <View key={chip.key} style={styles.infoAttribute}>
                     <Text style={{ fontSize: 11, color: '#475569', fontWeight: '600' }}>
                       {chip.text}
                     </Text>
@@ -1909,18 +1935,9 @@ const MapScreen = ({ route, navigation }) => {
 
           {/* 5. Banner de Recompensa (se houver) */}
           {activeReward && (
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: '#FEF3C7',
-              borderColor: '#FCD34D',
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              marginBottom: 8,
-            }}>
-              <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#B45309' }}>
+            <View style={styles.infoInlineDetail}>
+              <MaterialIcons name="card-giftcard" size={14} color="#64748B" style={{ marginRight: 5 }} />
+              <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#475569' }}>
                 {activeReward.amount ? `Recompensa: R$ ${parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Recompensa oferecida'}
                 {activeReward.description ? ` • ${activeReward.description}` : ''}
               </Text>
@@ -1929,19 +1946,9 @@ const MapScreen = ({ route, navigation }) => {
 
           {/* Banner de Último Avistamento (se houver) */}
           {Boolean(selectedItem.extra_fields?.sighting_count > 0 || selectedItem.extra_fields?.last_sighting_at) && (
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: '#FEF3C7',
-              borderColor: '#FDE68A',
-              borderWidth: 1,
-              borderRadius: 8,
-              paddingHorizontal: 8,
-              paddingVertical: 4.5,
-              marginBottom: 8,
-            }}>
-              <MaterialIcons name="visibility" size={14} color="#D97706" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#B45309', flex: 1 }}>
+            <View style={styles.infoInlineDetail}>
+              <MaterialIcons name="visibility" size={14} color="#64748B" style={{ marginRight: 5 }} />
+              <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#475569', flex: 1 }}>
                 {selectedItem.extra_fields?.sighting_count > 1
                   ? `${selectedItem.extra_fields.sighting_count} avistamentos registrados`
                   : 'Avistado recentemente neste local'}
@@ -1949,42 +1956,19 @@ const MapScreen = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* 6. Endereço Completo do Animal Visto na Rua */}
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: COLORS.primaryLight,
-            padding: 8,
-            borderRadius: 10,
-            borderWidth: 1,
-            borderColor: COLORS.primaryBorder,
-            marginBottom: 8,
-          }}>
-            <MaterialIcons name="place" size={17} color={COLORS.primary} style={{ marginRight: 6 }} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 10.5, fontWeight: '800', color: COLORS.primary, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 1 }}>
-                Endereço do animal visto na rua
-              </Text>
-              <Text style={{ fontSize: 12, color: '#1E293B', fontWeight: '700' }} numberOfLines={2}>
-                {resolvedItemAddress || formatItemFullAddress(selectedItem)}
-              </Text>
-            </View>
-          </View>
-
           {/* Situação da pista: explica quando há rota e quando não há */}
           {selectedRouteDescription && (
-            <View style={[styles.clueCard, { backgroundColor: ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.bg, borderColor: ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.border }]}>
+            <View style={styles.infoInlineDetail}>
               <MaterialIcons
                 name={ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.icon || 'info-outline'}
-                size={16}
-                color={ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.text}
-                style={{ marginRight: 6, marginTop: 1 }}
+                size={14}
+                color="#64748B"
+                style={{ marginRight: 5 }}
               />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.clueTitle, { color: ROUTE_TONE_COLORS[selectedRouteDescription.tone]?.text }]}>
-                  {selectedRouteDescription.title}
+                <Text style={styles.infoInlineText}>
+                  {selectedRouteDescription.title} · {selectedRouteDescription.text}
                 </Text>
-                <Text style={styles.clueText}>{selectedRouteDescription.text}</Text>
               </View>
             </View>
           )}
@@ -2014,48 +1998,28 @@ const MapScreen = ({ route, navigation }) => {
             </View>
           )}
 
-          {/* Histórico: círculos dos avistamentos anteriores no mapa */}
-          {historyEntries.length > 0 && (
-            <TouchableOpacity
-              style={styles.historyButton}
-              onPress={showSightingHistory}
-              activeOpacity={0.85}
-              accessibilityLabel="Ver histórico de avistamentos"
-            >
-              <MaterialIcons name="history" size={16} color="#B45309" style={{ marginRight: 5 }} />
-              <Text style={styles.historyButtonText}>
-                Ver histórico de avistamentos ({historyEntries.length})
-              </Text>
-            </TouchableOpacity>
+            </>
           )}
+
+          </ScrollView>
 
           {/* 7. Ações: Ver Detalhes, Informar Avistamento e Rota */}
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
             <TouchableOpacity
-              style={[styles.detailsButton, { flex: 1, marginTop: 0, paddingVertical: 10 }]}
+              style={styles.detailsButton}
               onPress={() => navigation.navigate('ItemDetail', { itemId: selectedItem.id })}
               activeOpacity={0.85}
             >
-              <Text style={[styles.detailsButtonText, { fontSize: 12.5 }]}>Detalhes</Text>
+              <Text style={styles.detailsButtonText}>Detalhes</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#FEF3C7',
-                borderColor: '#FDE68A',
-                borderWidth: 1,
-                borderRadius: 12,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
-              }}
+              style={styles.sightingAction}
               onPress={() => handleOpenSightingModal(selectedItem)}
               activeOpacity={0.85}
             >
-              <MaterialIcons name="add-location-alt" size={16} color="#D97706" style={{ marginRight: 4 }} />
-              <Text style={{ fontSize: 12, fontWeight: '800', color: '#B45309' }}>
+              <MaterialIcons name="add-location-alt" size={16} color="#64748B" style={{ marginRight: 4 }} />
+              <Text style={styles.sightingActionText}>
                 Vi o pet
               </Text>
             </TouchableOpacity>
@@ -2322,25 +2286,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1,
   },
-  clueCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 9,
-    paddingVertical: 7,
-    marginBottom: 8,
-  },
-  clueTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  clueText: {
-    fontSize: 11,
-    color: '#475569',
-    lineHeight: 15,
-    marginTop: 1,
-  },
   activeRouteBanner: {
     position: 'absolute',
     left: 16,
@@ -2432,22 +2377,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#475569',
   },
-  historyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 7,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-    backgroundColor: '#FFFBEB',
-    marginBottom: 6,
-  },
-  historyButtonText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#B45309',
-  },
   historyStrip: {
     position: 'absolute',
     left: 0,
@@ -2462,7 +2391,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 7,
-    maxWidth: 210,
+    maxWidth: 300,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     shadowColor: '#000',
@@ -2493,6 +2422,25 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     fontWeight: '500',
     color: '#64748B',
+  },
+  historyRouteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: COLORS.primary,
+    borderRadius: 9,
+    paddingHorizontal: 8,
+    paddingVertical: 7,
+  },
+  historyRouteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 10.5,
+    fontWeight: '800',
+  },
+  historyRouteUnavailable: {
+    color: '#64748B',
+    fontSize: 10,
+    fontWeight: '700',
   },
   centerLocationButton: {
     position: 'absolute',
@@ -2529,6 +2477,7 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     bottom: 22,
+    maxHeight: '78%',
     padding: 16,
     borderRadius: 18,
     backgroundColor: '#FFFFFF',
@@ -2541,12 +2490,102 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     zIndex: 10,
   },
+  infoCardContent: {
+    flexGrow: 0,
+    maxHeight: 280,
+    paddingTop: 1,
+  },
+  infoLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  infoLocationText: {
+    flex: 1,
+    color: '#64748B',
+    fontSize: 11.5,
+    fontWeight: '600',
+  },
+  infoStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  infoSpecies: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  infoSecondaryActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    marginTop: 8,
+  },
+  additionalInfoToggle: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingRight: 10,
+  },
+  historyIconButton: {
+    position: 'absolute',
+    top: 8,
+    right: 54,
+    width: 40,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 11,
+  },
+  additionalInfoToggleText: {
+    color: '#64748B',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  infoAttributes: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: 10,
+    rowGap: 6,
+    marginBottom: 8,
+  },
+  infoAttribute: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoInlineDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 7,
+  },
+  infoInlineText: {
+    color: '#475569',
+    fontSize: 11,
+    fontWeight: '600',
+    lineHeight: 15,
+  },
+  additionalInfoNote: {
+    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 7,
+  },
   infoClose: {
     position: 'absolute',
     top: 10,
     right: 10,
-    padding: 6,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
     backgroundColor: '#F1F5F9',
     zIndex: 10,
   },
@@ -2558,17 +2597,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 6,
-    paddingVertical: 11,
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 3,
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  detailsButtonText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13.5 },
+  detailsButtonText: { color: '#475569', fontWeight: '700', fontSize: 12 },
+  sightingAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  sightingActionText: {
+    color: '#475569',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   callout: { width: 190, padding: 4 },
   calloutTitle: { color: '#111827', fontWeight: '700', fontSize: 15 },
   calloutStatus: { color: COLORS.primary, marginTop: 3 },

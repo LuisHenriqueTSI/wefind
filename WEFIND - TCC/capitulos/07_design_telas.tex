@@ -107,6 +107,30 @@ O fluxo de entrada foi planejado para atender tanto usuários que já possuem ca
 
 A tela de login reúne os campos de e-mail e senha, a recuperação de credenciais, o acesso com a conta Google e a possibilidade de conhecer o aplicativo antes do cadastro. A Figura~\ref{fig:telas_autenticacao}.b apresenta essa opção de apresentação, que permite ao visitante compreender a finalidade do WeFIND e consultar suas principais funções antes de criar uma conta. Assim, as duas telas formam um fluxo inicial simples. O usuário pode entrar com uma conta existente ou conhecer a proposta do aplicativo antes de prosseguir para o cadastro. Essa organização reduz o número de decisões iniciais e orienta o usuário para as ações essenciais.
 
+Mesmo sem autenticação, o visitante pode consultar publicações no feed e visualizar no mapa animais perdidos e avistamentos, como mostra a Figura~\ref{fig:modo_visitante}. Na captura do mapa, a permissão de localização já havia sido concedida; por isso, a solicitação do sistema não aparece. Quando ainda não há autorização, o aplicativo a solicita ao acessar o mapa, como mostra a Figura~\ref{fig:tela_mapa}.a. A navegação permite conhecer informações básicas dos animais antes de criar uma conta; ações como publicar, comentar ou enviar mensagens dependem de autenticação.
+
+\begin{figure}[H]
+    \centering
+    \caption{Consulta de Publicações no Modo Visitante}
+    \label{fig:modo_visitante}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imagens/04_telas_aplicativo/tela-visitante-feed.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.a) Feed de Publicações}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imagens/04_telas_aplicativo/tela-visitante-mapa.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.b) Mapa de Animais}
+    \end{minipage}
+    \par\vspace{0.15cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
 Quando o visitante decide continuar, o fluxo conduz ao cadastro ou à recuperação da conta, conforme sua situação. A Figura~\ref{fig:tela_cadastro_recuperacao} apresenta o cadastro, a confirmação do número de WhatsApp e a recuperação da conta, mostrando como o aplicativo mantém esses procedimentos em telas simples.
 
 \begin{figure}[H]
@@ -140,8 +164,6 @@ Quando o visitante decide continuar, o fluxo conduz ao cadastro ou à recuperaç
 
 Na Figura~\ref{fig:tela_cadastro_recuperacao}.a, o usuário informa os dados necessários para criar o perfil e escolhe se deseja receber avisos pelo WhatsApp. Na Figura~\ref{fig:tela_cadastro_recuperacao}.b, digita o código de seis dígitos enviado ao número informado, que aparece parcialmente oculto na tela. Na Figura~\ref{fig:tela_cadastro_recuperacao}.c, solicita a redefinição da senha. Separar os dois fluxos evita misturar o cadastro inicial com a manutenção da conta, e ambos usam mensagens objetivas e campos adequados ao celular.
 
-Mesmo sem autenticação imediata, o modo visitante permite consultar publicações e localizar informações básicas de animais perdidos ou encontrados. Para preservar a segurança das interações, ações como publicar, comentar ou enviar mensagens dependem de autenticação. Essa alternativa de consulta não exige uma figura própria.
-
 A localização é um recurso central do sistema, pois permite relacionar publicações, avistamentos e distâncias. Antes de exibir os resultados, o aplicativo solicita a permissão necessária e, em seguida, oferece recursos para consultar os pontos registrados. A Figura~\ref{fig:tela_mapa} reúne essas etapas, incluindo a consulta de rota.
 
 \begin{figure}[H]
@@ -173,7 +195,7 @@ A localização é um recurso central do sistema, pois permite relacionar public
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-A Figura~\ref{fig:tela_mapa}.a mostra a solicitação de acesso à localização. A Figura~\ref{fig:tela_mapa}.b apresenta o mapa com os marcadores das publicações, em que cada animal aparece com a sua foto em um círculo, contornado por uma cor que indica a situação. A cor laranja representa animais perdidos e a verde, animais encontrados na rua. Animais acolhidos em casa e disponíveis para adoção não aparecem no mapa, conforme a Seção~\ref{sec:privacidade}, e os marcadores de animais perdidos ficam em posição aproximada. A Figura~\ref{fig:tela_mapa}.c demonstra a rota até a área onde o animal foi visto pela última vez, com a indicação de pista quente ou morna e a escolha do meio de transporte, conforme as regras da Seção~\ref{sec:rota}.
+A Figura~\ref{fig:tela_mapa}.a mostra a solicitação de acesso à localização. A Figura~\ref{fig:tela_mapa}.b apresenta o mapa com os marcadores das publicações, em que cada animal aparece com a sua foto em um círculo, contornado por uma cor que indica a situação. A cor laranja representa animais perdidos e a verde, animais encontrados na rua. Animais acolhidos em casa e disponíveis para adoção não aparecem no mapa, conforme a Seção~\ref{sec:privacidade}, e os marcadores de animais perdidos ficam em posição aproximada. Ao selecionar um animal, o cartão prioriza seus dados principais e mantém informações complementares recolhidas até que o usuário solicite sua exibição. O ícone de histórico é uma ação independente, disponível no próprio cartão. A Figura~\ref{fig:tela_mapa}.c demonstra a rota até a área de um avistamento, com a indicação de pista quente ou morna e a escolha do meio de transporte, conforme as regras da Seção~\ref{sec:rota}.
 
 Quem vê um animal anunciado registra a pista pelo botão ``Vi o Pet'', na ficha ou no mapa. A partir desse relato, outras pessoas, ao tocar no animal no mapa, veem a situação da pista e, quando ela permite, escolhem como ir até a área onde ele foi visto. A Figura~\ref{fig:tela_rota_pistas} mostra esse caminho, do registro do avistamento ao acompanhamento da rota.
 
@@ -213,7 +235,7 @@ Quem vê um animal anunciado registra a pista pelo botão ``Vi o Pet'', na ficha
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:tela_rota_pistas}.a, quem viu o animal responde onde ele está, solto na rua ou em uma casa ou quintal, e marca o local no mapa, podendo acrescentar uma descrição e uma foto. Na Figura~\ref{fig:tela_rota_pistas}.b, o cartão do animal informa que se trata de uma pista quente, com o tempo desde o último avistamento, e oferece os meios de transporte a pé, de bicicleta, de carro e de ônibus. A Figura~\ref{fig:tela_rota_pistas}.c apresenta o histórico de avistamentos aberto pelo botão ``Ver histórico de avistamentos''. No alto, a faixa informa o número de avistamentos e que as áreas são aproximadas, com o 1 como o mais recente. No mapa, cada avistamento é um círculo numerado, na cor correspondente à idade da pista. Na parte inferior, cada círculo aparece com o tempo decorrido e o nome de quem registrou, como ``agora mesmo'' e ``há 49 min''. A Figura~\ref{fig:tela_rota_pistas}.d mostra a rota em andamento. O mapa acompanha o deslocamento do usuário até a área de busca, e o trajeto é atualizado conforme ele se move.
+Na Figura~\ref{fig:tela_rota_pistas}.a, quem viu o animal responde onde ele está, solto na rua ou em uma casa ou quintal, e marca o local no mapa, podendo acrescentar uma descrição e uma foto. Na Figura~\ref{fig:tela_rota_pistas}.b, o cartão do animal informa que se trata de uma pista quente, com o tempo desde o último avistamento, e oferece os meios de transporte a pé, de bicicleta, de carro e de ônibus. A Figura~\ref{fig:tela_rota_pistas}.c apresenta o histórico de avistamentos, aberto pelo ícone próprio no cartão. No alto, a faixa informa o número de registros e que as áreas são aproximadas, com o 1 como o mais recente. No mapa, os avistamentos com até sete dias e coordenadas disponíveis aparecem como círculos numerados, na cor correspondente à idade da pista. Na parte inferior, cada registro aparece com o tempo decorrido e o nome de quem o registrou, incluindo os arquivados, que permanecem na lista sem revelar um ponto no mapa. Para avistamentos públicos de até 48 horas, a opção de rota permite escolher aquele registro como destino; os mais antigos permanecem consultáveis no histórico, mas sem essa opção. Se a rota escolhida não for a desejada, o usuário pode voltar ao histórico pela ação ``Trocar'' e selecionar outro avistamento. A Figura~\ref{fig:tela_rota_pistas}.d mostra a rota em andamento. O mapa acompanha o deslocamento do usuário até a área de busca, e o trajeto é atualizado conforme ele se move.
 
 O formulário unificado de registro contempla as três situações da plataforma, que são a perda de um animal pelo tutor, o encontro de um animal e a oferta de um animal para adoção. A separação inicial das modalidades ajuda o usuário a escolher o caminho correspondente ao seu caso. A Figura~\ref{fig:tela_registro_perdi_encontrei} apresenta esses caminhos principais.
 
