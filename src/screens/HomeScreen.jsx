@@ -237,21 +237,21 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
       /^(não informado|não informada|nao informado|nao informada|sem raça definida|sem raca definida|sem raça|sem raca|srd|desconhecido|desconhecida|outra|outro)$/i.test(animalBreed.trim());
 
     if (!isBreedUnknown) {
-      list.push({ key: 'breed', text: `🏷️ ${animalBreed}` });
+      list.push({ key: 'breed', text: `${animalBreed}` });
     }
     if (animalGender && animalGender !== 'Não informado') {
       list.push({
         key: 'gender',
-        text: animalGender.toLowerCase().includes('f') ? '♀️ Fêmea' : '♂️ Macho',
+        text: animalGender.toLowerCase().includes('f') ? 'Fêmea' : 'Macho',
       });
     }
     if (animalSize && animalSize !== 'Não informado') {
-      list.push({ key: 'size', text: `📏 ${animalSize.replace(/porte\s*/i, '')}` });
+      list.push({ key: 'size', text: `${animalSize.replace(/porte\s*/i, '')}` });
     }
     if (animalAge && animalAge !== 'Não informado') {
       list.push({
         key: 'age',
-        text: animalAge.toLowerCase().includes('filhote') ? '🍼 Filhote' : animalAge.toLowerCase().includes('idoso') ? '👴 Idoso' : '🐕 Adulto',
+        text: animalAge.toLowerCase().includes('filhote') ? 'Filhote' : animalAge.toLowerCase().includes('idoso') ? 'Idoso' : 'Adulto',
       });
     }
     if (animalColor && animalColor !== 'Cor não informada') {
@@ -263,10 +263,10 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
       });
     }
     if (hasCollar) {
-      list.push({ key: 'collar', isCollar: true, text: '📿 Coleira' });
+      list.push({ key: 'collar', isCollar: true, text: 'Coleira' });
     }
     if (isNeutered) {
-      list.push({ key: 'neutered', isNeutered: true, text: '✂️ Castrado' });
+      list.push({ key: 'neutered', isNeutered: true, text: 'Castrado' });
     }
     const temperamentTraits = Array.isArray(item.extra_fields?.temperament) ? item.extra_fields.temperament : [];
     temperamentTraits.forEach((trait, idx) => {
@@ -360,7 +360,7 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
               borderColor: 'rgba(255, 255, 255, 0.22)',
             }}>
               <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 11 }}>
-                🐾 {animalSpecies}
+                {animalSpecies}
               </Text>
             </View>
           ) : null}
@@ -369,11 +369,11 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
           {!isAdoption && item.status === 'found' && (
             item.extra_fields?.found_custody === 'spotted' ? (
               <View style={{ backgroundColor: '#FEF3C7', borderColor: '#FDE68A', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 }}>
-                <Text style={{ color: '#B45309', fontWeight: '700', fontSize: 11 }}>👀 Visto na Rua</Text>
+                <Text style={{ color: '#B45309', fontWeight: '700', fontSize: 11 }}>Visto na rua</Text>
               </View>
             ) : (
               <View style={{ backgroundColor: '#DCFCE7', borderColor: '#BBF7D0', borderWidth: 1, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 4 }}>
-                <Text style={{ color: '#15803D', fontWeight: '700', fontSize: 11 }}>🏠 Em Lar Temp.</Text>
+                <Text style={{ color: '#15803D', fontWeight: '700', fontSize: 11 }}>Em lar temporário</Text>
               </View>
             )
           )}
@@ -388,7 +388,7 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
         {photos.length > 1 && (
           <View style={{ position: 'absolute', bottom: 10, right: 10, backgroundColor: 'rgba(0, 0, 0, 0.65)', borderRadius: 10, paddingHorizontal: 7, paddingVertical: 3, zIndex: 10 }}>
             <Text style={{ color: '#FFFFFF', fontSize: 10.5, fontWeight: '700' }}>
-              📷 {carouselIndex + 1}/{photos.length}
+              {carouselIndex + 1}/{photos.length}
             </Text>
           </View>
         )}
@@ -613,7 +613,7 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
         {activeReward && (
           <View style={[styles.rewardBadge, { marginBottom: 10, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 8 }]}>
             <Text style={styles.rewardBadgeText}>
-              🏆 {activeReward.amount ? `Recompensa: R$ ${parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Recompensa oferecida'}
+              {activeReward.amount ? `Recompensa: R$ ${parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Recompensa oferecida'}
               {activeReward.description ? ` • ${activeReward.description}` : ''}
             </Text>
           </View>
@@ -726,7 +726,7 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
               paddingVertical: 7,            }}
             activeOpacity={0.85}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '800', marginRight: 2 }}>Ver Detalhes</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '800', marginRight: 2 }}>Ver detalhes</Text>
             <MaterialIcons name="chevron-right" size={16} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -1451,7 +1451,7 @@ const HomeScreen = ({ navigation, route }) => {
 
   const handleDeleteItem = async (itemId) => {
     Alert.alert(
-      'Confirmar Exclusão',
+      'Confirmar exclusão',
       'Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.',
       [
         { text: 'Cancelar', style: 'cancel' },
@@ -1482,7 +1482,7 @@ const HomeScreen = ({ navigation, route }) => {
 
   const handleMarkAsResolved = async (itemId) => {
     Alert.alert(
-      'Marcar como Resolvido',
+      'Marcar como resolvido',
       'Confirma que este item foi encontrado/devolvido?',
       [
         { text: 'Cancelar', style: 'cancel' },
@@ -1765,7 +1765,7 @@ const HomeScreen = ({ navigation, route }) => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                     <MaterialIcons name="radar" size={18} color={colors.primary} style={{ marginRight: 6 }} />
                     <Text style={{ color: isDark ? colors.primaryLight : colors.primaryDark, fontSize: 13, fontWeight: '700' }}>
-                      Raio de Busca: <Text style={{ fontWeight: '900', color: colors.primary }}>{profileEditRadiusKm} km</Text>
+                      Raio de busca: <Text style={{ fontWeight: '900', color: colors.primary }}>{profileEditRadiusKm} km</Text>
                     </Text>
                   </View>
                   <Text style={{ color: isDark ? colors.textSecondary : '#475569', fontSize: 11.5, marginBottom: 10 }}>
@@ -1909,7 +1909,7 @@ const HomeScreen = ({ navigation, route }) => {
           <View style={{ backgroundColor: colors.surface, borderRadius: 12, paddingVertical: 24, paddingHorizontal: 16, minWidth: 360, maxWidth: '95%', borderWidth: 1, borderColor: colors.cardBorder }}>
             {user ? (
               <>
-                <Text style={{ fontWeight:'bold', fontSize:16, color: colors.primary, marginBottom:8 }}>Filtrar por Bairro</Text>
+                <Text style={{ fontWeight:'bold', fontSize:16, color: colors.primary, marginBottom:8 }}>Filtrar por bairro</Text>
                 <Text style={{ color: colors.textSecondary, marginBottom:8 }}>Selecione o bairro para filtrar. Cidade e estado são do seu perfil.</Text>
                 <Text style={{ marginBottom: 6, color: colors.text }}>Estado</Text>
                 <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, marginBottom: 12, minWidth: 320, maxWidth: '100%', width: '100%', height: 56, justifyContent: 'center', backgroundColor: colors.inputBg }}>
@@ -1937,7 +1937,7 @@ const HomeScreen = ({ navigation, route }) => {
               </>
             ) : (
               <>
-                <Text style={{ fontWeight:'bold', fontSize:16, color: colors.primary, marginBottom:8 }}>Filtrar por Localidade</Text>
+                <Text style={{ fontWeight:'bold', fontSize:16, color: colors.primary, marginBottom:8 }}>Filtrar por localidade</Text>
                 <Text style={{ color: colors.textSecondary, marginBottom:8 }}>Selecione estado, cidade e bairro para filtrar.</Text>
                 <Text style={{ marginBottom: 6, color: colors.text }}>Estado</Text>
                 <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, marginBottom: 12, minWidth: 320, maxWidth: '100%', width: '100%', height: 56, justifyContent: 'center', backgroundColor: colors.inputBg }}>
@@ -2001,7 +2001,7 @@ const HomeScreen = ({ navigation, route }) => {
                 }}
                 style={{ paddingVertical: 10, paddingHorizontal: 12, backgroundColor: isDark ? '#1E293B' : '#F3F4F6', borderRadius: 8, borderWidth: 1, borderColor: colors.border }}
               >
-                <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 13 }}>Limpar Filtro</Text>
+                <Text style={{ color: colors.text, fontWeight: 'bold', fontSize: 13 }}>Limpar filtro</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setEditLocationModal(false)}
@@ -2111,7 +2111,7 @@ const HomeScreen = ({ navigation, route }) => {
             activeOpacity={0.85}
           >
             <MaterialIcons name="favorite-border" size={13.5} color={filters.status === 'adoption' ? '#FFFFFF' : (isDark ? '#94A3B8' : '#4B5563')} style={{ marginRight: 4 }} />
-            <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'adoption' && styles.filterChipTextActive]}>Para Adoção</Text>
+            <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'adoption' && styles.filterChipTextActive]}>Para adoção</Text>
           </TouchableOpacity>
 
           {user && (
@@ -2138,7 +2138,7 @@ const HomeScreen = ({ navigation, route }) => {
                   filters.showMyItems && styles.filterChipTextActive,
                 ]}
               >
-                Minhas Publicações
+                Minhas publicações
               </Text>
             </TouchableOpacity>
           )}
@@ -2180,7 +2180,7 @@ const HomeScreen = ({ navigation, route }) => {
             activeOpacity={0.8}
           >
             <MaterialIcons name="tune" size={14} color={colors.primary} />
-            <Text style={[styles.radiusResetText, { color: isDark ? '#34D399' : colors.primary }]}>Ajustar Raio</Text>
+            <Text style={[styles.radiusResetText, { color: isDark ? '#34D399' : colors.primary }]}>Ajustar raio</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -2200,7 +2200,7 @@ const HomeScreen = ({ navigation, route }) => {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontWeight: '800', fontSize: 17, color: colors.text }}>
-                  Ajustar Raio de Busca
+                  Ajustar raio de busca
                 </Text>
                 <Text style={{ color: colors.textMuted, fontSize: 12 }}>
                   Alcance atual: <Text style={{ fontWeight: '800', color: colors.primary }}>{selectedQuickRadius} km</Text>
@@ -2257,7 +2257,7 @@ const HomeScreen = ({ navigation, route }) => {
                 style={{ flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: colors.primary, alignItems: 'center' }}
                 activeOpacity={0.85}
               >
-                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>Aplicar Raio</Text>
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>Aplicar raio</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -316,21 +316,21 @@ const buildSelectedChips = (item) => {
     /^(não informado|não informada|nao informado|nao informada|sem raça definida|sem raca definida|sem raça|sem raca|srd|desconhecido|desconhecida|outra|outro)$/i.test(breed.trim());
 
   if (!isBreedUnknown) {
-    list.push({ key: 'breed', text: `🏷️ ${breed}` });
+    list.push({ key: 'breed', text: `${breed}` });
   }
   if (gender && gender !== 'Não informado') {
     list.push({
       key: 'gender',
-      text: gender.toLowerCase().includes('f') ? '♀️ Fêmea' : '♂️ Macho',
+      text: gender.toLowerCase().includes('f') ? 'Fêmea' : 'Macho',
     });
   }
   if (size && size !== 'Não informado') {
-    list.push({ key: 'size', text: `📏 ${size.replace(/porte\s*/i, '')}` });
+    list.push({ key: 'size', text: `${size.replace(/porte\s*/i, '')}` });
   }
   if (age && age !== 'Não informado') {
     list.push({
       key: 'age',
-      text: age.toLowerCase().includes('filhote') ? '🍼 Filhote' : age.toLowerCase().includes('idoso') ? '👴 Idoso' : '🐕 Adulto',
+      text: age.toLowerCase().includes('filhote') ? 'Filhote' : age.toLowerCase().includes('idoso') ? 'Idoso' : 'Adulto',
     });
   }
   if (color && color !== 'Cor não informada') {
@@ -342,10 +342,10 @@ const buildSelectedChips = (item) => {
     });
   }
   if (collar) {
-    list.push({ key: 'collar', isCollar: true, text: '📿 Coleira' });
+    list.push({ key: 'collar', isCollar: true, text: 'Coleira' });
   }
   if (neutered) {
-    list.push({ key: 'neutered', isNeutered: true, text: '✂️ Castrado' });
+    list.push({ key: 'neutered', isNeutered: true, text: 'Castrado' });
   }
   const temperament = Array.isArray(item?.extra_fields?.temperament) ? item.extra_fields.temperament : [];
   temperament.forEach((trait, idx) => {
@@ -832,7 +832,7 @@ const MapScreen = ({ route, navigation }) => {
       clearRoute();
       setCardCollapsed(false);
       Alert.alert(
-        'Você chegou à área 🐾',
+        'Você chegou à área',
         'O pet foi visto por aqui. Procure com calma nos arredores e chame pelo nome. Viu o pet? Registre em "Vi o Pet".'
       );
       return;
@@ -1153,7 +1153,7 @@ const MapScreen = ({ route, navigation }) => {
         }
 
         Alert.alert(
-          'Permissão de Localização',
+          'Permissão de localização',
           'Ative a permissão de localização nas configurações do seu celular para centralizar o mapa na sua posição atual.'
         );
         return;
@@ -1679,7 +1679,7 @@ const MapScreen = ({ route, navigation }) => {
               />
             ) : (
               <View style={{ width: 72, height: 72, borderRadius: 14, marginRight: 12, backgroundColor: statusColor + '18', alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontSize: 32 }}>🐾</Text>
+                <MaterialIcons name="pets" size={30} color={statusColor} />
               </View>
             )}
 
@@ -1717,7 +1717,7 @@ const MapScreen = ({ route, navigation }) => {
                     borderColor: '#E2E8F0',
                   }}>
                     <Text style={{ color: '#475569', fontWeight: '700', fontSize: 10.5 }}>
-                      🐾 {selectedSpecies}
+                      {selectedSpecies}
                     </Text>
                   </View>
                 ) : null}
@@ -1725,7 +1725,7 @@ const MapScreen = ({ route, navigation }) => {
                 {/* Status na Rua: Perdido ou Visto na Rua */}
                 {selectedItem.status === 'lost' && (
                   <View style={{ backgroundColor: '#FEF2F2', borderColor: '#FECACA', borderWidth: 1, borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 }}>
-                    <Text style={{ color: '#DC2626', fontWeight: '700', fontSize: 10.5 }}>📍 Perdido na Rua</Text>
+                    <Text style={{ color: '#DC2626', fontWeight: '700', fontSize: 10.5 }}>Perdido na rua</Text>
                   </View>
                 )}
 
@@ -1733,11 +1733,11 @@ const MapScreen = ({ route, navigation }) => {
                 {!isAdoption && selectedItem.status === 'found' && (
                   selectedItem.extra_fields?.found_custody === 'spotted' ? (
                     <View style={{ backgroundColor: '#FEF3C7', borderColor: '#FDE68A', borderWidth: 1, borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 }}>
-                      <Text style={{ color: '#B45309', fontWeight: '700', fontSize: 10.5 }}>👀 Visto na Rua</Text>
+                      <Text style={{ color: '#B45309', fontWeight: '700', fontSize: 10.5 }}>Visto na rua</Text>
                     </View>
                   ) : (
                     <View style={{ backgroundColor: '#DCFCE7', borderColor: '#BBF7D0', borderWidth: 1, borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 }}>
-                      <Text style={{ color: '#15803D', fontWeight: '700', fontSize: 10.5 }}>🏠 Em Lar Temp.</Text>
+                      <Text style={{ color: '#15803D', fontWeight: '700', fontSize: 10.5 }}>Em lar temporário</Text>
                     </View>
                   )
                 )}
@@ -1884,7 +1884,7 @@ const MapScreen = ({ route, navigation }) => {
               marginBottom: 8,
             }}>
               <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#B45309' }}>
-                🏆 {activeReward.amount ? `Recompensa: R$ ${parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Recompensa oferecida'}
+                {activeReward.amount ? `Recompensa: R$ ${parseFloat(activeReward.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'Recompensa oferecida'}
                 {activeReward.description ? ` • ${activeReward.description}` : ''}
               </Text>
             </View>
@@ -1906,8 +1906,8 @@ const MapScreen = ({ route, navigation }) => {
               <MaterialIcons name="visibility" size={14} color="#D97706" style={{ marginRight: 4 }} />
               <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#B45309', flex: 1 }}>
                 {selectedItem.extra_fields?.sighting_count > 1
-                  ? `📍 ${selectedItem.extra_fields.sighting_count} avistamentos registrados pela comunidade`
-                  : '📍 Avistado recentemente nesta localização'}
+                  ? `${selectedItem.extra_fields.sighting_count} avistamentos registrados`
+                  : 'Avistado recentemente neste local'}
               </Text>
             </View>
           )}
@@ -1926,7 +1926,7 @@ const MapScreen = ({ route, navigation }) => {
             <MaterialIcons name="place" size={17} color={COLORS.primary} style={{ marginRight: 6 }} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 10.5, fontWeight: '800', color: COLORS.primary, textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 1 }}>
-                Endereço do Animal Visto na Rua
+                Endereço do animal visto na rua
               </Text>
               <Text style={{ fontSize: 12, color: '#1E293B', fontWeight: '700' }} numberOfLines={2}>
                 {resolvedItemAddress || formatItemFullAddress(selectedItem)}
@@ -2019,7 +2019,7 @@ const MapScreen = ({ route, navigation }) => {
             >
               <MaterialIcons name="add-location-alt" size={16} color="#D97706" style={{ marginRight: 4 }} />
               <Text style={{ fontSize: 12, fontWeight: '800', color: '#B45309' }}>
-                Vi o Pet
+                Vi o pet
               </Text>
             </TouchableOpacity>
 
@@ -2103,7 +2103,7 @@ const MapScreen = ({ route, navigation }) => {
             activeOpacity={0.85}
           >
             <MaterialIcons name="grid-view" size={15} color="#FFFFFF" style={{ marginRight: 6 }} />
-            <Text style={styles.emptyFeedButtonText}>Ver todos os pets no Feed</Text>
+            <Text style={styles.emptyFeedButtonText}>Ver todos os pets no feed</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -2133,7 +2133,7 @@ const MapScreen = ({ route, navigation }) => {
                 <MaterialIcons name="map" size={22} color={COLORS.primary} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.modalHeaderTitle}>Mapa Interativo WeFIND</Text>
+                <Text style={styles.modalHeaderTitle}>Mapa do WeFIND</Text>
                 <Text style={styles.modalHeaderSubtitle}>Foco em buscas ativas e resgates</Text>
               </View>
               <TouchableOpacity
@@ -2148,7 +2148,7 @@ const MapScreen = ({ route, navigation }) => {
             <View style={styles.modalBody}>
               <View style={styles.infoRowItem}>
                 <View style={[styles.infoRowIcon, { backgroundColor: '#FEF2F2' }]}>
-                  <Text style={{ fontSize: 16 }}>📍</Text>
+                  <MaterialIcons name="place" size={18} color="#B91C1C" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.infoRowTitle}>Apenas pets na rua</Text>
@@ -2160,10 +2160,10 @@ const MapScreen = ({ route, navigation }) => {
 
               <View style={styles.infoRowItem}>
                 <View style={[styles.infoRowIcon, { backgroundColor: '#DCFCE7' }]}>
-                  <Text style={{ fontSize: 16 }}>🏠</Text>
+                  <MaterialIcons name="home" size={18} color="#15803D" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.infoRowTitle}>Privacidade e Lares Seguros</Text>
+                  <Text style={styles.infoRowTitle}>Privacidade dos lares temporários</Text>
                   <Text style={styles.infoRowDesc}>
                     Animais já resgatados e acolhidos em lares temporários não têm seu endereço residencial divulgado no mapa para segurança de todos.
                   </Text>
@@ -2172,10 +2172,10 @@ const MapScreen = ({ route, navigation }) => {
 
               <View style={styles.infoRowItem}>
                 <View style={[styles.infoRowIcon, { backgroundColor: COLORS.primaryLight }]}>
-                  <Text style={{ fontSize: 16 }}>📋</Text>
+                  <MaterialIcons name="list" size={18} color={COLORS.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.infoRowTitle}>Lista Completa no Feed</Text>
+                  <Text style={styles.infoRowTitle}>Lista completa no Início</Text>
                   <Text style={styles.infoRowDesc}>
                     Para ver a lista completa de todos os pets cadastrados (inclusive os acolhidos e para adoção), acesse a aba Início.
                   </Text>
@@ -2754,7 +2754,7 @@ class MapErrorBoundary extends React.Component {
             <MaterialIcons name="map" size={34} color={COLORS.primary} />
           </View>
           <Text style={{ fontSize: 20, fontWeight: '800', color: '#0F172A', textAlign: 'center', marginBottom: 8 }}>
-            Mapa Interativo WeFIND
+            Mapa do WeFIND
           </Text>
           <Text style={{ fontSize: 13.5, color: '#64748B', textAlign: 'center', lineHeight: 20, marginBottom: 20, maxWidth: 300 }}>
             Para ativar o mapa no APK, certifique-se de configurar a chave da API do Google Maps ou consulte a lista no feed.
@@ -2763,7 +2763,7 @@ class MapErrorBoundary extends React.Component {
             style={{ backgroundColor: COLORS.primary, paddingHorizontal: 22, paddingVertical: 12, borderRadius: 12 }}
             onPress={() => this.setState({ hasError: false })}
           >
-            <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14 }}>Tentar Novamente</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14 }}>Tentar novamente</Text>
           </TouchableOpacity>
         </View>
       );

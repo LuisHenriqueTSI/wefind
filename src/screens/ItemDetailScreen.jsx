@@ -19,6 +19,7 @@ import {
   Platform,
 } from 'react-native';
 import { MaterialIcons, FontAwesome, Feather, Ionicons } from '@expo/vector-icons';
+import { stripEmoji } from '../utils/text';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useFocusEffect } from '@react-navigation/native';
@@ -295,12 +296,12 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
     setTimeout(() => {
       Alert.alert(
-        '🎉 Que notícia incrível!',
+        'Que notícia boa!',
         `Que bom que ${petName || 'seu pet'} foi reencontrado! Gostaria de compartilhar essa história feliz com toda a comunidade WeFIND?`,
         [
           { text: 'Agora não', style: 'cancel' },
           {
-            text: '💚 Compartilhar história',
+            text: 'Compartilhar história',
             onPress: () => {
               navigation.navigate('MuralReencontros', {
                 openSendModal: true,
@@ -324,7 +325,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
     const petName = item?.animal_name || item?.title || '';
 
     Alert.alert(
-      'Alterar Status (Moderação Admin)',
+      'Alterar situação (administrador)',
       `Deseja forçar a alteração do status desta publicação para "${targetLabel}" no banco de dados?`,
       [
         { text: 'Cancelar', style: 'cancel' },
@@ -368,7 +369,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
   const handleMarkResolved = () => {
     const petName = item?.animal_name || item?.title || 'seu pet';
     Alert.alert(
-      '🎉 Pet Reencontrado!',
+      'Pet reencontrado',
       `Confirma que você reencontrou ${petName} e deseja encerrar esta publicação como resolvida?`,
       [
         { text: 'Cancelar', style: 'cancel' },
@@ -516,7 +517,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
     }
 
     const title = item.title || item.species || 'este pet';
-    const initialMessage = `Olá! Vi a publicação de ${title} no WeFIND e tenho disponibilidade para ser Lar Temporário dele(a) até encontrarmos o tutor ou um lar definitivo! 🏡🐾`;
+    const initialMessage = `Olá! Vi a publicação de ${title} no WeFIND e tenho disponibilidade para ser Lar Temporário dele(a) até encontrarmos o tutor ou um lar definitivo! `;
 
     navigation.navigate('ChatScreen', {
       conversation: {
@@ -551,7 +552,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
     if (!isCurrentlyAdoption && waitingDays > 0) {
       Alert.alert(
-        'Período Prioritário de Busca',
+        'Primeiras horas de busca',
         `Este animal ainda está no período de busca pelo tutor. Faltam ${waitingDays} dia(s) para solicitar a adoção responsável. A publicação continuará ativa durante esse período.`,
         [
           { text: 'Entendi', style: 'cancel' },
@@ -977,7 +978,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
         <View style={styles.attributeGrid}>
           {(item.species || item.extra_fields?.species) ? (
             <View style={[styles.attrChip, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
-              <Text style={styles.attrChipEmoji}>🐾</Text>
               <View style={styles.attrChipTextWrap}>
                 <Text style={[styles.attrChipLabel, { color: colors.textMuted }]}>Espécie</Text>
                 <Text style={[styles.attrChipValue, { color: colors.text }]} numberOfLines={1}>{item.species || item.extra_fields?.species}</Text>
@@ -996,7 +996,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
             if (isBreedUnknown) return null;
             return (
               <View style={[styles.attrChip, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
-                <Text style={styles.attrChipEmoji}>🏷️</Text>
                 <View style={styles.attrChipTextWrap}>
                   <Text style={[styles.attrChipLabel, { color: colors.textMuted }]}>Raça</Text>
                   <Text style={[styles.attrChipValue, { color: colors.text }]} numberOfLines={1}>{displayBreed}</Text>
@@ -1007,9 +1006,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
           {(item.gender || item.extra_fields?.gender) && (item.gender || item.extra_fields?.gender) !== 'Não informado' ? (
             <View style={[styles.attrChip, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
-              <Text style={styles.attrChipEmoji}>
-                {String(item.gender || item.extra_fields?.gender).toLowerCase().includes('f') ? '♀️' : '♂️'}
-              </Text>
               <View style={styles.attrChipTextWrap}>
                 <Text style={[styles.attrChipLabel, { color: colors.textMuted }]}>Sexo</Text>
                 <Text style={[styles.attrChipValue, { color: colors.text }]} numberOfLines={1}>{item.gender || item.extra_fields?.gender}</Text>
@@ -1019,7 +1015,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
           {(item.age || item.extra_fields?.age) && (item.age || item.extra_fields?.age) !== 'Não informado' ? (
             <View style={[styles.attrChip, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
-              <Text style={styles.attrChipEmoji}>🎂</Text>
               <View style={styles.attrChipTextWrap}>
                 <Text style={[styles.attrChipLabel, { color: colors.textMuted }]}>Idade</Text>
                 <Text style={[styles.attrChipValue, { color: colors.text }]} numberOfLines={1}>{item.age || item.extra_fields?.age}</Text>
@@ -1029,7 +1024,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
           {(item.size || item.extra_fields?.size) && (item.size || item.extra_fields?.size) !== 'Não informado' ? (
             <View style={[styles.attrChip, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
-              <Text style={styles.attrChipEmoji}>📏</Text>
               <View style={styles.attrChipTextWrap}>
                 <Text style={[styles.attrChipLabel, { color: colors.textMuted }]}>Porte</Text>
                 <Text style={[styles.attrChipValue, { color: colors.text }]} numberOfLines={1}>{item.size || item.extra_fields?.size}</Text>
@@ -1039,7 +1033,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
           {(item.color || item.extra_fields?.color) && (
             <View style={[styles.attrChip, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
-              <Text style={styles.attrChipEmoji}>🎨</Text>
               <View style={styles.attrChipTextWrap}>
                 <Text style={[styles.attrChipLabel, { color: colors.textMuted }]}>Cor</Text>
                 <Text style={[styles.attrChipValue, { color: colors.text }]} numberOfLines={1}>{item.color || item.extra_fields?.color}</Text>
@@ -1069,16 +1062,16 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
         {showMoreInfo && item.description ? (
           <View style={[styles.descriptionBlock, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
-            <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>Descrição & Características</Text>
+            <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>Descrição e características</Text>
             <Text style={[styles.descriptionText, { color: colors.text }]}>{item.description}</Text>
           </View>
         ) : null}
 
-        {/* Personalidade & Cuidados do Pet */}
+        {/* Personalidade e cuidados do Pet */}
         {showMoreInfo && Array.isArray(item.extra_fields?.temperament) && item.extra_fields.temperament.length > 0 && (
           <View style={{ marginTop: 14 }}>
             <Text style={[styles.sectionSubtitle, { color: colors.textMuted, marginBottom: 8 }]}>
-              Personalidade & Cuidados
+              Personalidade e cuidados
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
               {item.extra_fields.temperament.map((trait, idx) => (
@@ -1096,7 +1089,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   }}
                 >
                   <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#F472B6' : '#BE185D' }}>
-                    {trait}
+                    {stripEmoji(trait)}
                   </Text>
                 </View>
               ))}
@@ -1111,7 +1104,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
               <MaterialIcons name="emoji-events" size={24} color="#D97706" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.rewardTitle}>Recompensa Oferecida</Text>
+              <Text style={styles.rewardTitle}>Recompensa oferecida</Text>
               {rewards
                 .filter(r => r?.status === 'active')
                 .map((r, index) => (
@@ -1141,7 +1134,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 <MaterialIcons name="favorite" size={16} color="#DB2777" />
               </View>
               <Text style={[styles.adoptionNoticeTitle, { color: isDark ? '#F472B6' : '#BE185D' }]}>
-                Disponível para Adoção Responsável
+                Disponível para adoção
               </Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
@@ -1262,7 +1255,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
               <MaterialIcons name="volunteer-activism" size={20} color={isDark ? '#60A5FA' : '#2563EB'} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Rede de Ajuda</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Rede de ajuda</Text>
               <Text style={{ color: colors.textSecondary, fontSize: 11.5, marginTop: 2 }}>
                 Necessidades deste caso
               </Text>
@@ -1316,10 +1309,10 @@ const ItemDetailScreen = ({ route, navigation }) => {
               </Text>
               <Text style={{ fontSize: 11, color: colors.textSecondary, marginTop: 1 }}>
                 {item.status === 'lost'
-                  ? '🛡️ Epicentro geográfico seguro para busca'
+                  ? 'Área aproximada do desaparecimento'
                   : item?.extra_fields?.found_custody === 'spotted'
-                  ? '📍 Ponto em via pública aberto para rota de resgate'
-                  : '🔒 Acolhimento seguro com endereço preservado'}
+                  ? 'Local em via pública'
+                  : 'Endereço protegido'}
               </Text>
             </View>
           </View>
@@ -1362,7 +1355,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   <MaterialIcons name="verified" size={20} color="#2E5634" style={{ marginTop: 1 }} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 12.5, fontWeight: '800', color: isDark ? '#34D399' : '#1E3E24' }}>
-                      Comprovação Aprovada • Devolução Autorizada
+                      Comprovação aprovada
                     </Text>
                     <Text style={{ fontSize: 11.5, color: isDark ? '#D1FAE5' : '#065F46', lineHeight: 16, marginTop: 2 }}>
                       Sua comprovação de tutor foi verificada. Combine a devolução pelo chat em um ponto público seguro; o endereço residencial continua protegido.
@@ -1385,7 +1378,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   <MaterialIcons name="hourglass-top" size={20} color="#D97706" style={{ marginTop: 1 }} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ fontSize: 12.5, fontWeight: '800', color: isDark ? '#FBBF24' : '#B45309' }}>
-                      Comprovação em Análise ⏳
+                      Comprovação em análise
                     </Text>
                     <Text style={{ fontSize: 11.5, color: isDark ? '#FEF3C7' : '#78350F', lineHeight: 16, marginTop: 2 }}>
                       Suas fotos e justificativa foram enviadas para moderação. Se aprovadas, você poderá combinar a devolução pelo chat; o endereço residencial continuará protegido.
@@ -1407,7 +1400,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <MaterialIcons name="error-outline" size={18} color="#DC2626" />
                     <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#DC2626' }}>
-                      Comprovação Anterior Não Aprovada
+                      Comprovação anterior não aprovada
                     </Text>
                   </View>
                   <Text style={{ fontSize: 11.5, color: isDark ? '#FCA5A5' : '#991B1B', lineHeight: 16 }}>
@@ -1424,7 +1417,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                       marginTop: 4,
                     }}
                   >
-                    <Text style={{ color: '#FFFFFF', fontSize: 11.5, fontWeight: '700' }}>Enviar Nova Comprovação</Text>
+                    <Text style={{ color: '#FFFFFF', fontSize: 11.5, fontWeight: '700' }}>Enviar nova comprovação</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -1442,7 +1435,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                     <MaterialIcons name="security" size={18} color="#2E5634" />
                     <Text style={{ fontSize: 12.5, fontWeight: '800', color: isDark ? '#34D399' : '#065F46' }}>
-                      Endereço Protegido por Segurança
+                      Endereço protegido
                     </Text>
                   </View>
                   <Text style={{ fontSize: 11.5, color: isDark ? '#D1FAE5' : '#065F46', lineHeight: 16 }}>
@@ -1475,7 +1468,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   >
                     <MaterialIcons name="verified-user" size={17} color={isDark ? '#34D399' : '#065F46'} style={{ marginRight: 6 }} />
                     <Text style={{ color: isDark ? '#34D399' : '#065F46', fontWeight: '800', fontSize: 12.5 }}>
-                      Solicitar Devolução
+                      Solicitar devolução
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -1725,7 +1718,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                       </Text>
                       {m.match?.distanceKm != null && (
                         <Text style={[styles.matchCardDistance, { color: colors.primary }]}>
-                          📍 {m.match.distanceKm} km de você
+                          {m.match.distanceKm} km de você
                         </Text>
                       )}
                     </TouchableOpacity>
@@ -1750,7 +1743,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? 'rgba(245, 158, 11, 0.15)' : '#FEF3C7', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: isDark ? '#D97706' : '#FDE68A' }}>
                   <MaterialIcons name="admin-panel-settings" size={16} color="#D97706" style={{ marginRight: 6 }} />
                   <Text style={{ fontSize: 11.5, fontWeight: '800', color: isDark ? '#FCD34D' : '#B45309' }}>
-                    Acesso Super Admin • Moderação Total
+                    Acesso de administrador
                   </Text>
                 </View>
               )}
@@ -1780,14 +1773,14 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   style={[styles.ownerActionBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => {
                     Alert.alert(
-                      'Alterar Status (Admin)',
+                      'Alterar situação (administrador)',
                       'Selecione o novo status que deseja aplicar a esta publicação:',
                       [
                         { text: 'Cancelar', style: 'cancel' },
-                        { text: '🔴 Animal Perdido', onPress: () => handleAdminChangeStatus('lost', false) },
-                        { text: '🟢 Animal Encontrado', onPress: () => handleAdminChangeStatus('found', false) },
-                        { text: '💖 Para Adoção', onPress: () => handleAdminChangeStatus('found', true) },
-                        { text: '🎉 Reencontrado (Resolvido)', onPress: () => handleAdminChangeStatus('resolved', false) },
+                        { text: 'Animal perdido', onPress: () => handleAdminChangeStatus('lost', false) },
+                        { text: 'Animal encontrado', onPress: () => handleAdminChangeStatus('found', false) },
+                        { text: 'Para adoção', onPress: () => handleAdminChangeStatus('found', true) },
+                        { text: 'Reencontrado (encerrado)', onPress: () => handleAdminChangeStatus('resolved', false) },
                       ]
                     );
                   }}
@@ -1864,7 +1857,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
       <View style={[styles.cardSection, { backgroundColor: colors.surface, borderColor: colors.border, marginBottom: 40 }]}>
         <View style={styles.commentsHeaderRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={[styles.commentsTitle, { color: colors.text }]}>Pistas & Comentários</Text>
+            <Text style={[styles.commentsTitle, { color: colors.text }]}>Pistas e comentários</Text>
             <View style={[styles.commentsCountBadge, { backgroundColor: colors.primaryLight }]}>
               <Text style={[styles.commentsCountText, { color: colors.primary }]}>{sightings.length}</Text>
             </View>
@@ -1887,7 +1880,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
               Nenhum comentário ou pista ainda.
             </Text>
             <Text style={[styles.emptyCommentsSub, { color: colors.textMuted }]}>
-              Viu este animal? Compartilhe informações para ajudar o tutor!
+              Viu este animal? Conte onde e quando para ajudar o tutor.
             </Text>
           </View>
         ) : (
@@ -2036,7 +2029,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                       <MaterialIcons name="navigation" size={15} color="#16A34A" style={{ marginRight: 6 }} />
                       <View style={{ flex: 1 }}>
                         <Text style={{ fontSize: 10, fontWeight: '800', color: '#16A34A', textTransform: 'uppercase', letterSpacing: 0.3 }}>
-                          Local Informado • Toque para ver a rota
+                          Local informado • toque para ver a rota
                         </Text>
                         <Text style={[styles.commentLocationText, { color: isDark ? '#34D399' : '#15803D', fontWeight: '700', fontSize: 12 }]} numberOfLines={2}>
                           {displayLoc}
@@ -2110,7 +2103,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Denunciar Publicação</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Denunciar publicação</Text>
             <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
               Escolha o motivo da denúncia para análise de moderação.
             </Text>
@@ -2167,7 +2160,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
             >
               <TouchableWithoutFeedback onPress={() => {}}>
                 <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
-                  <Text style={[styles.modalTitle, { color: colors.text }]}>Editar Comentário</Text>
+                  <Text style={[styles.modalTitle, { color: colors.text }]}>Editar comentário</Text>
                   <TextInput
                     value={editCommentText}
                     onChangeText={setEditCommentText}

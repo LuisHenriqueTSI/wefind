@@ -63,7 +63,7 @@ export const calculatePasswordStrength = (pwd = '') => {
     color = '#F59E0B';
     level = 3;
   } else if (score >= 4) {
-    label = 'Forte e segura 🛡️';
+    label = 'Senha forte';
     color = '#10B981';
     level = 4;
   }
@@ -201,7 +201,7 @@ const RegisterScreen = ({ navigation, route }) => {
         });
       }
     } catch (error) {
-      Alert.alert('Erro de Cadastro', error?.message || 'Falha ao criar conta');
+      Alert.alert('Erro de cadastro', error?.message || 'Falha ao criar conta');
     } finally {
       setIsSubmitting(false);
     }
@@ -316,7 +316,7 @@ const RegisterScreen = ({ navigation, route }) => {
                     Força: <Text style={{ color: pwdStrength.color, fontWeight: '800' }}>{pwdStrength.label}</Text>
                   </Text>
                   <Text style={{ fontSize: 10.5, color: colors.textMuted }}>
-                    {pwdStrength.isValid ? 'Requisitos atendidos ✅' : 'mín. 8 chars, letras e números'}
+                    {pwdStrength.isValid ? 'Requisitos atendidos' : 'mín. 8 chars, letras e números'}
                   </Text>
                 </View>
 
@@ -398,7 +398,7 @@ const RegisterScreen = ({ navigation, route }) => {
               {termsAccepted ? <MaterialIcons name="check" size={15} color="#FFFFFF" /> : null}
             </View>
             <Text style={[styles.consentText, { color: colors.textSecondary }]}>
-              Li e aceito os <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL(TERMS_URL)}>Termos de Uso</Text> *
+              Li e aceito os <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL(TERMS_URL)}>Termos de uso</Text> *
             </Text>
           </TouchableOpacity>
           {errors.termsAccepted && <Text style={styles.consentError}>{errors.termsAccepted}</Text>}
@@ -412,7 +412,7 @@ const RegisterScreen = ({ navigation, route }) => {
               {privacyAccepted ? <MaterialIcons name="check" size={15} color="#FFFFFF" /> : null}
             </View>
             <Text style={[styles.consentText, { color: colors.textSecondary }]}>
-              Li e aceito a <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL(PRIVACY_URL)}>Política de Privacidade</Text> *
+              Li e aceito a <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL(PRIVACY_URL)}>Política de privacidade</Text> *
             </Text>
           </TouchableOpacity>
           {errors.privacyAccepted && <Text style={styles.consentError}>{errors.privacyAccepted}</Text>}

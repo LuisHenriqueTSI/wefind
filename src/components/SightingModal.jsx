@@ -144,7 +144,7 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
                         <MaterialIcons name="visibility" size={20} color={COLORS.primary} />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={styles.title}>Compartilhar Informação</Text>
+                        <Text style={styles.title}>Compartilhar informação</Text>
                         <Text style={styles.subtitle}>Ajude o tutor com detalhes ou pistas sobre o pet</Text>
                       </View>
                     </View>
@@ -165,7 +165,7 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
               keyboardDismissMode="on-drag"
             >
               {/* Campo de Descrição */}
-              <Text style={styles.inputLabel}>Detalhes e Informações *</Text>
+              <Text style={styles.inputLabel}>Detalhes e informações *</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Ex: Vi o pet correndo na calçada em direção ao parque..."

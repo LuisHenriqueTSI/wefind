@@ -110,19 +110,19 @@ const ProfileScreen = ({ navigation }) => {
 
   const communityLinks = [
     {
-      label: 'Ranking da Comunidade',
+      label: 'Ranking da comunidade',
       icon: 'leaderboard',
       iconColor: colors.secondary,
       route: 'Ranking',
     },
     {
-      label: 'Rede de Lares Temporários',
+      label: 'Rede de lares temporários',
       icon: 'groups',
       iconColor: '#16A34A',
       route: 'FosterVolunteers',
     },
     {
-      label: 'Mural de Reencontros',
+      label: 'Mural de reencontros',
       icon: 'favorite',
       iconColor: '#EC4899',
       route: 'MuralReencontros',
@@ -263,7 +263,7 @@ const ProfileScreen = ({ navigation }) => {
               />
               <View style={styles.menuTextBox}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={[styles.menuTitle, { color: colors.text }]}>Lar Temporário Solidário</Text>
+                  <Text style={[styles.menuTitle, { color: colors.text }]}>Lar temporário</Text>
                   <View style={{
                     paddingHorizontal: 6,
                     paddingVertical: 1.5,
