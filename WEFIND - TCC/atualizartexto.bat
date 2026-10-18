@@ -29,7 +29,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [3/3] Criando copia versionada sem mover o PDF principal...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0version_pdf.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%CD%\version_pdf.ps1"
 if %errorlevel% neq 0 (
     echo.
     echo ❌ Erro ao criar a versao arquivada.
@@ -44,3 +44,4 @@ echo   ✔ Copia versionada salva em versoes_pdf\
 echo   📁 Arquivos auxiliares organizados na pasta: build\
 echo ============================================================
 pause
+exit /b 0
