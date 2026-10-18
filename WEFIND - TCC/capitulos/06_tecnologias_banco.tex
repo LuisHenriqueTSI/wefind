@@ -1,12 +1,12 @@
 \section{ARQUITETURA DE SOFTWARE E TECNOLOGIAS}
 
-Os capítulos anteriores descrevem o que o WeFIND faz. Falta mostrar sobre quais componentes essas funções se apoiam. Um aplicativo que depende de localização, fotos, mensagens em tempo real e avisos por WhatsApp precisa dividir responsabilidades entre o dispositivo, serviços em nuvem e provedores externos. Essa divisão é o objeto do projeto arquitetural, que Pressman e Maxim (2021) tratam como uma etapa própria, anterior ao projeto dos componentes.
+Após a apresentação das funcionalidades do WeFIND, este capítulo descreve a arquitetura que as sustenta. Recursos como localização, fotos, mensagens em tempo real e avisos por WhatsApp dependem da divisão de responsabilidades entre o dispositivo, os serviços em nuvem e os provedores externos. Em arquitetura de software, cada parte do sistema que tem uma responsabilidade definida é chamada de componente. Primeiro se descreve como essas partes se organizam e se comunicam; em seguida, cada uma é detalhada no projeto (Pressman e Maxim, 2021).
 
 Para apoiar a comunicação dessas decisões, a ISO/IEC/IEEE 42010:2022 estabelece requisitos para estruturar e expressar descrições de arquitetura, incluindo pontos de vista e modelos, e distingue a arquitetura da descrição que a representa (ISO, 2022).
 
 \subsection{Arquitetura e Tecnologias do Aplicativo}
 
-Para situar os componentes e as integrações utilizados na aplicação, a Figura~\ref{fig:arquitetura_wefind} apresenta uma visão geral da arquitetura do WeFIND.
+Para situar as partes e as integrações utilizadas na aplicação, a Figura~\ref{fig:arquitetura_wefind} apresenta uma visão geral da arquitetura do WeFIND.
 
 \begin{figure}[H]
     \centering
@@ -16,7 +16,7 @@ Para situar os componentes e as integrações utilizados na aplicação, a Figur
     \fonte{Autoria própria (2026), com auxílio de ferramenta de inteligência artificial}
 \end{figure}
 
-A Figura~\ref{fig:arquitetura_wefind} apresenta três componentes, o cliente móvel, os serviços de backend do Supabase e o provedor externo de mensageria. O aplicativo concentra a interface e os recursos do dispositivo. O Supabase oferece autenticação, banco de dados, armazenamento, atualização em tempo real e funções de borda. A Evolution API, hospedada no Render, realiza o envio de mensagens pelo WhatsApp. O aplicativo não se comunica diretamente com a Evolution API. As solicitações de envio passam pelas funções de borda, que guardam a credencial do serviço. Nos avisos do sistema, o aplicativo informa apenas o identificador do destinatário, e a própria função de borda consulta o número de WhatsApp e a autorização de envio no banco. Assim, o telefone de um usuário não é transmitido ao aparelho de quem dispara o aviso. Pelo mesmo motivo, as consultas do mural e dos detalhes da publicação não trazem o e-mail nem o telefone do autor. No fluxo do aplicativo, o WhatsApp só é solicitado na geração do cartaz, por uma função do banco que devolve o número apenas quando o autor autorizou exibi-lo ou quando o pedido é feito pelo próprio autor. Essas medidas limitam os dados que o aplicativo carrega, mas, na versão atual, ainda não impedem no banco que um usuário autenticado consulte diretamente o perfil de outro (Seção~9.2).
+A Figura~\ref{fig:arquitetura_wefind} apresenta três partes principais: o cliente móvel, os serviços de backend do Supabase e o provedor externo de mensageria. O aplicativo concentra a interface e os recursos do dispositivo. O Supabase oferece autenticação, banco de dados, armazenamento, atualização em tempo real e funções de borda. A Evolution API, hospedada no Render, realiza o envio de mensagens pelo WhatsApp. O aplicativo não se comunica diretamente com a Evolution API. As solicitações de envio passam pelas funções de borda, que guardam a credencial do serviço. Nos avisos do sistema, o aplicativo informa apenas o identificador do destinatário, e a própria função de borda consulta o número de WhatsApp e a autorização de envio no banco. Assim, o telefone de um usuário não é transmitido ao aparelho de quem dispara o aviso. Pelo mesmo motivo, as consultas do mural e dos detalhes da publicação não trazem o e-mail nem o telefone do autor. No fluxo do aplicativo, o WhatsApp só é solicitado na geração do cartaz, por uma função do banco que devolve o número apenas quando o autor autorizou exibi-lo ou quando o pedido é feito pelo próprio autor. Essas medidas limitam os dados que o aplicativo carrega, mas, na versão atual, ainda não impedem no banco que um usuário autenticado consulte diretamente o perfil de outro (Seção~9.2).
 
 A aplicação móvel foi desenvolvida com React Native, React e Expo. A Figura~\ref{fig:principais_tecnologias} destaca as principais tecnologias adotadas no projeto.
 
@@ -32,7 +32,7 @@ A biblioteca React Native foi adotada como núcleo para a interface móvel, em i
 
 Em relação ao desenvolvimento puramente nativo (como construir separadamente uma aplicação em Kotlin para Android e outra em Swift para iOS), a abordagem isolada exigiria a manutenção de duas bases de código distintas. Para este projeto individual, o React Native permitiu desenvolver para as plataformas móveis a partir de uma base de código compartilhada em JavaScript e JSX.
 
-Em relação a soluções baseadas em \textit{WebView}, o React Native permite compor a interface com componentes nativos e integrar recursos do dispositivo por meio de módulos.
+Em relação a soluções baseadas em \textit{WebView}, o React Native permite compor a interface com elementos nativos do sistema operacional e integrar recursos do dispositivo por meio de módulos.
 
 Em conjunto com o React Native, utilizou-se a plataforma Expo e seus módulos. O \textit{expo-location} 19.0.8 consulta os serviços de localização disponíveis no dispositivo, o \textit{expo-image-picker} 17.0.10 permite o acesso à câmera e à galeria, e o \textit{expo-image-manipulator} 14.0.8 comprime fotos antes do envio. A precisão das coordenadas depende do aparelho, das permissões concedidas e das condições de recepção (Expo, 2026).
 
@@ -54,7 +54,7 @@ Para apoiar o desenvolvimento, utilizaram-se Node.js, npm e Visual Studio Code n
 
 \subsection{Serviços em Nuvem, Segurança e Mensageria}
 
-O backend utiliza a plataforma Supabase (Supabase, 2026) e a biblioteca cliente \textit{@supabase/supabase-js} 2.87.3. O Supabase reúne os serviços de autenticação, banco de dados PostgreSQL, armazenamento de arquivos e atualização em tempo real empregados pelo aplicativo. A versão dos serviços gerenciados é administrada pela plataforma. Essa composição foi escolhida para atender às necessidades do projeto sem desenvolver e manter todos esses componentes separadamente.
+O backend utiliza a plataforma Supabase (Supabase, 2026) e a biblioteca cliente \textit{@supabase/supabase-js} 2.87.3. O Supabase reúne os serviços de autenticação, banco de dados PostgreSQL, armazenamento de arquivos e atualização em tempo real empregados pelo aplicativo. A versão dos serviços gerenciados é administrada pela plataforma. Essa composição foi escolhida para atender às necessidades do projeto sem desenvolver e manter cada serviço separadamente.
 
 O Supabase Auth também intermedeia a autenticação social com o Google. Nesse fluxo, o aplicativo solicita ao Supabase uma URL de autenticação, abre o navegador do dispositivo para que o usuário conclua o login na conta Google e, após o retorno por um esquema de redirecionamento próprio do aplicativo, troca o código recebido por uma sessão autenticada. Dessa forma, o WeFIND não coleta nem armazena a senha da conta Google. A autenticação é realizada pelo provedor externo, e a sessão resultante é gerenciada pelo Supabase Auth (Supabase, 2026). Esse fluxo segue o padrão OAuth com PKCE.
 
