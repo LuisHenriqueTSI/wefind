@@ -7,7 +7,7 @@ Esta pasta contém a página estática para publicação no Netlify.
 O APK é armazenado em uma GitHub Release para que o usuário baixe diretamente o arquivo instalável:
 
 ```text
-https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.5/WeFIND_v2.5.apk
+https://github.com/LuisHenriqueTSI/wefind/releases/download/v2.6/WeFIND_v2.6.apk
 ```
 
 A landing page aponta diretamente para essa URL. O usuário não precisa baixar ou extrair um ZIP.
