@@ -52,8 +52,9 @@ WEFIND - TCC/build/
 # generated native folders
 /ios
 /android
-# APKs are distributed separately from the source repository.
+# Keep the published APK in Git LFS; ignore other download artifacts.
 /landing-page/downloads/*.apk
+!/landing-page/downloads/WeFIND_v2.8.1.apk
 /landing-page/downloads/*.zip
 # LaTeX auxiliary files
 *.aux
