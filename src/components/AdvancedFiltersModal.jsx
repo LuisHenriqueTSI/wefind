@@ -33,9 +33,16 @@ const AdvancedFiltersModal = ({
 
   // Avoid error if localFilters is undefined
   const safeFilters = localFilters || {};
-  const activeCount = Object.entries(safeFilters)
-    .filter(([key, value]) => key !== 'animalGroup' && value !== 'all')
-    .length;
+  const activeCount = [
+    safeFilters.animalType,
+    safeFilters.size,
+    safeFilters.gender,
+    safeFilters.age,
+  ].filter((value) => value && value !== 'all').length
+    + (Array.isArray(safeFilters.colors) ? Number(safeFilters.colors.length > 0) : 0)
+    + Number(Boolean(safeFilters.hasReward))
+    + Number(Boolean(safeFilters.seenOnStreet))
+    + Number(Boolean(safeFilters.sortBy && safeFilters.sortBy !== 'distance'));
 
   const handleApply = () => {
     onApply(safeFilters);
@@ -49,11 +56,68 @@ const AdvancedFiltersModal = ({
       size: 'all',
       gender: 'all',
       age: 'all',
-      colors: 'all',
+      colors: [],
       hasReward: false,
+      seenOnStreet: false,
       sortBy: 'distance',
     };
     setLocalFilters(emptyFilters);
+    if (onClear) {
+      onClear();
+    } else {
+      onApply(emptyFilters);
+    }
+    onClose();
+  };
+
+  const renderMultiSelectSection = (title, field, options) => {
+    const selectedValues = Array.isArray(safeFilters[field]) ? safeFilters[field] : [];
+
+    return (
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          {title}
+        </Text>
+        <View style={styles.pillContainer}>
+          {options.map((option) => {
+            const isSelected = selectedValues.includes(option.value);
+            return (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.pill,
+                  {
+                    backgroundColor: isDark ? '#1E293B' : '#F1F5F9',
+                    borderColor: isDark ? '#334155' : '#E2E8F0',
+                  },
+                  isSelected && [
+                    styles.pillActive,
+                    { backgroundColor: colors.primary, borderColor: colors.primary },
+                  ],
+                ]}
+                onPress={() => setLocalFilters({
+                  ...safeFilters,
+                  [field]: isSelected
+                    ? selectedValues.filter((value) => value !== option.value)
+                    : [...selectedValues, option.value],
+                })}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.pillText,
+                    { color: isDark ? '#94A3B8' : '#475569' },
+                    isSelected && styles.pillTextActive,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    );
   };
 
   const renderSection = (title, field, options, { selectedValue, onSelect } = {}) => (
@@ -107,14 +171,11 @@ const AdvancedFiltersModal = ({
     <Modal
       visible={visible}
       animationType="slide"
-      transparent={true}
+      transparent={false}
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-        
-        <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-          <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
+        <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
             {/* Header */}
             <View style={[styles.header, { borderBottomColor: isDark ? '#334155' : '#F1F5F9' }]}>
               <View style={styles.headerLeft}>
@@ -183,8 +244,41 @@ const AdvancedFiltersModal = ({
                 { label: 'Idoso', value: 'idoso' },
               ])}
 
-              {renderSection('Cor', 'colors', [
-                { label: 'Todas', value: 'all' },
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Condição</Text>
+                <View style={styles.pillContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.pill,
+                      {
+                        backgroundColor: isDark ? '#1E293B' : '#F1F5F9',
+                        borderColor: isDark ? '#334155' : '#E2E8F0',
+                      },
+                      safeFilters.seenOnStreet && [
+                        styles.pillActive,
+                        { backgroundColor: colors.primary, borderColor: colors.primary },
+                      ],
+                    ]}
+                    onPress={() => setLocalFilters({
+                      ...safeFilters,
+                      seenOnStreet: !safeFilters.seenOnStreet,
+                    })}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.pillText,
+                        { color: isDark ? '#94A3B8' : '#475569' },
+                        safeFilters.seenOnStreet && styles.pillTextActive,
+                      ]}
+                    >
+                      Visto na rua
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {renderMultiSelectSection('Cor (selecione uma ou mais)', 'colors', [
                 { label: 'Preto', value: 'preto' },
                 { label: 'Branco', value: 'branco' },
                 { label: 'Marrom', value: 'marrom' },
@@ -260,26 +354,15 @@ const AdvancedFiltersModal = ({
                 <Text style={styles.btnPrimaryText}>Aplicar filtros</Text>
               </TouchableOpacity>
             </View>
-          </SafeAreaView>
-        </View>
+        </SafeAreaView>
       </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
+  screen: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  modalContent: {
-    height: '85%',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
     overflow: 'hidden',
   },
   header: {
@@ -352,14 +435,16 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
     borderTopWidth: 1,
-    gap: 12,
+    gap: 10,
   },
   btnOutline: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
+    minHeight: 48,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -369,9 +454,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   btnPrimary: {
-    flex: 2,
-    paddingVertical: 14,
-    borderRadius: 12,
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

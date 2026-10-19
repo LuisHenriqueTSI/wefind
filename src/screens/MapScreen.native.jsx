@@ -56,8 +56,6 @@ const ROUTE_TONE_COLORS = {
   protected: { stroke: '#0284C7', fill: 'rgba(2, 132, 199, 0.1)', bg: '#F0F9FF', border: '#BAE6FD', text: '#0369A1', icon: 'lock-outline' },
 };
 
-const ROUTE_MODE_STORAGE_KEY = '@wefind/route_mode';
-
 // Número no centro de cada círculo do histórico. No Android o react-native-maps
 // desenha o marcador num bitmap de 100 x 100 px (ver PetMapMarker), então a
 // View mede exatamente isso e a bolinha fica centralizada nela.
@@ -439,13 +437,10 @@ const MapScreen = ({ route, navigation }) => {
     () => historyEntries.filter((entry) => entry.isVisibleOnMap),
     [historyEntries]
   );
-  // Último meio de transporte escolhido
   useEffect(() => {
-    AsyncStorage.getItem(ROUTE_MODE_STORAGE_KEY)
-      .then((saved) => {
-        if (saved && ROUTE_MODES[saved]) setRouteMode(saved);
-      })
-      .catch(() => {});
+    AsyncStorage.removeItem('@wefind/route_mode').catch((error) => {
+      console.warn('[MapScreen] Não foi possível remover a modalidade de rota salva:', error?.message || error);
+    });
   }, []);
 
   useEffect(() => {
@@ -860,7 +855,6 @@ const MapScreen = ({ route, navigation }) => {
   const handleChangeRouteMode = useCallback((modeKey) => {
     if (!ROUTE_MODES[modeKey]) return;
     setRouteMode(modeKey);
-    AsyncStorage.setItem(ROUTE_MODE_STORAGE_KEY, modeKey).catch(() => {});
     const endpoints = routeEndpointsRef.current;
     if (endpoints && routeCoordinates.length > 0) {
       calculateRoute(isNavigating && userCoords ? userCoords : endpoints.from, endpoints.to, !isNavigating, modeKey);

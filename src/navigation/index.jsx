@@ -30,6 +30,7 @@ import DashboardScreen from '../screens/DashboardScreen';
 import MapScreen from '../screens/MapScreen';
 import AdminScreen from '../screens/AdminScreen';
 import NotificationBell from '../components/NotificationBell';
+import { ShareFlyerScreen } from '../components/ShareFlyerModal';
 import TabBarButton from '../components/TabBarButton';
 import MeusAnunciosScreen from '../screens/MeusAnunciosScreen';
 import ConfigScreen from '../screens/ConfigScreen';
@@ -240,6 +241,11 @@ const PublicStack = () => {
         name="ItemDetail"
         component={ItemDetailScreen}
         options={{ title: 'Detalhes' }}
+      />
+      <Stack.Screen
+        name="ShareFlyer"
+        component={ShareFlyerScreen}
+        options={{ headerShown: false }}
       />
       {APP_FEATURES.successStories && (
         <>
@@ -602,6 +608,11 @@ const MainStack = () => {
         name="ItemDetail"
         component={ItemDetailScreen}
         options={{ title: 'Detalhes' }}
+      />
+      <Stack.Screen
+        name="ShareFlyer"
+        component={ShareFlyerScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ChatScreen"

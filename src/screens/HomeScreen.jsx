@@ -31,6 +31,7 @@ import * as claimsService from '../services/itemClaims';
 import Card from '../components/Card';
 import ShareButton from '../components/ShareButton';
 import COLORS from '../constants/theme';
+import SEARCH_RADIUS_OPTIONS_KM from '../constants/searchRadiusOptions';
 import {
   getPrivateLocationSummary,
   isResidentialAddressPrivate,
@@ -687,7 +688,7 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
           >
             <View style={{
               width: 28,
-              height: 28,
+              height: 30,
               borderRadius: 14,
               backgroundColor: colors.primaryLight,
               alignItems: 'center',
@@ -1146,8 +1147,9 @@ const HomeScreen = ({ navigation, route }) => {
     size: 'all',
     gender: 'all',
     age: 'all',
-    color: 'all',
+    colors: [],
     hasReward: false,
+    seenOnStreet: false,
     sortBy: 'distance',
   });
 
@@ -1157,8 +1159,9 @@ const HomeScreen = ({ navigation, route }) => {
     if (advancedFilters.size && advancedFilters.size !== 'all') count++;
     if (advancedFilters.gender && advancedFilters.gender !== 'all') count++;
     if (advancedFilters.age && advancedFilters.age !== 'all') count++;
-    if (advancedFilters.color && advancedFilters.color !== 'all') count++;
+    if (Array.isArray(advancedFilters.colors) && advancedFilters.colors.length > 0) count++;
     if (advancedFilters.hasReward) count++;
+    if (advancedFilters.seenOnStreet) count++;
     if (advancedFilters.sortBy && advancedFilters.sortBy !== 'distance') count++;
     return count;
   }, [advancedFilters]);
@@ -1170,11 +1173,18 @@ const HomeScreen = ({ navigation, route }) => {
       size: 'all',
       gender: 'all',
       age: 'all',
-      color: 'all',
+      colors: [],
       hasReward: false,
+      seenOnStreet: false,
       sortBy: 'distance',
     });
-    setFilters(prev => ({ ...prev, animalType: 'all' }));
+    setFilters((prev) => ({
+      status: prev.status,
+      category: prev.category,
+      showMyItems: prev.showMyItems,
+      animalType: 'all',
+      animalGroup: 'all',
+    }));
   };
 
   const loadItems = async (isSilent = false) => {
@@ -1269,6 +1279,11 @@ const HomeScreen = ({ navigation, route }) => {
     // Remove publicações fantasmas (resolvidas ou expiradas) do feed público
     if (!filters.showMyItems) {
       filtered = filtered.filter(item => item && !item.resolved && !itemsService.shouldHideItem?.(item));
+      filtered = filtered.filter(item => !(
+        item.extra_fields?.is_direct_adoption
+        && item.extra_fields?.adoption_remaining_count != null
+        && Number(item.extra_fields.adoption_remaining_count) <= 0
+      ));
     }
 
     // Filtro por status (Perdido / Encontrado / Adoção)
@@ -1276,7 +1291,9 @@ const HomeScreen = ({ navigation, route }) => {
       if (filters.status === 'adoption') {
         filtered = filtered.filter(item => itemsService.isPetAvailableForAdoption(item));
       } else if (filters.status === 'found') {
-        filtered = filtered.filter(item => item.status === 'found' && !itemsService.isPetAvailableForAdoption(item));
+        filtered = filtered.filter(item => item.status === 'found'
+          && !item.extra_fields?.is_direct_adoption
+          && !itemsService.isPetAvailableForAdoption(item));
       } else if (filters.status === 'lost') {
         filtered = filtered.filter(item => item.status === 'lost' && !itemsService.isPetAvailableForAdoption(item));
       } else {
@@ -1581,10 +1598,9 @@ const HomeScreen = ({ navigation, route }) => {
       }
 
       // 5. Cor
-      if (advancedFilters.color && advancedFilters.color !== 'all') {
-        const targetColor = normalizeText(advancedFilters.color);
+      if (Array.isArray(advancedFilters.colors) && advancedFilters.colors.length > 0) {
         const itemColor = normalizeText(item.color || item.extra_fields?.color || item.extra_fields?.cor || '');
-        if (!itemColor.includes(targetColor)) {
+        if (!advancedFilters.colors.some((color) => itemColor.includes(normalizeText(color)))) {
           return false;
         }
       }
@@ -1593,6 +1609,14 @@ const HomeScreen = ({ navigation, route }) => {
       if (advancedFilters.hasReward) {
         const hasActiveReward = Array.isArray(item.rewards) && item.rewards.some(r => r?.status === 'active');
         if (!hasActiveReward) return false;
+      }
+
+      if (advancedFilters.seenOnStreet) {
+        const isSpottedAnimal = (item.category === 'animal' || item.item_type === 'animal')
+          && item.status === 'found'
+          && item.extra_fields?.found_custody === 'spotted'
+          && !itemsService.isPetAvailableForAdoption(item);
+        if (!isSpottedAnimal) return false;
       }
 
       return true;
@@ -1775,7 +1799,7 @@ const HomeScreen = ({ navigation, route }) => {
                     Selecione a distância máxima para filtrar publicações ao redor de você:
                   </Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                    {[5, 10, 20, 35, 50, 80].map((r) => {
+                    {SEARCH_RADIUS_OPTIONS_KM.map((r) => {
                       const isSelected = profileEditRadiusKm === r;
                       return (
                         <TouchableOpacity
@@ -2045,7 +2069,7 @@ const HomeScreen = ({ navigation, route }) => {
             onPress={() => setShowAdvancedFilters(v => !v)}
             accessibilityLabel="Abrir filtros avançados"
           >
-            <MaterialIcons name="tune" size={20} color={showAdvancedFilters ? '#fff' : colors.primary} />
+            <MaterialIcons name="more-vert" size={16} color={showAdvancedFilters ? '#fff' : colors.primary} />
             {activeAdvancedFiltersCount > 0 && (
               <View style={{
                 position: 'absolute',
@@ -2074,7 +2098,6 @@ const HomeScreen = ({ navigation, route }) => {
             onPress={() => setFilters({ ...filters, status: 'all' })}
             activeOpacity={0.85}
           >
-            <MaterialIcons name="grid-view" size={13.5} color={filters.status === 'all' ? '#FFFFFF' : (isDark ? '#94A3B8' : '#4B5563')} style={{ marginRight: 4 }} />
             <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'all' && styles.filterChipTextActive]}>Todos</Text>
           </TouchableOpacity>
 
@@ -2087,7 +2110,6 @@ const HomeScreen = ({ navigation, route }) => {
             onPress={() => setFilters({ ...filters, status: 'lost' })}
             activeOpacity={0.85}
           >
-            <MaterialIcons name="priority-high" size={14} color={filters.status === 'lost' ? '#FFFFFF' : (isDark ? '#94A3B8' : '#4B5563')} style={{ marginRight: 2 }} />
             <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'lost' && styles.filterChipTextActive]}>Perdidos</Text>
           </TouchableOpacity>
 
@@ -2100,7 +2122,6 @@ const HomeScreen = ({ navigation, route }) => {
             onPress={() => setFilters({ ...filters, status: 'found' })}
             activeOpacity={0.85}
           >
-            <MaterialIcons name="search" size={15} color={filters.status === 'found' ? '#FFFFFF' : (isDark ? '#94A3B8' : '#4B5563')} style={{ marginRight: 4 }} />
             <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'found' && styles.filterChipTextActive]}>Encontrados</Text>
           </TouchableOpacity>
 
@@ -2113,8 +2134,7 @@ const HomeScreen = ({ navigation, route }) => {
             onPress={() => setFilters({ ...filters, status: 'adoption' })}
             activeOpacity={0.85}
           >
-            <MaterialIcons name="favorite-border" size={13.5} color={filters.status === 'adoption' ? '#FFFFFF' : (isDark ? '#94A3B8' : '#4B5563')} style={{ marginRight: 4 }} />
-            <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'adoption' && styles.filterChipTextActive]}>Para adoção</Text>
+            <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'adoption' && styles.filterChipTextActive]}>Adoção</Text>
           </TouchableOpacity>
 
           {user && (
@@ -2128,12 +2148,6 @@ const HomeScreen = ({ navigation, route }) => {
               activeOpacity={0.85}
               accessibilityLabel="Minhas publicações"
             >
-              <MaterialIcons
-                name="person-outline"
-                size={15}
-                color={filters.showMyItems ? '#FFFFFF' : (isDark ? '#94A3B8' : '#4B5563')}
-                style={{ marginRight: 4 }}
-              />
               <Text
                 style={[
                   styles.filterChipText,
@@ -2157,6 +2171,7 @@ const HomeScreen = ({ navigation, route }) => {
           setAdvancedFilters(newFilters);
           setFilters(prev => ({ ...prev, ...newFilters }));
         }}
+        onClear={handleResetAdvancedFilters}
       />
       {/* Banner Informativo do Raio de Busca (Apenas quando houver cidade/estado específico) */}
       {Boolean(locationFilter && locationFilter.trim().length > 0 && headerLocationSummary !== 'Todo o Brasil') && (
@@ -2216,7 +2231,7 @@ const HomeScreen = ({ navigation, route }) => {
             </Text>
 
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 12 }}>
-              {[5, 10, 20, 35, 50, 80].map((r) => {
+              {SEARCH_RADIUS_OPTIONS_KM.map((r) => {
                 const isSelected = selectedQuickRadius === r;
                 return (
                   <TouchableOpacity
@@ -2364,13 +2379,13 @@ const styles = StyleSheet.create({
   filterToolbarContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
     paddingHorizontal: 2,
   },
   filterToggle: {
-    width: 38,
-    height: 34,
-    borderRadius: 10,
+    width: 28,
+    height: 26,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primaryLight,
@@ -2499,9 +2514,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 32,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    height: 28,
+    paddingVertical: 3,
+    paddingHorizontal: 4,
     marginRight: 0,
     borderRadius: 12,
     backgroundColor: '#E5E7EB',
@@ -2514,7 +2529,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primaryDark,
   },
   filterChipText: {
-    fontSize: 12,
+    fontSize: 10.5,
     fontWeight: '600',
     color: '#1F2937',
     lineHeight: 14,

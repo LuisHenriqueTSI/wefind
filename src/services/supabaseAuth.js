@@ -124,18 +124,10 @@ export const getUser = async () => {
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) {
       console.log('[getUser] session error:', sessionError.message);
-    }
-
-    if (session?.user) {
-      return session.user;
-    }
-
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) {
-      console.log('[getUser] auth error:', error.message);
       return null;
     }
-    return user;
+
+    return session?.user || null;
   } catch (error) {
     console.log('[getUser] Error fetching user:', error.message);
     return null;

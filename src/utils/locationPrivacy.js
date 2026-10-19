@@ -54,9 +54,32 @@ export const getPrivateLocationSummary = (item, { includeCityState = true } = {}
   const state = String(locationDetails.state || item?.state || extraFields.state || '').trim();
   const cityState = includeCityState ? [city, state].filter(Boolean).join(' - ') : '';
   const parts = [
-    district ? `Região do Bairro ${district} (Endereço protegido)` : 'Endereço protegido',
+    district ? `Região do Bairro ${district}` : '',
     cityState,
   ].filter(Boolean);
 
   return parts.join(' • ');
+};
+
+export const getFlyerLocationSummary = (item) => {
+  if (!item) return '';
+
+  const extraFields = item.extra_fields && typeof item.extra_fields === 'object'
+    ? item.extra_fields
+    : {};
+  const locationDetails = extraFields.location_details || {};
+  const street = removeHouseNumberFromStreet(
+    locationDetails.street || item.street || extraFields.street || ''
+  );
+  const neighborhood = String(
+    locationDetails.district ||
+    locationDetails.neighborhood ||
+    item.neighborhood ||
+    extraFields.neighborhood ||
+    ''
+  ).trim();
+  const city = String(locationDetails.city || item.city || extraFields.city || '').trim();
+  const state = String(locationDetails.state || item.state || extraFields.state || '').trim();
+
+  return [street, neighborhood, city, state].filter(Boolean).join(' - ');
 };

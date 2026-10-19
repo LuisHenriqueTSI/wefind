@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Modal,
+  BackHandler,
   View,
   Text,
   TextInput,
@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { MaterialIcons, Ionicons, Feather, FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { submitOwnershipProof } from '../services/proofVerification';
 import COLORS from '../constants/theme';
@@ -37,6 +38,17 @@ export default function ProofUploadModal({
   const [vetDocNumber, setVetDocNumber] = useState('');
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return undefined;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      onClose?.();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [onClose, visible]);
 
   const handlePickImage = async () => {
     try {
@@ -162,28 +174,27 @@ export default function ProofUploadModal({
     }
   };
 
+  if (!visible) return null;
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: colors.surface || (isDark ? '#132218' : '#FFFFFF') }]}
+      edges={['top', 'bottom']}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.overlay}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={styles.keyboardContainer}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardContainer}
+        >
+          <View
+            style={[
+              styles.container,
+              {
+                backgroundColor: colors.surface || (isDark ? '#132218' : '#FFFFFF'),
+                borderColor: colors.border,
+              },
+            ]}
           >
-            <View
-              style={[
-                styles.container,
-                {
-                  backgroundColor: colors.surface || (isDark ? '#132218' : '#FFFFFF'),
-                  borderColor: colors.border,
-                },
-              ]}
-            >
               {/* Header */}
               <View style={styles.headerRow}>
                 <View style={[styles.iconBadge, { backgroundColor: isDark ? 'rgba(46, 86, 52, 0.25)' : '#EAF2EB' }]}>
@@ -208,7 +219,9 @@ export default function ProofUploadModal({
               </View>
 
               <ScrollView
+                style={styles.formScrollView}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
                 contentContainerStyle={{ paddingBottom: 16 }}
               >
                 {/* Banner de Segurança */}
@@ -479,36 +492,26 @@ export default function ProofUploadModal({
                   </Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
-    </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  screen: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
   },
   keyboardContainer: {
-    width: '100%',
-    maxWidth: 480,
-    maxHeight: '92%',
+    flex: 1,
   },
   container: {
-    borderRadius: 20,
+    flex: 1,
     padding: 18,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+  },
+  formScrollView: {
+    flex: 1,
   },
   headerRow: {
     flexDirection: 'row',

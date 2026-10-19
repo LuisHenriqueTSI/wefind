@@ -61,6 +61,10 @@ AS $function$
       'is_neutered', i.extra_fields -> 'is_neutered',
       'temperament', i.extra_fields -> 'temperament',
       'is_direct_adoption', i.extra_fields -> 'is_direct_adoption',
+      'adoption_origin', i.extra_fields -> 'adoption_origin',
+      'adoption_total_count', i.extra_fields -> 'adoption_total_count',
+      'adoption_remaining_count', i.extra_fields -> 'adoption_remaining_count',
+      'adoption_animals', i.extra_fields -> 'adoption_animals',
       'found_custody', i.extra_fields -> 'found_custody',
       'available_for_adoption', i.extra_fields -> 'available_for_adoption',
       'recovery_search', jsonb_strip_nulls(jsonb_build_object(

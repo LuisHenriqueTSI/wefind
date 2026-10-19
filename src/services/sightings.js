@@ -629,7 +629,7 @@ export const recordSighting = async ({ itemId, userId, location, description, ph
     if (isPrivatePlace && lat != null && lng != null) {
       lat = roundPublicCoordinate(lat);
       lng = roundPublicCoordinate(lng);
-      resolvedAddress = [district, city].filter(Boolean).join(' - ') || 'Local privado (endereço protegido)';
+      resolvedAddress = [district, city].filter(Boolean).join(' - ') || 'Localização aproximada';
       street = '';
     }
 

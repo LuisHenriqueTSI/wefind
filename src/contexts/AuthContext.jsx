@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const activeUserIdRef = useRef(null);
   const profileRequestsRef = useRef(new Map());
+  const authStateVersionRef = useRef(0);
 
   const ensureProfile = useCallback((authUser) => {
     if (!authUser?.id) return Promise.resolve(null);
@@ -61,9 +62,11 @@ export const AuthProvider = ({ children }) => {
   // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
+      const authStateVersion = authStateVersionRef.current;
       try {
         console.log('[Auth] Iniciando verificação de sessão...');
         const currentUser = await supabaseAuth.getUser();
+        if (authStateVersionRef.current !== authStateVersion) return;
         
         if (currentUser) {
           console.log('[Auth] Usuário encontrado:', currentUser.id);
@@ -108,6 +111,7 @@ export const AuthProvider = ({ children }) => {
         console.log('[Auth] Auth state changed:', event);
         
         if (event === 'SIGNED_IN') {
+          authStateVersionRef.current += 1;
           if (session?.user) {
             activeUserIdRef.current = session.user.id;
             setUser(session.user);
@@ -123,6 +127,7 @@ export const AuthProvider = ({ children }) => {
             setUser(session.user);
           }
         } else if (event === 'SIGNED_OUT') {
+          authStateVersionRef.current += 1;
           activeUserIdRef.current = null;
           setUser(null);
           setUserProfile(null);

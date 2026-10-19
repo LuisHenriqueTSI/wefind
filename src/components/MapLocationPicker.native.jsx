@@ -18,6 +18,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { states } from '../lib/br-locations';
 import COLORS from '../constants/theme';
 import { removeHouseNumberFromAddress } from '../utils/locationPrivacy';
+import SEARCH_RADIUS_OPTIONS_KM from '../constants/searchRadiusOptions';
 
 const BRAZIL_REGION = {
   latitude: -14.235,
@@ -391,7 +392,7 @@ const MapLocationPicker = ({
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
-                  {[5, 10, 20, 35, 50, 80].map((r) => {
+                  {SEARCH_RADIUS_OPTIONS_KM.map((r) => {
                     const isSel = currentRadiusKm === r;
                     return (
                       <TouchableOpacity

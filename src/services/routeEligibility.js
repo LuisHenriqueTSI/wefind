@@ -215,7 +215,7 @@ export const describeRouteStatus = (status) => {
     case 'no_clue':
       return { tone: 'cold', title: 'Ainda sem pista na rua', text: 'A rota aparece quando alguém registrar um avistamento. Viu o pet? Toque em "Vi o Pet".' };
     case 'protected':
-      return { tone: 'protected', title: 'Endereço protegido', text: 'Este animal está em uma casa. Fale com o responsável pelo chat na página do animal.' };
+      return { tone: 'protected', title: 'Fale com o responsável', text: 'Este animal está em uma casa. Combine a devolução pelo chat na página do animal.' };
     default:
       return null;
   }

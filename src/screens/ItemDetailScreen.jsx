@@ -18,6 +18,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons, FontAwesome, Feather, Ionicons } from '@expo/vector-icons';
 import { stripEmoji } from '../utils/text';
 import { useAuth } from '../contexts/AuthContext';
@@ -44,7 +45,6 @@ import OptimizedImage from '../components/OptimizedImage';
 import * as Location from 'expo-location';
 import { describeRouteStatus, getRouteStatus } from '../services/routeEligibility';
 import {
-  getPrivateLocationSummary,
   isResidentialAddressPrivate,
   removeHouseNumberFromStreet,
 } from '../utils/locationPrivacy';
@@ -72,19 +72,19 @@ const formatStreetNumberNeighborhood = (item) => {
   const district = (details?.district || item?.neighborhood || '').trim();
 
   if (isResidentialAddressPrivate(item)) {
-    return getPrivateLocationSummary(item, { includeCityState: false });
+    const street = removeHouseNumberFromStreet(
+      details?.street || item?.street || details?.text || item?.address
+    );
+    return [street, district].filter((part, index, parts) => part && parts.indexOf(part) === index).join(', ');
   }
 
-  // 1. ANIMAL PERDIDO: Exibe como Região de Desaparecimento (sem expor o número da casa do tutor)
+  // Exibe a rua sem o número residencial.
   if (isLost) {
-    const reference = removeHouseNumberFromStreet(details?.reference || details?.street || item?.street);
-    if (reference && district && reference !== district) {
-      return `Região de ${district} • Proximidades: ${reference}`;
-    }
-    if (district) {
-      return `Região do Bairro ${district}`;
-    }
-    return 'Região de Desaparecimento informada pelo tutor';
+    const street = removeHouseNumberFromStreet(
+      details?.street || details?.reference || item?.street || details?.text || item?.address
+    );
+    return [street, district].filter((part, index, parts) => part && parts.indexOf(part) === index).join(', ')
+      || 'Localização informada pelo tutor';
   }
 
   // ANIMAL VISTO NA RUA: Exibe endereço da via pública
@@ -107,6 +107,7 @@ const formatStreetNumberNeighborhood = (item) => {
 };
 
 const ItemDetailScreen = ({ route, navigation }) => {
+  const insets = useSafeAreaInsets();
   const { itemId } = route.params;
   const { user, userProfile, isAdmin } = useAuth();
   const { colors, isDark } = useTheme();
@@ -132,6 +133,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
   const [editUploading, setEditUploading] = useState(false);
   const [renewing, setRenewing] = useState(false);
   const [togglingAdoption, setTogglingAdoption] = useState(false);
+  const [updatingAdoptionCount, setUpdatingAdoptionCount] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportDetails, setReportDetails] = useState('');
@@ -139,9 +141,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [fullScreenPhotoModal, setFullScreenPhotoModal] = useState(false);
   const [fullScreenIndex, setFullScreenIndex] = useState(0);
-  const [expandedAdoptionInfo, setExpandedAdoptionInfo] = useState(false);
   const [expandedCustodyInfo, setExpandedCustodyInfo] = useState(false);
-  const [expandedHelpNetwork, setExpandedHelpNetwork] = useState(false);
   const [showMoreInfo, setShowMoreInfo] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [potentialMatches, setPotentialMatches] = useState([]);
@@ -169,6 +169,8 @@ const ItemDetailScreen = ({ route, navigation }) => {
         color: '#fff',
         fontSize: 18,
       },
+      headerShown: !proofModalVisible,
+      gestureEnabled: !proofModalVisible,
       headerLeft: () => (
         <TouchableOpacity
           onPress={handleSafeGoBack}
@@ -180,7 +182,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation, handleSafeGoBack, colors.headerBg]);
+  }, [navigation, handleSafeGoBack, colors.headerBg, proofModalVisible]);
 
   useFocusEffect(
     useCallback(() => {
@@ -467,6 +469,13 @@ const ItemDetailScreen = ({ route, navigation }) => {
   };
 
   const handleSendMessage = () => {
+    const isDirectAdoption = Boolean(item?.extra_fields?.is_direct_adoption || item?.status === 'adoption');
+    const remainingCount = item?.extra_fields?.adoption_remaining_count;
+    if (isDirectAdoption && remainingCount != null && Number(remainingCount) <= 0) {
+      Alert.alert('Adoção encerrada', 'Todos os animais deste anúncio já foram adotados.');
+      return;
+    }
+
     if (!user) {
       Alert.alert(
         'Login necessário',
@@ -532,6 +541,17 @@ const ItemDetailScreen = ({ route, navigation }) => {
   };
 
   const handleReportSighting = () => {
+    const isAnimalInCustody = (item?.category === 'animal' || item?.item_type === 'animal')
+      && item?.status === 'found'
+      && item?.extra_fields?.found_custody !== 'spotted';
+    if (isAnimalInCustody) {
+      Alert.alert(
+        'Animal sob cuidados',
+        'Como o animal está com quem publicou, não é necessário registrar novos avistamentos. Entre em contato pelo chat para compartilhar informações.'
+      );
+      return;
+    }
+
     if (!user) {
       Alert.alert(
         'Login necessário',
@@ -602,6 +622,51 @@ const ItemDetailScreen = ({ route, navigation }) => {
     } finally {
       setTogglingAdoption(false);
     }
+  };
+
+  const handleToggleAdoptionAnimal = (animalIndex) => {
+    if (updatingAdoptionCount) return;
+    const animal = adoptionAnimals[animalIndex];
+    if (!animal) return;
+    const nextStatus = animal.adoption_status === 'adopted' ? 'available' : 'adopted';
+    const action = nextStatus === 'adopted' ? 'marcar como adotado' : 'disponibilizar novamente';
+    Alert.alert(
+      'Atualizar situação do animal',
+      `Confirma que deseja ${action} o Animal ${animalIndex + 1}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Confirmar',
+          onPress: async () => {
+            setUpdatingAdoptionCount(true);
+            try {
+              const updatedAnimals = adoptionAnimals.map((currentAnimal, index) => (
+                index === animalIndex
+                  ? { ...currentAnimal, adoption_status: nextStatus }
+                  : currentAnimal
+              ));
+              const updated = await itemsService.updateAdoptionAnimals(
+                item.id,
+                {
+                  ...(item.extra_fields || {}),
+                  adoption_total_count: adoptionTotalCount,
+                  adoption_remaining_count: adoptionRemainingCount,
+                },
+                updatedAnimals
+              );
+              setItem((previous) => ({
+                ...previous,
+                extra_fields: updated.extra_fields,
+              }));
+            } catch (error) {
+              Alert.alert('Erro', error?.message || 'Não foi possível atualizar a quantidade disponível.');
+            } finally {
+              setUpdatingAdoptionCount(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleOpenReport = () => {
@@ -815,6 +880,18 @@ const ItemDetailScreen = ({ route, navigation }) => {
     );
   }
 
+  if (proofModalVisible) {
+    return (
+      <ProofUploadModal
+        visible
+        onClose={() => setProofModalVisible(false)}
+        item={item}
+        userId={user?.id}
+        onSuccess={loadVerification}
+      />
+    );
+  }
+
   const handleOpenRoute = async () => {
     if (!item) return;
     // Só pistas públicas e recentes têm rota; o destino é o centro da área de busca
@@ -847,15 +924,94 @@ const ItemDetailScreen = ({ route, navigation }) => {
   };
 
   const requiresOwnershipProof = item.extra_fields?.requires_ownership_proof !== false;
-  const isAdoption = Boolean(item.extra_fields?.is_direct_adoption || itemsService.isPetAvailableForAdoption(item));
+  const isDirectAdoption = Boolean(item.extra_fields?.is_direct_adoption || item.status === 'adoption');
+  const isAdoption = Boolean(isDirectAdoption || itemsService.isPetAvailableForAdoption(item));
+  const adoptionTotalCount = Math.max(1, Number(item.extra_fields?.adoption_total_count) || 1);
+  const rawAdoptionRemainingCount = item.extra_fields?.adoption_remaining_count;
+  const parsedAdoptionRemainingCount = Number(rawAdoptionRemainingCount);
+  const storedAdoptionAnimals = Array.isArray(item.extra_fields?.adoption_animals)
+    ? item.extra_fields.adoption_animals
+    : [];
+  const storedRemainingCount = rawAdoptionRemainingCount == null
+    || !Number.isSafeInteger(parsedAdoptionRemainingCount)
+    ? adoptionTotalCount
+    : Math.max(0, Math.min(adoptionTotalCount, parsedAdoptionRemainingCount));
+  const hasStoredIndividualStatuses = storedAdoptionAnimals.length === adoptionTotalCount
+    && storedAdoptionAnimals.every((animal) => ['available', 'adopted'].includes(animal?.adoption_status));
+  const adoptionAnimals = Array.from({ length: adoptionTotalCount }, (_, index) => {
+    const animal = storedAdoptionAnimals[index] || {};
+    return {
+      ...animal,
+      adoption_status: ['available', 'adopted'].includes(animal.adoption_status)
+        ? animal.adoption_status
+        : index < storedRemainingCount ? 'available' : 'adopted',
+    };
+  });
+  const adoptionRemainingCount = hasStoredIndividualStatuses
+    ? adoptionAnimals.filter((animal) => animal.adoption_status === 'available').length
+    : storedRemainingCount;
+  const isAdoptionClosed = isDirectAdoption
+    && rawAdoptionRemainingCount != null
+    && adoptionRemainingCount === 0;
+  const adoptionQuantityLabel = isAdoptionClosed
+    ? adoptionTotalCount === 1
+      ? 'Este animal já foi adotado.'
+      : `Todos os ${adoptionTotalCount} animais foram adotados.`
+    : `${adoptionRemainingCount} de ${adoptionTotalCount} ${adoptionRemainingCount === 1 ? 'animal disponível' : 'animais disponíveis'} para adoção`;
+  const summarizeAdoptionField = (field) => {
+    const counts = new Map();
+    adoptionAnimals.forEach((animal) => {
+      const rawValue = animal?.[field];
+      const value = Array.isArray(rawValue)
+        ? rawValue.filter(Boolean).join(' e ')
+        : String(rawValue || '').trim();
+      if (!value) return;
+      const key = value.toLocaleLowerCase();
+      const existing = counts.get(key);
+      counts.set(key, { label: existing?.label || value, count: (existing?.count || 0) + 1 });
+    });
+    return Array.from(counts.values())
+      .map(({ label, count }) => `${label} (${count})`)
+      .join(', ');
+  };
+  const adoptionAnimalSummaries = [
+    { label: 'Sexo', value: summarizeAdoptionField('gender') },
+    { label: 'Cores', value: summarizeAdoptionField('color') },
+    { label: 'Idade', value: summarizeAdoptionField('age') },
+    { label: 'Raças', value: summarizeAdoptionField('breed') },
+  ].filter(({ value }) => value);
+  const getAdoptionAnimalDetails = (animal) => [
+    { label: 'Sexo', value: animal.gender },
+    { label: 'Cor', value: Array.isArray(animal.color) ? animal.color.join(' com ') : animal.color },
+    { label: 'Idade', value: animal.age },
+    { label: 'Raça', value: animal.breed },
+  ]
+    .filter(({ value }) => typeof value === 'string' && value.trim())
+    .map(({ label, value }) => `${label}: ${value}`)
+    .join(' · ');
+  const adoptionOriginLabels = {
+    rescue: 'Resgatados / encontrados sem tutor conhecido',
+    own_litter: 'Ninhada do animal do responsável',
+    shelter: 'Abrigo / ONG / protetor',
+    other: 'Outra origem',
+  };
   const isFound = item.status === 'found' && !isAdoption;
+  const isAnimalInCustody = (item.category === 'animal' || item.item_type === 'animal')
+    && item.status === 'found'
+    && item.extra_fields?.found_custody !== 'spotted';
 
   return (
-    <ScrollView style={[styles.detailPage, { backgroundColor: colors.background }]} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={[styles.detailPage, { backgroundColor: colors.background }]}
+      contentContainerStyle={{
+        paddingBottom: Math.max(insets.bottom + 32, Platform.OS === 'android' ? 56 : 32),
+      }}
+      showsVerticalScrollIndicator={false}
+    >
       {/* 1. HERO PHOTO SHOWCASE */}
       <View style={styles.heroContainer}>
         {photos && photos.length > 0 ? (
-          <View style={{ width: '100%', height: 320, position: 'relative' }}>
+          <View style={{ width: '100%', height: 260, position: 'relative' }}>
             <ScrollView
               horizontal
               pagingEnabled
@@ -864,7 +1020,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 const newIndex = Math.round(e.nativeEvent.contentOffset.x / screenWidth);
                 setActivePhotoIndex(newIndex);
               }}
-              style={{ width: screenWidth, height: 320 }}
+              style={{ width: screenWidth, height: 260 }}
             >
               {photos.map((photo, idx) => (
                 <TouchableOpacity
@@ -874,7 +1030,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                     setFullScreenIndex(idx);
                     setFullScreenPhotoModal(true);
                   }}
-                  style={{ width: screenWidth, height: 320 }}
+                  style={{ width: screenWidth, height: 260 }}
                 >
                   <Image
                     source={{ uri: photo.url }}
@@ -923,7 +1079,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
             )}
           </View>
         ) : (
-          <View style={{ width: screenWidth, height: 320 }}>
+          <View style={{ width: screenWidth, height: 260 }}>
             <PetFallbackImage
               species={item.species}
               breed={item.breed || item.animal_breed}
@@ -966,7 +1122,13 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 { color: isAdoption ? '#BE185D' : isFound ? '#1E3E24' : '#C2410C' },
               ]}
             >
-              {isAdoption ? 'Para Adoção Responsável' : isFound ? 'Animal Encontrado' : 'Animal Perdido'}
+              {isAdoptionClosed
+                ? 'Adoção encerrada'
+                : isAdoption
+                ? 'Para Adoção Responsável'
+                : isFound
+                ? 'Animal Encontrado'
+                : 'Animal Perdido'}
             </Text>
           </View>
         </View>
@@ -993,7 +1155,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
               .trim();
             const isBreedUnknown = !displayBreed ||
               /^(não informado|não informada|nao informado|nao informada|sem raça definida|sem raca definida|sem raça|sem raca|srd|desconhecido|desconhecida|outra|outro)$/i.test(displayBreed);
-            if (isBreedUnknown) return null;
+            if (!showMoreInfo || isBreedUnknown) return null;
             return (
               <View style={[styles.attrChip, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
                 <View style={styles.attrChipTextWrap}>
@@ -1022,7 +1184,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
             </View>
           ) : null}
 
-          {(item.size || item.extra_fields?.size) && (item.size || item.extra_fields?.size) !== 'Não informado' ? (
+          {showMoreInfo && (item.size || item.extra_fields?.size) && (item.size || item.extra_fields?.size) !== 'Não informado' ? (
             <View style={[styles.attrChip, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
               <View style={styles.attrChipTextWrap}>
                 <Text style={[styles.attrChipLabel, { color: colors.textMuted }]}>Porte</Text>
@@ -1031,7 +1193,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
             </View>
           ) : null}
 
-          {(item.color || item.extra_fields?.color) && (
+          {showMoreInfo && (item.color || item.extra_fields?.color) && (
             <View style={[styles.attrChip, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
               <View style={styles.attrChipTextWrap}>
                 <Text style={[styles.attrChipLabel, { color: colors.textMuted }]}>Cor</Text>
@@ -1041,7 +1203,11 @@ const ItemDetailScreen = ({ route, navigation }) => {
           )}
         </View>
 
-        {(item.description || (Array.isArray(item.extra_fields?.temperament) && item.extra_fields.temperament.length > 0) || (Array.isArray(rewards) && rewards.some(r => r?.status === 'active'))) && (
+        {(item.description
+          || (Array.isArray(item.extra_fields?.temperament) && item.extra_fields.temperament.length > 0)
+          || (Array.isArray(rewards) && rewards.some(r => r?.status === 'active'))
+          || item.breed || item.extra_fields?.breed || item.size || item.extra_fields?.size || item.color || item.extra_fields?.color
+          || (isDirectAdoption && (adoptionOriginLabels[item.extra_fields?.adoption_origin] || adoptionAnimalSummaries.length > 0))) && (
           <TouchableOpacity
             style={[styles.moreInfoButton, { borderColor: colors.border, backgroundColor: isDark ? '#1E293B' : '#F8FAFC' }]}
             onPress={() => setShowMoreInfo(!showMoreInfo)}
@@ -1066,6 +1232,28 @@ const ItemDetailScreen = ({ route, navigation }) => {
             <Text style={[styles.descriptionText, { color: colors.text }]}>{item.description}</Text>
           </View>
         ) : null}
+
+        {showMoreInfo && isDirectAdoption && (adoptionOriginLabels[item.extra_fields?.adoption_origin] || adoptionAnimalSummaries.length > 0) && (
+          <View style={[styles.descriptionBlock, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: colors.border }]}>
+            {adoptionOriginLabels[item.extra_fields?.adoption_origin] && (
+              <Text style={[styles.adoptionExtraText, { color: colors.text }]}>
+                Origem: {adoptionOriginLabels[item.extra_fields.adoption_origin]}
+              </Text>
+            )}
+            {adoptionAnimalSummaries.length > 0 && (
+              <>
+                <Text style={[styles.sectionSubtitle, { color: colors.textMuted, marginTop: 6 }]}>
+                  Características do grupo
+                </Text>
+                {adoptionAnimalSummaries.map(({ label, value }) => (
+                  <Text key={label} style={[styles.adoptionExtraText, { color: colors.textSecondary }]}>
+                    {label}: {value}
+                  </Text>
+                ))}
+              </>
+            )}
+          </View>
+        )}
 
         {/* Personalidade e cuidados do Pet */}
         {showMoreInfo && Array.isArray(item.extra_fields?.temperament) && item.extra_fields.temperament.length > 0 && (
@@ -1134,48 +1322,91 @@ const ItemDetailScreen = ({ route, navigation }) => {
         )}
       </View>
 
-      {/* 3. ADOÇÃO E CUSTÓDIA (AVISOS DISCRETOS E MODERNOS) */}
-      {isAdoption && (
-        <TouchableOpacity
+      {/* 3. ADOÇÃO E CUSTÓDIA */}
+      {isDirectAdoption && (
+        <View
           style={[
-            styles.adoptionNoticeCard,
-            { backgroundColor: isDark ? 'rgba(219, 39, 119, 0.12)' : '#FDF2F8', borderColor: isDark ? 'rgba(219, 39, 119, 0.3)' : '#FBCFE8' }
+            styles.adoptionQuantityCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              flexDirection: 'column',
+              alignItems: 'stretch',
+            },
           ]}
-          onPress={() => setExpandedAdoptionInfo(!expandedAdoptionInfo)}
-          activeOpacity={0.8}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
-              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: isDark ? 'rgba(219, 39, 119, 0.25)' : '#FCE7F3', alignItems: 'center', justifyContent: 'center' }}>
-                <MaterialIcons name="favorite" size={16} color="#DB2777" />
-              </View>
-              <Text style={[styles.adoptionNoticeTitle, { color: isDark ? '#F472B6' : '#BE185D' }]}>
-                Disponível para adoção
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-              <Text style={{ fontSize: 11, fontWeight: '700', color: isDark ? '#F472B6' : '#BE185D' }}>
-                {expandedAdoptionInfo ? 'Menos' : 'Saiba mais'}
-              </Text>
-              <MaterialIcons
-                name={expandedAdoptionInfo ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-                size={18}
-                color={isDark ? '#F472B6' : '#BE185D'}
-              />
-            </View>
+          <View>
+            <Text style={[styles.adoptionQuantityLabel, { color: colors.text, flex: 0 }]}>
+              {adoptionQuantityLabel}
+            </Text>
           </View>
-
-          {expandedAdoptionInfo && (
-            <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: isDark ? 'rgba(219, 39, 119, 0.2)' : '#FCE7F3' }}>
-              <Text style={[styles.adoptionNoticeText, { color: isDark ? '#E2E8F0' : '#831843' }]}>
-                Este animal não possui tutor conhecido e está sob acolhimento temporário. Caso queira adotar, envie uma mensagem ao protetor pelo chat!
+          {isOwner && !isAdmin && (
+            <View style={{ marginTop: 10, gap: 8 }}>
+              <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: '600' }}>
+                Atualize a situação de cada animal:
               </Text>
+              {adoptionAnimals.map((animal, index) => {
+                const isAdopted = animal.adoption_status === 'adopted';
+                const details = getAdoptionAnimalDetails(animal);
+                return (
+                  <View
+                    key={animal.id || index}
+                    style={{
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      borderRadius: 10,
+                      padding: 10,
+                      gap: 6,
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <Text style={{ color: colors.text, fontSize: 13, fontWeight: '700', flex: 1 }}>
+                        Animal {index + 1}
+                      </Text>
+                      <Text style={{
+                        color: isAdopted ? '#64748B' : (isDark ? '#34D399' : '#047857'),
+                        fontSize: 11,
+                        fontWeight: '700',
+                      }}>
+                        {isAdopted ? 'Adotado' : 'Disponível'}
+                      </Text>
+                    </View>
+                    {details ? (
+                      <Text style={{ color: colors.textSecondary, fontSize: 11, lineHeight: 16 }}>
+                        {details}
+                      </Text>
+                    ) : null}
+                    <TouchableOpacity
+                      onPress={() => handleToggleAdoptionAnimal(index)}
+                      disabled={updatingAdoptionCount}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${isAdopted ? 'Marcar Animal ' + (index + 1) + ' como disponível' : 'Marcar Animal ' + (index + 1) + ' como adotado'}`}
+                      style={{
+                        alignSelf: 'flex-start',
+                        borderWidth: 1,
+                        borderColor: isAdopted ? colors.primary : '#BE185D',
+                        borderRadius: 8,
+                        paddingHorizontal: 10,
+                        paddingVertical: 6,
+                        opacity: updatingAdoptionCount ? 0.55 : 1,
+                      }}
+                    >
+                      <Text style={{
+                        color: isAdopted ? colors.primary : '#BE185D',
+                        fontSize: 11,
+                        fontWeight: '700',
+                      }}>
+                        {isAdopted ? 'Marcar como disponível' : 'Marcar como adotado'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
             </View>
           )}
-        </TouchableOpacity>
+        </View>
       )}
-
-      {isFound && !isAdoption && (
+      {isFound && !isAdoption && item.extra_fields?.found_custody === 'spotted' && (
         <TouchableOpacity
           style={[
             styles.custodyNoticeCard,
@@ -1208,21 +1439,10 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 styles.custodyNoticeTitle,
                 { color: item.extra_fields?.found_custody === 'spotted' ? (isDark ? '#FBBF24' : '#B45309') : (isDark ? '#34D399' : '#1E3E24') },
               ]}>
-                {item.extra_fields?.found_custody === 'spotted'
-                  ? 'Animal Avistado na Rua'
-                  : 'Animal sob Cuidados / Lar Temporário'}
+                Animal Avistado na Rua
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-              <Text style={{
-                fontSize: 11,
-                fontWeight: '700',
-                color: item.extra_fields?.found_custody === 'spotted'
-                  ? (isDark ? '#FBBF24' : '#B45309')
-                  : (isDark ? '#34D399' : '#1E3E24')
-              }}>
-                {expandedCustodyInfo ? 'Menos' : 'Saiba mais'}
-              </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <MaterialIcons
                 name={expandedCustodyInfo ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
                 size={18}
@@ -1256,57 +1476,9 @@ const ItemDetailScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       )}
 
-      {item.status === 'found' && helpNetwork && (
-        <View style={[styles.cardSection, {
-          backgroundColor: isDark ? '#101C32' : '#EFF6FF',
-          borderColor: isDark ? '#1E40AF' : '#BFDBFE',
-        }]}>
-          <TouchableOpacity
-            style={styles.sectionHeaderRow}
-            onPress={() => setExpandedHelpNetwork((current) => !current)}
-            activeOpacity={0.8}
-            accessibilityLabel={expandedHelpNetwork ? 'Ocultar necessidades do caso' : 'Mostrar necessidades do caso'}
-          >
-            <View style={[styles.sectionIconWrap, { backgroundColor: isDark ? '#172554' : '#DBEAFE' }]}>
-              <MaterialIcons name="volunteer-activism" size={20} color={isDark ? '#60A5FA' : '#2563EB'} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Rede de ajuda</Text>
-              <Text style={{ color: colors.textSecondary, fontSize: 11.5, marginTop: 2 }}>
-                Necessidades deste caso
-              </Text>
-            </View>
-            <MaterialIcons
-              name={expandedHelpNetwork ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-              size={22}
-              color={colors.textMuted}
-            />
-          </TouchableOpacity>
-
-          {expandedHelpNetwork && Array.isArray(helpNetwork.needs) && helpNetwork.needs.length > 0 && (
-            <View style={{ marginTop: 12 }}>
-              <Text style={{ color: colors.text, fontSize: 12.5, fontWeight: '800', marginBottom: 6 }}>Precisa de:</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                {helpNetwork.needs.map((need) => (
-                  <View key={`detail-need-${need}`} style={{ backgroundColor: isDark ? '#1E3A8A' : '#DBEAFE', borderRadius: 14, paddingHorizontal: 9, paddingVertical: 5 }}>
-                    <Text style={{ color: isDark ? '#BFDBFE' : '#1D4ED8', fontSize: 11.5, fontWeight: '700' }}>{need}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {expandedHelpNetwork && (
-            <Text style={{ color: colors.textSecondary, fontSize: 11, lineHeight: 16, marginTop: 12 }}>
-              Você pode entrar em contato pelo chat para oferecer ajuda.
-            </Text>
-          )}
-        </View>
-      )}
-
       {/* 4. CARD DE LOCALIZAÇÃO E DATA COM ROTA GPS */}
       <View style={[styles.cardSection, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <View style={[styles.sectionHeaderRow, { flex: 1 }]}>
             <View style={[styles.sectionIconWrap, { backgroundColor: item.status === 'lost' ? (isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5') : (isDark ? 'rgba(5, 150, 105, 0.2)' : '#ECFDF5') }]}>
               <MaterialIcons
@@ -1328,7 +1500,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   ? 'Área aproximada do desaparecimento'
                   : item?.extra_fields?.found_custody === 'spotted'
                   ? 'Local em via pública'
-                  : 'Endereço protegido'}
+                  : 'Rua informada na publicação'}
               </Text>
             </View>
           </View>
@@ -1339,13 +1511,13 @@ const ItemDetailScreen = ({ route, navigation }) => {
             {formatCityState(item)}
           </Text>
           {formatStreetNumberNeighborhood(item) ? (
-            <Text style={[styles.locationStreetText, { color: colors.textSecondary, marginBottom: 8 }]}>
+            <Text style={[styles.locationStreetText, { color: colors.textSecondary, marginBottom: 5 }]}>
               {formatStreetNumberNeighborhood(item)}
             </Text>
           ) : null}
 
           {item.date ? (
-            <View style={[styles.dateRow, { borderTopColor: colors.border, marginBottom: 10 }]}>
+            <View style={[styles.dateRow, { borderTopColor: colors.border, marginBottom: 6 }]}>
               <MaterialIcons name="event" size={16} color={colors.textMuted} style={{ marginRight: 6 }} />
               <Text style={[styles.dateLabel, { color: colors.textMuted }]}>
                 {item.status === 'lost' ? 'Data do desaparecimento: ' : 'Data do encontro: '}
@@ -1444,18 +1616,18 @@ const ItemDetailScreen = ({ route, navigation }) => {
                   backgroundColor: isDark ? 'rgba(5, 150, 105, 0.12)' : '#ECFDF5',
                   borderColor: isDark ? 'rgba(5, 150, 105, 0.3)' : '#A7F3D0',
                   borderWidth: 1,
-                  borderRadius: 12,
-                  padding: 11,
-                  gap: 8,
+                  borderRadius: 10,
+                  padding: 8,
+                  gap: 5,
                 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <MaterialIcons name="security" size={18} color="#2E5634" />
-                    <Text style={{ fontSize: 12.5, fontWeight: '800', color: isDark ? '#34D399' : '#065F46' }}>
-                      Endereço protegido
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <MaterialIcons name="security" size={16} color="#2E5634" />
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: isDark ? '#34D399' : '#065F46' }}>
+                      Comprove que é tutor
                     </Text>
                   </View>
-                  <Text style={{ fontSize: 11.5, color: isDark ? '#D1FAE5' : '#065F46', lineHeight: 16 }}>
-                    O endereço exato e o número da residência estão protegidos. Se este é o seu animal, envie uma comprovação de tutor (fotos anteriores ou carteirinha) para solicitar a conversa de devolução.
+                  <Text style={{ fontSize: 11, color: isDark ? '#D1FAE5' : '#065F46', lineHeight: 14 }}>
+                    Envie fotos ou carteirinha para solicitar a devolução.
                   </Text>
                   <TouchableOpacity
                     onPress={() => {
@@ -1475,15 +1647,14 @@ const ItemDetailScreen = ({ route, navigation }) => {
                       backgroundColor: isDark ? 'rgba(5, 150, 105, 0.25)' : '#D1FAE5',
                       borderColor: isDark ? '#2E5634' : '#10B981',
                       borderWidth: 1,
-                      borderRadius: 10,
-                      paddingVertical: 9,
-                      paddingHorizontal: 12,
-                      marginTop: 2,
+                      borderRadius: 8,
+                      paddingVertical: 6,
+                      paddingHorizontal: 10,
                     }}
                     activeOpacity={0.8}
                   >
-                    <MaterialIcons name="verified-user" size={17} color={isDark ? '#34D399' : '#065F46'} style={{ marginRight: 6 }} />
-                    <Text style={{ color: isDark ? '#34D399' : '#065F46', fontWeight: '800', fontSize: 12.5 }}>
+                    <MaterialIcons name="verified-user" size={15} color={isDark ? '#34D399' : '#065F46'} style={{ marginRight: 5 }} />
+                    <Text style={{ color: isDark ? '#34D399' : '#065F46', fontWeight: '800', fontSize: 12 }}>
                       Solicitar devolução
                     </Text>
                   </TouchableOpacity>
@@ -1540,8 +1711,9 @@ const ItemDetailScreen = ({ route, navigation }) => {
 
           {/* Situação da pista: só lugares públicos e recentes têm rota */}
           {(() => {
-            const routeInfoText = describeRouteStatus(getRouteStatus(item));
-            if (!routeInfoText) return null;
+            const routeStatus = getRouteStatus(item);
+            const routeInfoText = describeRouteStatus(routeStatus);
+            if (!routeInfoText || routeInfoText.tone === 'protected' || routeStatus.reason === 'no_clue') return null;
             const tone = {
               hot: { bg: '#F0FDF4', border: '#BBF7D0', text: '#15803D', icon: 'local-fire-department' },
               warm: { bg: '#FFFBEB', border: '#FDE68A', text: '#B45309', icon: 'schedule' },
@@ -1575,7 +1747,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
           >
             <MaterialIcons name="directions" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
             <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13.5 }}>
-              Ver rota a pé até a área
+              Ver rota até a área
             </Text>
           </TouchableOpacity>
           )}
@@ -1585,7 +1757,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
       {/* 5. CARD DO TUTOR / QUEM PUBLICOU */}
       {owner && !isAnonymousReport && (
         <>
-        <View style={[styles.cardSection, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.cardSection, { backgroundColor: colors.surface, borderColor: colors.border, marginBottom: 24 }]}>
           <TouchableOpacity
             style={styles.ownerHeader}
             disabled={!item.owner_id && !owner.id}
@@ -1858,14 +2030,16 @@ const ItemDetailScreen = ({ route, navigation }) => {
       )}
 
       {owner && isAnonymousReport && (
-        <View style={[styles.cardSection, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.cardSection, { backgroundColor: colors.surface, borderColor: colors.border, marginBottom: 24 }]}>
           <View style={styles.ownerHeader}>
             <View style={[styles.ownerAvatarFallback, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]}>
               <MaterialIcons name="visibility-off" size={22} color={isDark ? '#CBD5E1' : '#64748B'} />
             </View>
             <View style={styles.ownerInfoTextContainer}>
               <Text style={[styles.ownerLabel, { color: colors.textMuted }]}>Publicado por</Text>
-              <Text style={[styles.ownerName, { color: colors.text }]}>Relato anônimo da comunidade</Text>
+              <Text style={[styles.ownerName, { color: colors.text, lineHeight: 21 }]} numberOfLines={2}>
+                Relato anônimo da comunidade
+              </Text>
               <Text style={[styles.ownerMeta, { color: colors.textMuted }]}>Perfil protegido pelo autor</Text>
             </View>
           </View>
@@ -1873,6 +2047,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
       )}
 
       {/* 6. COMENTÁRIOS E PISTAS DA COMUNIDADE */}
+      {sightings.length > 0 && (
       <View style={[styles.cardSection, { backgroundColor: colors.surface, borderColor: colors.border, marginBottom: 40 }]}>
         <View style={styles.commentsHeaderRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -1882,28 +2057,21 @@ const ItemDetailScreen = ({ route, navigation }) => {
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[styles.addCommentBtn, { backgroundColor: colors.primary }]}
-            onPress={handleReportSighting}
-            activeOpacity={0.8}
-          >
-            <MaterialIcons name="add-comment" size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
-            <Text style={styles.addCommentBtnText}>Comentar</Text>
-          </TouchableOpacity>
+          {!isAnimalInCustody && (
+            <TouchableOpacity
+              style={[styles.addCommentBtn, { backgroundColor: colors.primary }]}
+              onPress={handleReportSighting}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="add-comment" size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
+              <Text style={styles.addCommentBtnText}>
+                {item.category === 'animal' || item.item_type === 'animal' ? 'Registrar pista' : 'Comentar'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        {sightings.length === 0 ? (
-          <View style={styles.emptyCommentsBox}>
-            <MaterialIcons name="forum" size={40} color={colors.textMuted} />
-            <Text style={[styles.emptyCommentsText, { color: colors.textMuted }]}>
-              Nenhum comentário ou pista ainda.
-            </Text>
-            <Text style={[styles.emptyCommentsSub, { color: colors.textMuted }]}>
-              Viu este animal? Conte onde e quando para ajudar o tutor.
-            </Text>
-          </View>
-        ) : (
-          sightings.map((s, idx) => {
+        {sightings.map((s, idx) => {
             let instagram = '', whatsapp = '', facebook = '', contatoExtra = '';
             if (s.contact_info && typeof s.contact_info === 'object') {
               instagram = s.contact_info.instagram || '';
@@ -2101,9 +2269,9 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 ) : null}
               </View>
             );
-          })
-        )}
+          })}
       </View>
+      )}
 
       {/* MODAL DE SIGHTING / PISTAS */}
       <SightingModal
@@ -2262,17 +2430,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
         </View>
       </Modal>
 
-      {/* MODAL DE COMPROVAÇÃO DE TUTOR / LIBERAÇÃO DE ENDEREÇO */}
-      <ProofUploadModal
-        visible={proofModalVisible}
-        onClose={() => setProofModalVisible(false)}
-        item={item}
-        userId={user?.id}
-        onSuccess={() => {
-          loadVerification();
-        }}
-      />
-
       <Modal
         visible={showActionMenu}
         transparent
@@ -2393,9 +2550,9 @@ const styles = StyleSheet.create({
   navBackBtn: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', marginLeft: 12, marginRight: 8, borderRadius: 19, backgroundColor: 'rgba(255, 255, 255, 0.14)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.28)' },
 
   // Hero Section
-  heroContainer: { position: 'relative', width: '100%', height: 320, backgroundColor: '#E2E8F0', overflow: 'hidden' },
-  heroImageItem: { width: '100%', height: 320 },
-  noPhotoHero: { width: '100%', height: 320, justifyContent: 'center', alignItems: 'center' },
+  heroContainer: { position: 'relative', width: '100%', height: 260, backgroundColor: '#E2E8F0', overflow: 'hidden' },
+  heroImageItem: { width: '100%', height: 260 },
+  noPhotoHero: { width: '100%', height: 260, justifyContent: 'center', alignItems: 'center' },
   noPhotoText: { marginTop: 8, fontSize: 14, fontWeight: '600' },
   photoCountBadge: { position: 'absolute', top: 16, left: 16, backgroundColor: 'rgba(0, 0, 0, 0.65)', borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, flexDirection: 'row', alignItems: 'center', zIndex: 10 },
   photoCountText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
@@ -2406,27 +2563,28 @@ const styles = StyleSheet.create({
   floatingShareBtn: { position: 'absolute', top: 16, right: 16, zIndex: 12 },
 
   // Card Section Container
-  cardSection: { marginHorizontal: 14, marginTop: 12, borderRadius: 12, padding: 14, borderWidth: 1 },
+  cardSection: { marginHorizontal: 8, marginTop: 4, borderRadius: 10, padding: 8, borderWidth: 1 },
 
   // Status and Title
-  statusRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 },
+  statusPill: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
   lostPill: { backgroundColor: '#FFEDD5' },
   foundPill: { backgroundColor: '#DCFCE7' },
   adoptionPill: { backgroundColor: '#FCE7F3' },
-  statusPillText: { fontSize: 12.5, fontWeight: '800' },
-  petMainTitle: { fontSize: 23, fontWeight: '900', lineHeight: 28, marginBottom: 12, letterSpacing: -0.3 },
+  statusPillText: { fontSize: 13, fontWeight: '800' },
+  petMainTitle: { fontSize: 21, fontWeight: '900', lineHeight: 25, marginBottom: 5, letterSpacing: -0.3 },
 
   // Attribute Chips Grid
-  attributeGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 7, marginBottom: 12 },
-  attrChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 11, borderWidth: 1, width: '48.5%' },
+  attributeGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 2, marginBottom: 3 },
+  attrChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 5, paddingVertical: 3, borderRadius: 6, borderWidth: 1, width: '32%' },
   attrChipEmoji: { fontSize: 18, width: 24, textAlign: 'center', marginRight: 8 },
   attrChipTextWrap: { flex: 1 },
-  attrChipLabel: { fontSize: 10.5, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  attrChipValue: { fontSize: 13.5, fontWeight: '700' },
+  attrChipLabel: { fontSize: 9, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.1 },
+  attrChipValue: { fontSize: 11, fontWeight: '700' },
 
   // Description Block
   descriptionBlock: { borderRadius: 11, padding: 11, borderWidth: 1, marginTop: 3 },
+  adoptionExtraText: { fontSize: 12, lineHeight: 18 },
   sectionSubtitle: { fontSize: 11.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 },
   descriptionText: { fontSize: 14.5, lineHeight: 21 },
 
@@ -2437,38 +2595,47 @@ const styles = StyleSheet.create({
   rewardAmount: { fontSize: 16, fontWeight: '800', color: '#B45309', marginTop: 2 },
 
   // Adoption & Custody Notice Cards (Modern & Sleek Accordion)
-  adoptionNoticeCard: {
-    marginHorizontal: 16,
-    marginTop: 10,
-    backgroundColor: '#FDF2F8',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderWidth: 1,
-    borderColor: '#FBCFE8',
-  },
   custodyNoticeCard: {
-    marginHorizontal: 16,
-    marginTop: 10,
+    marginHorizontal: 10,
+    marginTop: 4,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderWidth: 1,
   },
-  adoptionNoticeTitle: { fontSize: 13, fontWeight: '700', color: '#9D174D' },
-  adoptionNoticeText: { fontSize: 12, lineHeight: 17, color: '#BE185D' },
+  adoptionQuantityCard: {
+    marginHorizontal: 10,
+    marginTop: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  adoptionQuantityLabel: { fontSize: 13, fontWeight: '700', flex: 1 },
+  adoptionQuantityControls: { flexDirection: 'row', gap: 8 },
+  adoptionQuantityButton: {
+    width: 38,
+    height: 38,
+    borderWidth: 1,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   custodyNoticeTitle: { fontSize: 13, fontWeight: '700' },
   custodyNoticeText: { fontSize: 12, lineHeight: 17 },
 
   // Location Card
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  sectionIconWrap: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  sectionIconWrap: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginRight: 7 },
   sectionTitle: { fontSize: 16, fontWeight: '800' },
   locationBody: { paddingLeft: 4 },
-  locationCityText: { fontSize: 16, fontWeight: '700', lineHeight: 22 },
-  locationStreetText: { fontSize: 13.5, lineHeight: 19, marginTop: 3 },
-  dateRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, paddingTop: 10, borderTopWidth: 1 },
-  dateLabel: { fontSize: 13 },
+  locationCityText: { fontSize: 16, fontWeight: '700', lineHeight: 21 },
+  locationStreetText: { fontSize: 13.5, lineHeight: 18, marginTop: 2 },
+  dateRow: { flexDirection: 'row', alignItems: 'center', marginTop: 5, paddingTop: 5, borderTopWidth: 1 },
+  dateLabel: { fontSize: 14 },
   dateValue: { fontWeight: '700' },
 
   // Owner Card
@@ -2489,8 +2656,8 @@ const styles = StyleSheet.create({
   thirdPartyPhoneText: { fontSize: 14, fontWeight: '700', color: '#15803D' },
 
   // Action CTAs
-  visitorActionsBlock: { marginHorizontal: 14, marginTop: 12, padding: 10, borderRadius: 14, borderWidth: 1, alignItems: 'flex-start' },
-  moreInfoButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 36, borderRadius: 10, borderWidth: 1, paddingHorizontal: 10, marginTop: 12 },
+  visitorActionsBlock: { marginHorizontal: 8, marginTop: 6, padding: 7, borderRadius: 11, borderWidth: 1, alignItems: 'flex-start' },
+  moreInfoButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 34, borderRadius: 9, borderWidth: 1, paddingHorizontal: 8, marginTop: 6 },
   moreInfoButtonText: { flex: 1, marginLeft: 6, fontSize: 12.5, fontWeight: '800' },
   actionMenuToggle: { flexDirection: 'row', alignItems: 'center', minHeight: 36, borderRadius: 10, paddingHorizontal: 10, borderWidth: 1 },
   actionMenuToggleText: { marginHorizontal: 7, fontSize: 12.5, fontWeight: '800' },

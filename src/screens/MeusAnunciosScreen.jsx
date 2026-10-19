@@ -16,7 +16,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { listItemsWithPhotosAndOwner, renewItem } from '../services/items';
 import { getRenewalInfo } from '../services/itemExpiration';
 import PetFallbackImage from '../components/PetFallbackImage';
-import ShareFlyerModal from '../components/ShareFlyerModal';
 import COLORS from '../constants/theme';
 
 const getStatusConfig = (isDark) => ({
@@ -48,7 +47,6 @@ const MeusAnunciosScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [renewingId, setRenewingId] = useState(null);
-  const [flyerItem, setFlyerItem] = useState(null);
 
   const loadItems = useCallback(async (isRefresh = false) => {
     if (!user?.id) return;
@@ -157,7 +155,7 @@ const MeusAnunciosScreen = ({ navigation }) => {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <TouchableOpacity
             style={[styles.flyerActionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-            onPress={() => setFlyerItem(item)}
+            onPress={() => navigation.navigate('ShareFlyer', { item })}
             accessibilityLabel="Gerar Cartaz e Posts"
           >
             <MaterialIcons name="qr-code-2" size={20} color={colors.primary} />
@@ -261,12 +259,6 @@ const MeusAnunciosScreen = ({ navigation }) => {
       {!loading && renderSection('renovar')}
       {!loading && renderSection('inativos')}
 
-      {/* Modal de Cartazes e Posts com QR Code */}
-      <ShareFlyerModal
-        visible={!!flyerItem}
-        onClose={() => setFlyerItem(null)}
-        item={flyerItem}
-      />
     </ScrollView>
   );
 };

@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
-import ShareFlyerModal from './ShareFlyerModal';
 
 const ShareButton = ({ item, imageUrl, style }) => {
-  const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation();
 
   if (!item) return null;
 
   return (
     <>
       <TouchableOpacity
-        onPress={() => setModalVisible(true)}
+        onPress={() => navigation.navigate('ShareFlyer', { item, imageUrl })}
         style={[styles.shareMainBtn, style]}
         activeOpacity={0.8}
       >
@@ -23,12 +23,6 @@ const ShareButton = ({ item, imageUrl, style }) => {
         />
       </TouchableOpacity>
 
-      <ShareFlyerModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        item={item}
-        imageUrl={imageUrl}
-      />
     </>
   );
 };

@@ -50,6 +50,12 @@ const PET_SIZE_OPTIONS = ['Pequeno', 'Médio', 'Grande', 'Gigante'];
 const PET_GENDER_OPTIONS = ['Macho', 'Fêmea', 'Não informado'];
 const PET_AGE_OPTIONS = ['Filhote', 'Adulto', 'Idoso', 'Não informado'];
 const PET_BREED_OPTIONS = ['Sem raça definida'];
+const ADOPTION_ORIGIN_OPTIONS = [
+  { label: 'Resgatados / encontrados', value: 'rescue' },
+  { label: 'Ninhada do meu animal', value: 'own_litter' },
+  { label: 'Abrigo / protetor', value: 'shelter' },
+  { label: 'Outra origem', value: 'other' },
+];
 const HELP_NEED_OPTIONS = [
   'Resgate',
   ...(APP_FEATURES.fosterVolunteers ? ['Lar temporário'] : []),
@@ -116,6 +122,39 @@ const normalizeColorValue = (value) => {
 const getSelectedColorOptions = (value) => {
   const normalized = String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   return PET_COLOR_OPTIONS.filter((option) => (PET_COLOR_ALIASES[option] || [option]).some((alias) => normalized.includes(alias)));
+};
+
+const createInitialAdoptionAnimals = (item, totalCount) => {
+  const storedAnimals = Array.isArray(item?.extra_fields?.adoption_animals)
+    ? item.extra_fields.adoption_animals
+    : null;
+  const storedTotal = Math.max(1, Number(item?.extra_fields?.adoption_total_count) || 1);
+  const rawRemaining = Number(item?.extra_fields?.adoption_remaining_count);
+  const storedRemaining = item?.extra_fields?.adoption_remaining_count == null
+    || !Number.isSafeInteger(rawRemaining)
+    ? storedTotal
+    : Math.max(0, Math.min(storedTotal, rawRemaining));
+  const fallbackAnimal = {
+    gender: item?.gender || item?.extra_fields?.gender || '',
+    color: item?.color || item?.extra_fields?.color || '',
+    age: item?.age || item?.extra_fields?.age || '',
+    breed: item?.breed || item?.extra_fields?.breed || '',
+  };
+
+  return Array.from({ length: totalCount }, (_, index) => {
+    const animal = storedAnimals ? (storedAnimals[index] || {}) : fallbackAnimal;
+    return {
+      gender: animal.gender ?? '',
+      color: Array.isArray(animal.color)
+        ? animal.color
+        : getSelectedColorOptions(animal.color || ''),
+      age: animal.age ?? '',
+      breed: animal.breed ?? '',
+      adoption_status: ['available', 'adopted'].includes(animal.adoption_status)
+        ? animal.adoption_status
+        : index < storedRemaining ? 'available' : 'adopted',
+    };
+  });
 };
 
 const SelectionChips = ({ label, options, value, onChange, multiSelect = false }) => {
@@ -334,6 +373,18 @@ const RegisterItemScreen = ({ navigation, route }) => {
   const [itemType, setItemType] = useState(initialType);
   const initialStatus = editItem?.extra_fields?.is_direct_adoption ? 'adoption' : (editItem?.status || 'lost');
   const [status, setStatus] = useState(initialStatus);
+  const [adoptionTotalCount, setAdoptionTotalCount] = useState(
+    String(Math.max(1, Number(editItem?.extra_fields?.adoption_total_count) || 1))
+  );
+  const [adoptionAnimals, setAdoptionAnimals] = useState(() => createInitialAdoptionAnimals(
+    editItem,
+    Math.max(1, Number(editItem?.extra_fields?.adoption_total_count) || 1)
+  ));
+  const [adoptionOrigin, setAdoptionOrigin] = useState(
+    editItem
+      ? editItem.extra_fields?.adoption_origin || 'rescue'
+      : ''
+  );
   const [title, setTitle] = useState(editItem?.title || '');
   const [description, setDescription] = useState(editItem?.description || '');
   const [state, setState] = useState(editItem?.state || (userProfile?.state || ''));
@@ -405,6 +456,52 @@ const RegisterItemScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const handleAdoptionTotalCountChange = (value) => {
+    const digits = value.replace(/\D/g, '');
+    const count = Number(digits);
+    if (Number.isSafeInteger(count) && count >= 1 && count <= 50 && count < adoptionAnimals.length) {
+      const adoptedCount = adoptionAnimals.filter(
+        (animal) => animal.adoption_status === 'adopted'
+      ).length;
+      if (count < adoptedCount) {
+        setAdoptionTotalCount(String(adoptedCount));
+        Alert.alert(
+          'Quantidade inválida',
+          `O total não pode ficar abaixo dos ${adoptedCount} animais já adotados.`
+        );
+        return;
+      }
+
+      let toRemove = adoptionAnimals.length - count;
+      const removedIndexes = new Set();
+      for (let index = adoptionAnimals.length - 1; index >= 0 && toRemove > 0; index -= 1) {
+        if (adoptionAnimals[index].adoption_status !== 'adopted') {
+          removedIndexes.add(index);
+          toRemove -= 1;
+        }
+      }
+      setAdoptionAnimals((previous) => previous.filter((_, index) => !removedIndexes.has(index)));
+    } else if (Number.isSafeInteger(count) && count > adoptionAnimals.length && count <= 50) {
+      setAdoptionAnimals((previous) => [
+        ...previous,
+        ...Array.from({ length: count - previous.length }, () => ({
+          gender: '',
+          color: [],
+          age: '',
+          breed: '',
+          adoption_status: 'available',
+        })),
+      ]);
+    }
+    setAdoptionTotalCount(digits);
+  };
+
+  const updateAdoptionAnimal = (index, field, value) => {
+    setAdoptionAnimals((previous) => previous.map((animal, animalIndex) => (
+      animalIndex === index ? { ...animal, [field]: value } : animal
+    )));
+  };
+
   // Match Inteligente de Pets
   const [petMatchModalVisible, setPetMatchModalVisible] = useState(false);
   const [createdItemForMatch, setCreatedItemForMatch] = useState(null);
@@ -453,6 +550,25 @@ const RegisterItemScreen = ({ navigation, route }) => {
   const renderLocationAndRewardSection = () => {
     const isLost = status === 'lost';
     const isSpotted = status === 'found' && foundCustody === 'spotted';
+    const isAdoption = status === 'adoption';
+    const adoptionLocationLabel = adoptionOrigin === 'own_litter'
+      ? 'Local onde estão os filhotes'
+      : adoptionOrigin === 'shelter'
+        ? 'Local do abrigo ou protetor'
+        : adoptionOrigin === 'other'
+          ? 'Local onde estão os animais'
+          : adoptionOrigin === 'rescue'
+            ? 'Local do resgate dos animais'
+            : 'Local onde estão os animais';
+    const adoptionLocationHint = adoptionOrigin === 'own_litter'
+      ? 'Marque no mapa onde os filhotes estão atualmente. Se estiverem na sua residência, o endereço exato não será exibido publicamente.'
+      : adoptionOrigin === 'shelter'
+        ? 'Marque no mapa a região do abrigo ou do protetor responsável. O endereço residencial exato não será exibido publicamente.'
+        : adoptionOrigin === 'other'
+          ? 'Marque no mapa a região onde os animais estão atualmente. O endereço residencial exato não será exibido publicamente.'
+          : adoptionOrigin === 'rescue'
+            ? 'Marque no mapa a região onde os animais foram resgatados e estão sendo cuidados. O endereço residencial exato não será exibido publicamente.'
+            : 'Marque no mapa a região onde os animais estão atualmente. Primeiro, selecione a origem do anúncio.';
 
     return (
       <View>
@@ -461,7 +577,9 @@ const RegisterItemScreen = ({ navigation, route }) => {
             ? 'Região do Desaparecimento (Epicentro)'
             : isSpotted
             ? 'Local do Avistamento na Rua'
-            : 'Local de Resgate do Animal'}
+            : isAdoption
+              ? adoptionLocationLabel
+              : 'Local de Resgate do Animal'}
         </Text>
 
         {isSpotted && (
@@ -493,7 +611,9 @@ const RegisterItemScreen = ({ navigation, route }) => {
             ? 'Escolha no mapa o ponto ou região aproximada onde o pet fugiu ou foi visto pela última vez.'
             : isSpotted
             ? 'Marque no mapa o ponto exato da rua onde você viu o animal solto.'
-            : 'Marque no mapa o local onde você encontrou e recolheu o animal.'}
+            : isAdoption
+              ? adoptionLocationHint
+              : 'Marque no mapa o local onde você encontrou e recolheu o animal.'}
         </Text>
         {renderMapLocationButton()}
 
@@ -1235,11 +1355,47 @@ const RegisterItemScreen = ({ navigation, route }) => {
       return false;
     }
 
-    if (itemType === 'animal' && (!color || !color.trim())) {
+    if (itemType === 'animal' && status !== 'adoption' && (!color || !color.trim())) {
       const msg = 'Selecione a cor do animal';
       setError(msg);
       Alert.alert('Campo obrigatório', msg);
       return false;
+    }
+
+    if (status === 'adoption') {
+      if (!adoptionOrigin) {
+        const msg = 'Selecione a origem dos animais deste anúncio.';
+        setError(msg);
+        Alert.alert('Campo obrigatório', msg);
+        return false;
+      }
+
+      const totalCount = Number(adoptionTotalCount);
+      if (!Number.isSafeInteger(totalCount) || totalCount < 1 || totalCount > 50) {
+        const msg = 'Informe uma quantidade válida de animais para adoção.';
+        setError(msg);
+        Alert.alert('Quantidade inválida', msg);
+        return false;
+      }
+      if (adoptionAnimals.length !== totalCount) {
+        const msg = 'Confira os dados individuais dos animais deste anúncio.';
+        setError(msg);
+        Alert.alert('Dados incompletos', msg);
+        return false;
+      }
+      const previousTotal = Math.max(1, Number(editItem?.extra_fields?.adoption_total_count) || 1);
+      const storedPreviousRemaining = Number(editItem?.extra_fields?.adoption_remaining_count);
+      const previousRemaining = editItem?.extra_fields?.adoption_remaining_count == null
+        ? previousTotal
+        : Number.isSafeInteger(storedPreviousRemaining)
+          ? Math.max(0, Math.min(previousTotal, storedPreviousRemaining))
+          : previousTotal;
+      if (totalCount < previousTotal - previousRemaining) {
+        const msg = `O total não pode ser menor que os ${previousTotal - previousRemaining} animais já adotados.`;
+        setError(msg);
+        Alert.alert('Quantidade inválida', msg);
+        return false;
+      }
     }
 
     if (editItem) {
@@ -1484,6 +1640,23 @@ const RegisterItemScreen = ({ navigation, route }) => {
       const isDirectAdoption = status === 'adoption';
       const effectiveStatus = isDirectAdoption ? 'found' : status;
       const effectiveSpecies = isCustomSpecies ? customSpecies.trim() : animalSpecies.trim();
+      const adoptionTotal = isDirectAdoption ? Number(adoptionTotalCount) : null;
+      const adoptionRemaining = isDirectAdoption
+        ? adoptionAnimals.filter((animal) => animal.adoption_status === 'available').length
+        : null;
+      const summarizeAdoptionField = (field) => Array.from(new Set(
+        adoptionAnimals
+          .map((animal) => animal[field])
+          .filter((value) => typeof value === 'string' && value.trim())
+          .map((value) => value.trim())
+      )).join(' / ');
+      const adoptionColors = Array.from(new Set(
+        adoptionAnimals.flatMap((animal) => animal.color)
+      ));
+      const itemColor = isDirectAdoption ? adoptionColors.join(' com ') : color;
+      const itemGender = isDirectAdoption ? summarizeAdoptionField('gender') : animalGender;
+      const itemAge = isDirectAdoption ? summarizeAdoptionField('age') : animalAge;
+      const itemBreed = isDirectAdoption ? summarizeAdoptionField('breed') : animalBreed;
 
       const itemData = {
         title: toNull(currentTitle) || editItem?.title || 'Animal',
@@ -1502,29 +1675,33 @@ const RegisterItemScreen = ({ navigation, route }) => {
         item_type: toNull(itemType) || editItem?.item_type || null,
         date: date || editItem?.date || new Date().toISOString().split('T')[0],
         brand: toNull(brand),
-        color: toNull(color),
+        color: toNull(itemColor),
         serial_number: toNull(serialNumber),
         species: toNull(effectiveSpecies),
-        gender: toNull(animalGender),
-        breed: toNull(animalBreed),
+        gender: toNull(itemGender),
+        breed: toNull(itemBreed),
         size: toNull(animalSize),
-        age: toNull(animalAge),
+        age: toNull(itemAge),
         collar: toNull(animalCollar),
         neutered: toNull(animalNeutered),
         // Adicionar extra_fields para dados flexíveis
         extra_fields: {
           brand: toNull(brand),
-          color: toNull(color),
+          color: toNull(itemColor),
           serial_number: toNull(serialNumber),
           species: toNull(effectiveSpecies),
-          gender: toNull(animalGender),
-          breed: toNull(animalBreed),
+          gender: toNull(itemGender),
+          breed: toNull(itemBreed),
           size: toNull(animalSize),
-          age: toNull(animalAge),
+          age: toNull(itemAge),
           collar: toNull(animalCollar),
           neutered: toNull(animalNeutered),
           temperament: status === 'adoption' ? (animalTemperament || []) : [],
           is_direct_adoption: isDirectAdoption,
+          adoption_total_count: adoptionTotal,
+          adoption_remaining_count: adoptionRemaining,
+          adoption_origin: isDirectAdoption ? adoptionOrigin : null,
+          adoption_animals: isDirectAdoption ? adoptionAnimals : null,
           found_custody: status === 'found' ? foundCustody : (isDirectAdoption ? 'with_me' : null),
           requires_ownership_proof: itemType === 'animal' && status === 'found'
             ? requiresOwnershipProof
@@ -2062,12 +2239,135 @@ const RegisterItemScreen = ({ navigation, route }) => {
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 }}>
                     <MaterialIcons name="favorite" size={18} color={isDark ? '#F472B6' : '#BE185D'} />
                     <Text style={{ fontSize: 13.5, fontWeight: '800', color: isDark ? '#F9A8D4' : '#9D174D' }}>
-                      Adoção imediata (animal sem tutor conhecido)
+                      Anúncio para adoção
                     </Text>
                   </View>
                   <Text style={{ fontSize: 12, lineHeight: 16, color: isDark ? '#FBCFE8' : '#9D174D' }}>
-                    Utilize esta opção para doar ou cadastrar animais resgatados, ninhadas ou pets de abrigo que não possuem dono prévio. O anúncio entrará diretamente no feed de adoção.
+                    {adoptionOrigin === 'own_litter'
+                      ? 'Use este anúncio para encontrar lares para os filhotes do seu animal.'
+                      : adoptionOrigin === 'shelter'
+                        ? 'Use este anúncio para animais sob os cuidados de um abrigo, ONG ou protetor.'
+                        : adoptionOrigin === 'other'
+                          ? 'Informe a origem dos animais e os detalhes que ajudem a encontrar um lar responsável.'
+                          : adoptionOrigin === 'rescue'
+                            ? 'Use este anúncio para animais resgatados ou encontrados que não têm tutor conhecido.'
+                            : 'Escolha a origem para exibir as orientações do anúncio.'}
                   </Text>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: isDark ? '#F9A8D4' : '#9D174D', marginTop: 12, marginBottom: 6 }}>
+                    De onde vêm os animais?
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                    {ADOPTION_ORIGIN_OPTIONS.map((option) => {
+                      const selected = adoptionOrigin === option.value;
+                      return (
+                        <TouchableOpacity
+                          key={option.value}
+                          onPress={() => setAdoptionOrigin(option.value)}
+                          activeOpacity={0.75}
+                          accessibilityRole="radio"
+                          accessibilityState={{ selected }}
+                          style={{
+                            borderWidth: 1,
+                            borderColor: selected ? '#DB2777' : (isDark ? '#6B3651' : '#F9A8D4'),
+                            borderRadius: 10,
+                            paddingHorizontal: 10,
+                            paddingVertical: 7,
+                            backgroundColor: selected
+                              ? (isDark ? 'rgba(219, 39, 119, 0.25)' : '#FCE7F3')
+                              : colors.surface,
+                          }}
+                        >
+                          <Text style={{
+                            color: selected ? (isDark ? '#F9A8D4' : '#9D174D') : colors.text,
+                            fontSize: 12,
+                            fontWeight: selected ? '700' : '500',
+                          }}>
+                            {option.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: isDark ? '#F9A8D4' : '#9D174D', marginTop: 12, marginBottom: 6 }}>
+                    Quantos animais estão neste anúncio?
+                  </Text>
+                  <TextInput
+                    value={adoptionTotalCount}
+                    onChangeText={handleAdoptionTotalCountChange}
+                    keyboardType="number-pad"
+                    editable
+                    selectTextOnFocus
+                    accessibilityLabel="Quantidade de animais para adoção"
+                    placeholder="Ex.: 4"
+                    placeholderTextColor={colors.textMuted}
+                    style={{
+                      minHeight: 44,
+                      borderWidth: 1,
+                      borderColor: isDark ? '#BE185D' : '#F9A8D4',
+                      borderRadius: 10,
+                      paddingHorizontal: 12,
+                      color: colors.text,
+                      backgroundColor: colors.surface,
+                      fontSize: 16,
+                      fontWeight: '700',
+                    }}
+                  />
+                  <Text style={{ fontSize: 11, lineHeight: 15, color: isDark ? '#FBCFE8' : '#9D174D', marginTop: 5 }}>
+                    {editItem
+                      ? 'Você pode corrigir o total. A quantidade já adotada será preservada; o total não pode ficar abaixo dela.'
+                      : 'Informe até 50 animais. Você poderá atualizar quantos ainda estão disponíveis conforme forem adotados.'}
+                  </Text>
+                  {Number(adoptionTotalCount) > 0 && Number(adoptionTotalCount) <= 50 && (
+                    <View style={{ marginTop: 14, gap: 12 }}>
+                      {adoptionAnimals.map((animal, index) => (
+                        <View
+                          key={index}
+                          style={{
+                            borderWidth: 1,
+                            borderColor: isDark ? '#6B3651' : '#FBCFE8',
+                            backgroundColor: colors.surface,
+                            borderRadius: 12,
+                            padding: 12,
+                          }}
+                        >
+                          <Text style={{ color: isDark ? '#F9A8D4' : '#9D174D', fontSize: 13, fontWeight: '800', marginBottom: 8 }}>
+                            Animal {index + 1}
+                          </Text>
+                          <SelectionChips
+                            label="Sexo / gênero"
+                            options={PET_GENDER_OPTIONS}
+                            value={animal.gender}
+                            onChange={(value) => updateAdoptionAnimal(index, 'gender', value)}
+                          />
+                          <SelectionChips
+                            label="Cor(es)"
+                            options={PET_COLOR_OPTIONS}
+                            value={animal.color.join(' com ')}
+                            multiSelect
+                            onChange={(option) => {
+                              const nextColors = animal.color.includes(option)
+                                ? animal.color.filter((selectedColor) => selectedColor !== option)
+                                : [...animal.color, option];
+                              updateAdoptionAnimal(index, 'color', nextColors);
+                            }}
+                          />
+                          <SelectionChips
+                            label="Idade"
+                            options={PET_AGE_OPTIONS}
+                            value={animal.age}
+                            onChange={(value) => updateAdoptionAnimal(index, 'age', value)}
+                          />
+                          <Input
+                            label="Raça (opcional)"
+                            placeholder="Digite a raça"
+                            value={animal.breed}
+                            onChangeText={(value) => updateAdoptionAnimal(index, 'breed', value)}
+                            style={styles.input}
+                          />
+                        </View>
+                      ))}
+                    </View>
+                  )}
                 </View>
               )}
 
@@ -2321,22 +2621,28 @@ const RegisterItemScreen = ({ navigation, route }) => {
                   />
                 </View>
               )}
-              <SelectionChips
-                label="Cor *"
-                options={PET_COLOR_OPTIONS}
-                value={color}
-                multiSelect
-                onChange={(option) => {
-                  const selectedColors = getSelectedColorOptions(color);
-                  const nextColors = selectedColors.includes(option)
-                    ? selectedColors.filter((selectedColor) => selectedColor !== option)
-                    : [...selectedColors, option];
-                  setColor(nextColors.join(' com '));
-                }}
-              />
-              <SelectionChips label="Sexo / Gênero" options={PET_GENDER_OPTIONS} value={animalGender} onChange={setAnimalGender} />
+              {status !== 'adoption' && (
+                <SelectionChips
+                  label="Cor *"
+                  options={PET_COLOR_OPTIONS}
+                  value={color}
+                  multiSelect
+                  onChange={(option) => {
+                    const selectedColors = getSelectedColorOptions(color);
+                    const nextColors = selectedColors.includes(option)
+                      ? selectedColors.filter((selectedColor) => selectedColor !== option)
+                      : [...selectedColors, option];
+                    setColor(nextColors.join(' com '));
+                  }}
+                />
+              )}
+              {status !== 'adoption' && (
+                <SelectionChips label="Sexo / Gênero" options={PET_GENDER_OPTIONS} value={animalGender} onChange={setAnimalGender} />
+              )}
               <SelectionChips label="Porte" options={PET_SIZE_OPTIONS} value={animalSize} onChange={setAnimalSize} />
-              <SelectionChips label="Idade" options={PET_AGE_OPTIONS} value={animalAge} onChange={setAnimalAge} />
+              {status !== 'adoption' && (
+                <SelectionChips label="Idade" options={PET_AGE_OPTIONS} value={animalAge} onChange={setAnimalAge} />
+              )}
               <SelectionChips label="Castrado(a)?" options={['Sim', 'Não', 'Não sei']} value={animalNeutered} onChange={setAnimalNeutered} />
               <SelectionChips label="Estava com coleira?" options={['Sim', 'Não', 'Não sei']} value={animalCollar} onChange={setAnimalCollar} />
 
@@ -2392,14 +2698,18 @@ const RegisterItemScreen = ({ navigation, route }) => {
                 </View>
               )}
 
-              <SelectionChips label="Raça" options={PET_BREED_OPTIONS} value={animalBreed} onChange={setAnimalBreed} />
-              <Input
-                label="Raça (opcional)"
-                placeholder="Digite a raça do animal"
-                value={animalBreed}
-                onChangeText={setAnimalBreed}
-                style={styles.input}
-              />
+              {status !== 'adoption' && (
+                <>
+                  <SelectionChips label="Raça" options={PET_BREED_OPTIONS} value={animalBreed} onChange={setAnimalBreed} />
+                  <Input
+                    label="Raça (opcional)"
+                    placeholder="Digite a raça do animal"
+                    value={animalBreed}
+                    onChangeText={setAnimalBreed}
+                    style={styles.input}
+                  />
+                </>
+              )}
               <Input
                 label="Descrição"
                 placeholder="Descreva detalhes importantes..."
@@ -2653,12 +2963,28 @@ const RegisterItemScreen = ({ navigation, route }) => {
 
   // Step 4: Localização e Recompensa
   if (step === 4) {
+    const locationInstruction = status === 'lost'
+      ? 'Escolha no mapa onde o animal foi visto pela última vez.'
+      : status === 'adoption'
+        ? adoptionOrigin === 'own_litter'
+          ? 'Marque a região onde os filhotes estão atualmente. O endereço residencial exato não será exibido publicamente.'
+          : adoptionOrigin === 'shelter'
+            ? 'Marque a região do abrigo ou do protetor responsável pelos animais.'
+            : adoptionOrigin === 'other'
+              ? 'Marque a região onde os animais estão atualmente.'
+                : adoptionOrigin === 'rescue'
+                  ? 'Marque a região onde os animais resgatados estão sendo cuidados.'
+                  : 'Marque a região onde os animais estão atualmente.'
+        : 'Escolha no mapa onde o animal foi encontrado.';
+
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 0 }} keyboardShouldPersistTaps="handled">
-          <Text style={[styles.title, { color: colors.text }]}>Localização e recompensa</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            {status === 'adoption' ? 'Localização dos animais' : 'Localização e recompensa'}
+          </Text>
           <Text style={[styles.locationHint, { color: colors.textSecondary }]}>
-            Escolha no mapa onde o animal foi {status === 'lost' ? 'visto pela última vez' : 'encontrado'}.
+            {locationInstruction}
           </Text>
           {renderMapLocationButton()}
 

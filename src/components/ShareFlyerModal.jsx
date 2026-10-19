@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  Modal,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   Alert,
@@ -12,7 +10,7 @@ import {
   Switch,
 } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import * as itemsService from '../services/items';
@@ -20,23 +18,21 @@ import ShareCardFlyer from './ShareCardFlyer';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import COLORS from '../constants/theme';
-import {
-  getPrivateLocationSummary,
-  isResidentialAddressPrivate,
-  removeHouseNumberFromStreet,
-} from '../utils/locationPrivacy';
+import { getFlyerLocationSummary } from '../utils/locationPrivacy';
 import { publicationUrl } from '../constants/links';
 
 /**
  * Modal Completo de Divulgação:
  * Permite selecionar entre Cartaz A4 para impressão com QR Code, Stories 9:16 e Feed 1:1
  */
-const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
+const ShareFlyerModal = ({ onClose, item, imageUrl }) => {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const flyerRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState('a4'); // 'a4' | 'stories' | 'feed'
+  const [previewViewport, setPreviewViewport] = useState({ width: 0, height: 0 });
+  const [flyerSize, setFlyerSize] = useState({ width: 0, height: 0 });
   const { user, userProfile } = useAuth();
   // Privacidade por padrão: o telefone fica fora do cartaz até o autor autorizar.
   // A autorização fica gravada na publicação e vale para quem compartilhar depois.
@@ -71,6 +67,16 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
 
   if (!item) return null;
 
+  const previewScale = previewViewport.width > 0
+    && previewViewport.height > 0
+    && flyerSize.width > 0
+    && flyerSize.height > 0
+    ? Math.min(
+        1,
+        (previewViewport.width - 32) / flyerSize.width,
+        (previewViewport.height - 72) / flyerSize.height
+      )
+    : 0.68;
   const isOwner = Boolean(user?.id && item.owner_id === user.id);
   const includePhone = phoneAllowed;
 
@@ -106,16 +112,19 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
     const status = isAdoption
       ? 'PARA ADOÇÃO'
       : (item.status === 'found' ? 'ENCONTRADO' : 'PROCURA-SE');
+    const adoptionAnimals = Array.isArray(item.extra_fields?.adoption_animals)
+      ? item.extra_fields.adoption_animals
+      : [];
+    const totalAdoptionAnimals = Math.max(1, Number(item.extra_fields?.adoption_total_count) || 1);
 
-    const locationLabel = isAdoption ? 'Onde está' : 'Local';
-    const location = isResidentialAddressPrivate(item)
-      ? getPrivateLocationSummary(item)
-      : [
-          item.status === 'lost' ? removeHouseNumberFromStreet(item.street) : item.street,
-          item.neighborhood,
-          item.city,
-          item.state,
-        ].filter(Boolean).join(' - ') || 'Não especificado';
+    const locationLabel = isAdoption
+      ? item.extra_fields?.adoption_origin === 'own_litter'
+        ? 'Local da ninhada'
+        : totalAdoptionAnimals > 1
+          ? 'Onde os animais estão'
+          : 'Onde está'
+      : 'Local';
+    const location = getFlyerLocationSummary(item) || 'Não especificado';
     const rawDate = String(item.date || '');
     const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? new Date(`${rawDate}T12:00:00`) : new Date(rawDate);
     const formattedDate = item.date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('pt-BR') : 'Não informada';
@@ -129,11 +138,53 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
       item.color || item.extra_fields?.color ? `${item.color || item.extra_fields?.color}` : '',
     ].filter(Boolean).join(' | ');
 
-    const detailsLine = details ? `\n${details}\n` : '';
+    const detailsLine = details && (!isAdoption || totalAdoptionAnimals === 1) ? `\n${details}\n` : '';
     const headerTitle = isAdoption ? 'ADOÇÃO RESPONSÁVEL' : 'AJUDE A ENCONTRAR';
+    const hasIndividualStatuses = adoptionAnimals.length === totalAdoptionAnimals
+      && adoptionAnimals.every((animal) => ['available', 'adopted'].includes(animal?.adoption_status));
+    const availableAnimals = hasIndividualStatuses
+      ? adoptionAnimals
+        .map((animal, index) => ({ ...animal, number: index + 1 }))
+        .filter((animal) => animal.adoption_status === 'available')
+      : [];
+    const rawRemainingAdoptionAnimals = Number(item.extra_fields?.adoption_remaining_count);
+    const remainingAdoptionAnimals = hasIndividualStatuses
+      ? availableAnimals.length
+      : item.extra_fields?.adoption_remaining_count == null || !Number.isSafeInteger(rawRemainingAdoptionAnimals)
+        ? totalAdoptionAnimals
+        : Math.max(0, Math.min(totalAdoptionAnimals, rawRemainingAdoptionAnimals));
+    const adoptionOriginLabels = {
+      rescue: 'Animais resgatados ou encontrados',
+      own_litter: 'Ninhada do animal do responsável',
+      shelter: 'Abrigo, ONG ou protetor',
+      other: 'Outra origem',
+    };
+    const adoptionInfo = isAdoption && (
+      item.extra_fields?.is_direct_adoption
+      || item.status === 'adoption'
+      || item.extra_fields?.adoption_origin
+      || item.extra_fields?.adoption_total_count
+    )
+      ? [
+          `Disponíveis para adoção: ${remainingAdoptionAnimals} de ${totalAdoptionAnimals}`,
+          adoptionOriginLabels[item.extra_fields?.adoption_origin]
+            ? `Origem: ${adoptionOriginLabels[item.extra_fields.adoption_origin]}`
+            : '',
+          ...availableAnimals.slice(0, 3).map((animal) => {
+            const attributes = [
+              animal.gender,
+              Array.isArray(animal.color) ? animal.color.join(' e ') : animal.color,
+              animal.age,
+              animal.breed,
+            ].filter((value) => typeof value === 'string' && value.trim() && value !== 'Não informado');
+            return attributes.length ? `Animal ${animal.number}: ${attributes.join(' · ')}` : '';
+          }),
+          availableAnimals.length > 3 ? `e mais ${availableAnimals.length - 3} disponíveis no app` : '',
+        ].filter(Boolean).join('\n')
+      : '';
     const linkInfo = `\nVer no WeFIND: ${publicationUrl(item.id)}`;
 
-    return `*WeFIND - ${headerTitle}*\n\n${status}: *${item.title || 'Animal'}*${detailsLine}\n${locationLabel}: ${location}\nData: ${formattedDate}${phoneInfo}${linkInfo}\n\n"${item.description || ''}"\n\nSe puder, compartilhe com seus contatos.`;
+    return `*WeFIND - ${headerTitle}*\n\n${status}: *${item.title || 'Animal'}*${detailsLine}${adoptionInfo ? `\n${adoptionInfo}\n` : ''}\n${locationLabel}: ${location}\nData: ${formattedDate}${phoneInfo}${linkInfo}\n\n"${item.description || ''}"\n\nSe puder, compartilhe com seus contatos.`;
   };
 
   const handleShareImage = async () => {
@@ -185,9 +236,11 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={[styles.modalContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+    <SafeAreaView
+      style={[styles.modalOverlay, { backgroundColor: colors.surface }]}
+      edges={['top', 'bottom']}
+    >
+      <View style={[styles.modalContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
           {/* Cabeçalho do Modal */}
           <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -219,7 +272,10 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
                       shadowOpacity: isSelected ? 0.08 : 0,
                     },
                   ]}
-                  onPress={() => setSelectedFormat(fmt.id)}
+                  onPress={() => {
+                    setSelectedFormat(fmt.id);
+                    setFlyerSize({ width: 0, height: 0 });
+                  }}
                   activeOpacity={0.8}
                 >
                   <MaterialIcons
@@ -241,6 +297,57 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
                 </TouchableOpacity>
               );
             })}
+          </View>
+
+          {/* Prévia fixa, posicionada logo após a seleção de formato */}
+          <View
+            style={styles.previewViewport}
+            onLayout={({ nativeEvent }) => {
+              const { width, height } = nativeEvent.layout;
+              setPreviewViewport((current) => (
+                current.width === width && current.height === height
+                  ? current
+                  : { width, height }
+              ));
+            }}
+          >
+            <View
+              style={[
+                styles.flyerPreviewFrame,
+                {
+                  width: flyerSize.width ? flyerSize.width * previewScale : 340 * previewScale,
+                  height: flyerSize.height ? flyerSize.height * previewScale : 568 * previewScale,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.flyerWrapper,
+                  flyerSize.width > 0 && flyerSize.height > 0 && {
+                    left: -(flyerSize.width * (1 - previewScale)) / 2,
+                    top: -(flyerSize.height * (1 - previewScale)) / 2,
+                  },
+                  { transform: [{ scale: previewScale }] },
+                ]}
+                onLayout={({ nativeEvent }) => {
+                  const { width, height } = nativeEvent.layout;
+                  setFlyerSize((current) => (
+                    current.width === width && current.height === height
+                      ? current
+                      : { width, height }
+                  ));
+                }}
+              >
+                <ShareCardFlyer
+                  ref={flyerRef}
+                  item={item}
+                  imageUrl={imageUrl}
+                  format={selectedFormat}
+                  showPhone={includePhone}
+                  contactPhone={contactPhone}
+                />
+              </View>
+            </View>
           </View>
 
           {/* Escolha do autor sobre mostrar o WhatsApp no cartaz */}
@@ -271,24 +378,6 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
             </Text>
           )}
 
-          {/* Área de Pré-Visualização com Rolagem */}
-          <ScrollView
-            style={styles.previewScrollView}
-            contentContainerStyle={styles.previewScrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.flyerWrapper}>
-              <ShareCardFlyer
-                ref={flyerRef}
-                item={item}
-                imageUrl={imageUrl}
-                format={selectedFormat}
-                showPhone={includePhone}
-                contactPhone={contactPhone}
-              />
-            </View>
-          </ScrollView>
-
           {/* Barra de Ações Inferior */}
           <View style={[styles.actionsContainer, { borderTopColor: colors.border, paddingBottom: Math.max(insets.bottom, 16) }]}>
             <TouchableOpacity
@@ -317,11 +406,18 @@ const ShareFlyerModal = ({ visible, onClose, item, imageUrl }) => {
             </TouchableOpacity>
 
           </View>
-        </View>
       </View>
-    </Modal>
+    </SafeAreaView>
   );
 };
+
+export const ShareFlyerScreen = ({ route, navigation }) => (
+  <ShareFlyerModal
+    item={route.params?.item}
+    imageUrl={route.params?.imageUrl}
+    onClose={() => navigation.goBack()}
+  />
+);
 
 const styles = StyleSheet.create({
   phoneToggleRow: {
@@ -339,14 +435,11 @@ const styles = StyleSheet.create({
   phoneToggleNote: { fontSize: 12, marginHorizontal: 16, marginTop: 10, textAlign: 'center' },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    justifyContent: 'flex-end',
+    backgroundColor: '#FFFFFF',
   },
   modalContainer: {
+    flex: 1,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '94%',
     paddingBottom: 0,
   },
   modalHeader: {
@@ -399,23 +492,26 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
   },
 
-  previewScrollView: {
+  previewViewport: {
+    flex: 1,
     paddingHorizontal: 16,
-    maxHeight: 440,
-  },
-  previewScrollContent: {
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  flyerWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  flyerWrapper: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
     borderRadius: 20,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 4,
+  },
+  flyerPreviewFrame: {
+    position: 'relative',
+    alignSelf: 'center',
   },
   actionsContainer: {
     paddingHorizontal: 20,

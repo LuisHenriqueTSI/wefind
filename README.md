@@ -451,9 +451,9 @@ Gera um arquivo instalável `.apk` (sem depender do Expo Go) para instalar em qu
 
 1. **Gerar a compilação do APK na nuvem do Expo:**
    ```bash
-   npx eas-cli build --platform android --profile preview
+   npm run build:apk
    ```
-   *(Ou: `npm run build:apk`)*
+   Antes da compilação, o comando incrementa automaticamente a versão patch do aplicativo em `app.json` (por exemplo, `2.8.0` para `2.8.1`). Para compilar localmente, use `npm run build:apk:local`; ele também incrementa a versão antes de compilar.
 
 2. **Como baixar e instalar:**
    * O terminal exibirá um link do EAS Build (e um QR Code).

@@ -1442,6 +1442,10 @@ export const getCommunityImpactStats = async () => {
 
 export const isPetAvailableForAdoption = (item) => {
   if (!item) return false;
+  const remainingCount = Number(item.extra_fields?.adoption_remaining_count);
+  if (item.extra_fields?.adoption_remaining_count != null && remainingCount <= 0) {
+    return false;
+  }
   if (item.status === 'adoption' || item.extra_fields?.is_direct_adoption) {
     return true;
   }
@@ -1484,6 +1488,43 @@ export const toggleItemAdoption = async (itemId, currentExtraFields = {}, availa
     return data;
   } catch (error) {
     console.error('[toggleItemAdoption] Erro ao alterar status de adoção:', error);
+    throw error;
+  }
+};
+
+export const updateAdoptionAnimals = async (itemId, currentExtraFields = {}, adoptionAnimals) => {
+  const totalCount = Number(currentExtraFields?.adoption_total_count);
+  if (!Number.isSafeInteger(totalCount) || totalCount < 1) {
+    throw new Error('A quantidade total do anúncio de adoção é inválida.');
+  }
+  if (!Array.isArray(adoptionAnimals) || adoptionAnimals.length !== totalCount) {
+    throw new Error('A lista de animais precisa corresponder ao total do anúncio.');
+  }
+  if (adoptionAnimals.some((animal) => !['available', 'adopted'].includes(animal?.adoption_status))) {
+    throw new Error('Cada animal precisa estar marcado como disponível ou adotado.');
+  }
+
+  try {
+    const remainingCount = adoptionAnimals.filter(
+      (animal) => animal.adoption_status === 'available'
+    ).length;
+    const extraFields = {
+      ...currentExtraFields,
+      adoption_animals: adoptionAnimals,
+      adoption_remaining_count: remainingCount,
+      available_for_adoption: remainingCount > 0,
+    };
+    const { data, error } = await supabase
+      .from('items')
+      .update({ extra_fields: extraFields })
+      .eq('id', itemId)
+      .select('id, extra_fields')
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('[updateAdoptionAnimals] Erro ao atualizar status dos animais para adoção:', error);
     throw error;
   }
 };

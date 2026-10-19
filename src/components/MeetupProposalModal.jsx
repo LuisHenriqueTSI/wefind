@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import MapLocationPicker from './MapLocationPicker';
 import { useTheme } from '../contexts/ThemeContext';
@@ -56,7 +56,6 @@ const MeetupProposalModal = ({
   onClose,
   onSubmit,
 }) => {
-  const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
 
   const [coordinate, setCoordinate] = useState(null);
@@ -160,12 +159,13 @@ const MeetupProposalModal = ({
 
   return (
     <>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-        <KeyboardAvoidingView behavior="padding" style={styles.backdrop}>
+      <Modal visible={visible} transparent={false} animationType="slide" onRequestClose={onClose}>
+        <SafeAreaView style={[styles.screen, { backgroundColor: colors.surface }]} edges={['top', 'bottom']}>
+          <KeyboardAvoidingView behavior="padding" style={styles.keyboardAvoidingView}>
           <View
             style={[
               styles.sheet,
-              { backgroundColor: colors.surface, borderColor: colors.border, paddingBottom: Math.max(insets.bottom, 16) },
+              { backgroundColor: colors.surface, borderColor: colors.border },
             ]}
           >
             <View style={styles.headerRow}>
@@ -178,7 +178,11 @@ const MeetupProposalModal = ({
               </TouchableOpacity>
             </View>
 
-            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={{ flex: 1 }}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
               <View style={[styles.privacyHint, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.15)' : '#ECFDF5', borderColor: isDark ? 'rgba(5, 150, 105, 0.35)' : '#A7F3D0' }]}>
                 <MaterialIcons name="shield" size={16} color={isDark ? '#A7F3D0' : accent} />
                 <Text style={{ flex: 1, fontSize: 11.5, lineHeight: 16, color: isDark ? '#D1FAE5' : '#065F46' }}>
@@ -288,7 +292,8 @@ const MeetupProposalModal = ({
               )}
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </Modal>
 
       <MapLocationPicker
@@ -304,14 +309,13 @@ const MeetupProposalModal = ({
 };
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  screen: { flex: 1 },
+  keyboardAvoidingView: { flex: 1 },
   sheet: {
-    maxHeight: '92%',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderWidth: 1,
+    flex: 1,
     paddingHorizontal: 18,
-    paddingTop: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   title: { fontSize: 16, fontWeight: '800', flexShrink: 1 },

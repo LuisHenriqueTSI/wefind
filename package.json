@@ -7,7 +7,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "prebuild:apk": "node scripts/increment-app-version.js",
     "build:apk": "npx eas-cli build --platform android --profile preview",
+    "prebuild:apk:local": "node scripts/increment-app-version.js",
     "build:apk:local": "npx eas-cli build --platform android --profile preview --local",
     "update": "npx eas-cli update --auto"
   },

@@ -432,7 +432,7 @@ const RegisterScreen = ({ navigation, route }) => {
 
         <View style={styles.footerRow}>
           <Text style={[styles.footerText, { color: colors.textSecondary }]}>Já possui uma conta? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')} activeOpacity={0.75}>
+          <TouchableOpacity onPress={() => navigation.replace('Login')} activeOpacity={0.75}>
             <Text style={[styles.loginLinkText, { color: colors.primary }]}>Acessar conta</Text>
           </TouchableOpacity>
         </View>

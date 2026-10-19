@@ -23,6 +23,7 @@ import Input from '../components/Input';
 import MapLocationPicker from '../components/MapLocationPicker';
 import { states } from '../lib/br-locations';
 import COLORS from '../constants/theme';
+import SEARCH_RADIUS_OPTIONS_KM from '../constants/searchRadiusOptions';
 
 const normalizeRegionName = (value = '') =>
   String(value || '')
@@ -523,7 +524,7 @@ const EditProfileScreen = ({ navigation }) => {
             Distância máxima padrão para notificações e feed de animais próximos:
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-            {[5, 10, 20, 35, 50, 80].map((r) => {
+            {SEARCH_RADIUS_OPTIONS_KM.map((r) => {
               const isSelected = searchRadiusKm === r;
               return (
                 <TouchableOpacity
