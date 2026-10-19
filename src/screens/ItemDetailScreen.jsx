@@ -141,7 +141,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [fullScreenPhotoModal, setFullScreenPhotoModal] = useState(false);
   const [fullScreenIndex, setFullScreenIndex] = useState(0);
-  const [expandedCustodyInfo, setExpandedCustodyInfo] = useState(false);
   const [showMoreInfo, setShowMoreInfo] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [potentialMatches, setPotentialMatches] = useState([]);
@@ -1406,76 +1405,6 @@ const ItemDetailScreen = ({ route, navigation }) => {
           )}
         </View>
       )}
-      {isFound && !isAdoption && item.extra_fields?.found_custody === 'spotted' && (
-        <TouchableOpacity
-          style={[
-            styles.custodyNoticeCard,
-            item.extra_fields?.found_custody === 'spotted'
-              ? { backgroundColor: isDark ? 'rgba(217, 119, 6, 0.12)' : '#FFFBEB', borderColor: isDark ? 'rgba(217, 119, 6, 0.3)' : '#FDE68A' }
-              : { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.12)' : '#ECFDF5', borderColor: isDark ? 'rgba(5, 150, 105, 0.3)' : '#A7F3D0' },
-          ]}
-          onPress={() => setExpandedCustodyInfo(!expandedCustodyInfo)}
-          activeOpacity={0.8}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 }}>
-              <View style={{
-                width: 28,
-                height: 28,
-                borderRadius: 14,
-                backgroundColor: item.extra_fields?.found_custody === 'spotted'
-                  ? (isDark ? 'rgba(217, 119, 6, 0.25)' : '#FEF3C7')
-                  : (isDark ? 'rgba(5, 150, 105, 0.25)' : '#D1FAE5'),
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <MaterialIcons
-                  name={item.extra_fields?.found_custody === 'spotted' ? 'visibility' : 'home'}
-                  size={16}
-                  color={item.extra_fields?.found_custody === 'spotted' ? '#D97706' : '#2E5634'}
-                />
-              </View>
-              <Text style={[
-                styles.custodyNoticeTitle,
-                { color: item.extra_fields?.found_custody === 'spotted' ? (isDark ? '#FBBF24' : '#B45309') : (isDark ? '#34D399' : '#1E3E24') },
-              ]}>
-                Animal Avistado na Rua
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <MaterialIcons
-                name={expandedCustodyInfo ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-                size={18}
-                color={item.extra_fields?.found_custody === 'spotted'
-                  ? (isDark ? '#FBBF24' : '#B45309')
-                  : (isDark ? '#34D399' : '#1E3E24')}
-              />
-            </View>
-          </View>
-
-          {expandedCustodyInfo && (
-            <View style={{
-              marginTop: 8,
-              paddingTop: 8,
-              borderTopWidth: 1,
-              borderTopColor: item.extra_fields?.found_custody === 'spotted'
-                ? (isDark ? 'rgba(217, 119, 6, 0.2)' : '#FEF3C7')
-                : (isDark ? 'rgba(5, 150, 105, 0.2)' : '#D1FAE5'),
-            }}>
-              <Text style={[
-                styles.custodyNoticeText,
-                { color: isDark ? '#E2E8F0' : (item.extra_fields?.found_custody === 'spotted' ? '#78350F' : '#064E3B') },
-              ]}>
-                {item.extra_fields?.found_custody === 'spotted'
-                  ? 'Quem publicou apenas avistou o animal no local informado. Se você estiver na região, compartilhe novas pistas nos comentários.'
-                  : 'O animal foi acolhido com segurança enquanto a comunidade busca pelo seu tutor original.'}
-              </Text>
-
-            </View>
-          )}
-        </TouchableOpacity>
-      )}
-
       {/* 4. CARD DE LOCALIZAÇÃO E DATA COM ROTA GPS */}
       <View style={[styles.cardSection, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -2595,14 +2524,6 @@ const styles = StyleSheet.create({
   rewardAmount: { fontSize: 16, fontWeight: '800', color: '#B45309', marginTop: 2 },
 
   // Adoption & Custody Notice Cards (Modern & Sleek Accordion)
-  custodyNoticeCard: {
-    marginHorizontal: 10,
-    marginTop: 4,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderWidth: 1,
-  },
   adoptionQuantityCard: {
     marginHorizontal: 10,
     marginTop: 4,
@@ -2624,8 +2545,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  custodyNoticeTitle: { fontSize: 13, fontWeight: '700' },
-  custodyNoticeText: { fontSize: 12, lineHeight: 17 },
 
   // Location Card
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },

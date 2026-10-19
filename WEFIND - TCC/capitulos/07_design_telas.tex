@@ -131,6 +131,16 @@ Mesmo sem autenticação, o visitante pode consultar publicações no feed e vis
     \fonte{Autoria própria (2026)}
 \end{figure}
 
+Para refinar a consulta no mural, o usuário pode abrir os filtros avançados. A tela reúne critérios de espécie, porte, sexo, idade e cor, além de permitir destacar anúncios com recompensa e escolher a ordenação dos resultados. A Figura~\ref{fig:tela_filtros_avancados} apresenta esse painel.
+
+\begin{figure}[H]
+    \centering
+    \caption{Filtros Avançados das Publicações}
+    \label{fig:tela_filtros_avancados}
+    \capturaTela{imagens/04_telas_aplicativo/tela-filtros-avancados.jpeg}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
 Quando o visitante decide continuar, o fluxo conduz ao cadastro ou à recuperação da conta, conforme sua situação. A Figura~\ref{fig:tela_cadastro_recuperacao} apresenta o cadastro, a confirmação do número de WhatsApp e a recuperação da conta, mostrando como o aplicativo mantém esses procedimentos em telas simples.
 
 \begin{figure}[H]
@@ -237,38 +247,55 @@ Quem vê um animal anunciado registra a pista pelo botão ``Vi o Pet'', na ficha
 
 Na Figura~\ref{fig:tela_rota_pistas}.a, quem viu o animal responde onde ele está, solto na rua ou em uma casa ou quintal, e marca o local no mapa, podendo acrescentar uma descrição e uma foto. A Figura~\ref{fig:tela_rota_pistas}.b mostra o cartão do animal com as informações principais, a distância, o botão ``Histórico'' e a ação ``Traçar rota''. A situação da pista e as modalidades de transporte não aparecem inicialmente no cartão: quando há uma pista pública recente, o usuário toca em ``Traçar rota'' e, em seguida, escolhe entre a pé, de bicicleta, de carro e de ônibus. A Figura~\ref{fig:tela_rota_pistas}.c apresenta o histórico de avistamentos, aberto pelo botão no cartão. No alto, a faixa informa o número de registros; no mapa, os avistamentos com até sete dias e coordenadas disponíveis aparecem como círculos numerados, do mais recente ao mais antigo. Na parte inferior, cada registro aparece com o tempo decorrido e o nome de quem o registrou, incluindo os arquivados, que permanecem na lista sem revelar um ponto no mapa. Para avistamentos públicos de até 48 horas, é possível escolher aquele registro como destino da rota; os mais antigos permanecem consultáveis no histórico, mas sem essa opção. Se a rota escolhida não for a desejada, o usuário pode voltar ao histórico pela ação ``Trocar'' e selecionar outro avistamento. A Figura~\ref{fig:tela_rota_pistas}.d mostra a rota em andamento. O mapa acompanha o deslocamento do usuário até a área de busca, e o trajeto é atualizado conforme ele se move.
 
-O formulário unificado de registro contempla as três situações da plataforma, que são a perda de um animal pelo tutor, o encontro de um animal e a oferta de um animal para adoção. A separação inicial das modalidades ajuda o usuário a escolher o caminho correspondente ao seu caso. A Figura~\ref{fig:tela_registro_perdi_encontrei} apresenta esses caminhos principais.
+O formulário unificado de registro contempla a perda de um animal pelo tutor, o encontro de um animal e a oferta de animais para adoção. A separação inicial das modalidades ajuda o usuário a escolher o caminho correspondente ao seu caso. A Figura~\ref{fig:tela_registro_perdi_encontrei} apresenta os formulários de animais perdidos e encontrados, e a Figura~\ref{fig:tela_registro_adocao} detalha o cadastro para adoção.
 
 \begin{figure}[H]
     \centering
-    \caption{Registro de Animal Perdido, Encontrado ou para Adoção}
+    \caption{Formulários de Registro de Animal Perdido e Encontrado}
     \label{fig:tela_registro_perdi_encontrei}
     \vspace{0.15cm}
-    \begin{minipage}[t]{0.31\textwidth}
+    \begin{minipage}[t]{0.46\textwidth}
         \centering
         \capturaTela{imagens/04_telas_aplicativo/tela-registro-perdi.jpeg}
         \par\vspace{0.12cm}
         {\small Figura~\thefigure.a) Perdi um Animal}
     \end{minipage}
     \hfill
-    \begin{minipage}[t]{0.31\textwidth}
+    \begin{minipage}[t]{0.46\textwidth}
         \centering
         \capturaTela{imagens/04_telas_aplicativo/tela-registro-encontrei-avistamento.jpeg}
         \par\vspace{0.12cm}
         {\small Figura~\thefigure.b) Encontrei um Animal}
     \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.31\textwidth}
+    \par\vspace{0.12cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Formulário de Cadastro de Animais para Adoção}
+    \label{fig:tela_registro_adocao}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.46\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-registro-adocao.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-registro-adocao-origem.png}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.c) Para Adoção}
+        {\small Figura~\thefigure.a) Origem e quantidade de animais}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.46\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-registro-adocao-detalhes.png}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.b) Características individuais e demais dados}
     \end{minipage}
     \par\vspace{0.12cm}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-A Figura~\ref{fig:tela_registro_perdi_encontrei}.a representa o registro de um animal perdido, com foco nas características necessárias à busca. A Figura~\ref{fig:tela_registro_perdi_encontrei}.b corresponde ao cadastro de um animal encontrado, em que a pessoa informa se está com o animal ou se apenas o viu na rua e pode exigir a comprovação de tutela antes de iniciar o chat. A Figura~\ref{fig:tela_registro_perdi_encontrei}.c mostra a opção ``Para Adoção'', usada para animais resgatados, ninhadas ou animais de abrigo sem tutor conhecido. A publicação entra direto no mural como animal para adoção. O avistamento não faz parte desse formulário, pois é registrado a partir de uma publicação já existente, como mostra a Figura~\ref{fig:tela_rota_pistas}.a. A escolha da modalidade define os campos exibidos e reduz ambiguidades no envio das informações.
+A Figura~\ref{fig:tela_registro_perdi_encontrei}.a representa o registro de um animal perdido, com foco nas características necessárias à busca. A Figura~\ref{fig:tela_registro_perdi_encontrei}.b corresponde ao cadastro de um animal encontrado, em que a pessoa informa se está com o animal ou se apenas o viu na rua e pode exigir a comprovação de tutela antes de iniciar o chat. O avistamento não faz parte desse formulário, pois é registrado a partir de uma publicação já existente, como mostra a Figura~\ref{fig:tela_rota_pistas}.a. A escolha da modalidade define os campos exibidos e reduz ambiguidades no envio das informações.
+
+Na modalidade ``Para Adoção'', o responsável informa a origem dos animais — resgatados ou encontrados, ninhada de seu animal, abrigo ou protetor, ou outra origem — e a quantidade anunciada, limitada a 50. O formulário abre um conjunto de campos para cada animal, no qual podem ser registrados sexo ou gênero, uma ou mais cores, idade e raça opcionalmente. A Figura~\ref{fig:tela_registro_adocao} mostra partes do formulário ao longo da rolagem, incluindo a escolha da origem e a quantidade, os dados individuais e os demais campos do cadastro.
 
 Para características com opções predefinidas, como espécie, sexo, porte, idade e cor, o formulário utiliza seletores em vez de exigir que o usuário digite cada informação. Essa escolha busca agilizar o preenchimento e padronizar os dados usados na busca e na identificação de possíveis correspondências.
 
@@ -284,38 +311,52 @@ Na modalidade ``Encontrei'', o formulário também oferece a opção ``Publicar 
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-A ficha de cada publicação concentra as informações necessárias para consulta e acompanhamento do caso. Além dos dados do animal, o sistema apresenta ações diferentes conforme a publicação pertença ou não ao usuário. A Figura~\ref{fig:tela_detalhes} mostra a ficha vista pelo próprio autor, de cima para baixo.
+A ficha de cada publicação concentra as informações necessárias para consulta e acompanhamento do caso. Além dos dados do animal, o sistema apresenta ações diferentes conforme a situação e a publicação pertença ou não ao usuário. A Figura~\ref{fig:tela_detalhes} reúne exemplos de animais perdidos, encontrados, avistados na rua e disponíveis para adoção.
 
 \begin{figure}[H]
     \centering
-    \caption{Detalhes da Publicação e Painel de Gestão do Autor}
+    \caption{Detalhes das Publicações Conforme a Situação do Animal}
     \label{fig:tela_detalhes}
     \vspace{0.15cm}
     \begin{minipage}[t]{0.31\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-autor-ficha.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-animal-perdido.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.a) Dados do Animal}
+        {\small Figura~\thefigure.a) Animal Perdido}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.31\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-autor-local-correspondencias.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-encontrado-tutela.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.b) Local e Correspondências}
+        {\small Figura~\thefigure.b) Encontrado e pedido de devolução}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.31\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-autor-acoes.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-avistamento-rua.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.c) Ações do Autor}
+        {\small Figura~\thefigure.c) Animal Avistado na Rua}
+    \end{minipage}
+    \par\vspace{0.15cm}
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-adocao-grupo.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.d) Animais para Adoção}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-encontrado-autor.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.e) Correspondência e ações do autor}
     \end{minipage}
     \par\vspace{0.12cm}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:tela_detalhes}.a, a ficha abre com a foto do animal, o botão de compartilhamento, o tipo da publicação e as características em cartões. Na Figura~\ref{fig:tela_detalhes}.b, como o animal está na casa de quem o encontrou, o local aparece apenas como a região do bairro, com a indicação de endereço protegido. Logo abaixo ficam o autor da publicação e as correspondências encontradas, com a foto, o percentual de semelhança e a distância de cada animal perdido compatível. A Figura~\ref{fig:tela_detalhes}.c mostra as ações exclusivas do autor, que pode editar, marcar como reencontrado, disponibilizar para adoção, renovar ou excluir a publicação. Abaixo ficam as pistas e os comentários deixados pela comunidade. Quem não é o autor vê, no lugar dessas ações, os botões para registrar um avistamento, conversar com o responsável e ver a rota, quando houver pista recente.
+As Figuras~\ref{fig:tela_detalhes}.a--d ilustram como a ficha identifica animais perdidos, encontrados, avistados na rua e anunciados para adoção. Na Figura~\ref{fig:tela_detalhes}.b, a ficha de animal encontrado oferece a opção de solicitar a devolução e iniciar a comprovação de tutela. A Figura~\ref{fig:tela_detalhes}.e mostra, em uma publicação de animal encontrado, as correspondências sugeridas e as ações exclusivas do autor, que pode editar, marcar como reencontrado, disponibilizar para adoção, renovar ou excluir o anúncio. Os demais usuários veem as ações de interação adequadas ao caso, como registrar um avistamento, conversar com o responsável ou consultar a rota até uma pista recente.
 
 Publicações suspeitas podem ser denunciadas por usuários autenticados para análise administrativa. O fluxo de envio e as ações disponíveis para moderação são documentados no caso de uso UC07, no Apêndice.
 
@@ -328,21 +369,21 @@ A ficha também aplica as regras de privacidade da Seção~\ref{sec:privacidade}
     \vspace{0.15cm}
     \begin{minipage}[t]{0.31\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-localizacao-perdido.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-animal-perdido.jpeg}
         \par\vspace{0.12cm}
         {\small Figura~\thefigure.a) Animal Perdido}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.31\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-localizacao-protegida.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-encontrado-autor.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.b) Animal em uma Casa}
+        {\small Figura~\thefigure.b) Animal Encontrado}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.31\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-localizacao-visto-rua.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-avistamento-rua.jpeg}
         \par\vspace{0.12cm}
         {\small Figura~\thefigure.c) Animal Visto na Rua}
     \end{minipage}
@@ -350,9 +391,9 @@ A ficha também aplica as regras de privacidade da Seção~\ref{sec:privacidade}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:tela_localizacao}.a, a publicação de um animal perdido mostra apenas a região do bairro e uma via próxima como referência, e informa que ainda não há pista na rua para traçar rota. Na Figura~\ref{fig:tela_localizacao}.b, o animal está em uma casa, e a ficha mostra somente o bairro, com a indicação de endereço protegido e a orientação de falar com o responsável pelo chat. Na Figura~\ref{fig:tela_localizacao}.c, o animal foi visto na rua. Como se trata de uma via pública, a ficha mostra a rua e o bairro, a situação da pista e o botão para ver a rota até a área.
+Na Figura~\ref{fig:tela_localizacao}.a, a publicação de um animal perdido mostra a região do desaparecimento e uma via próxima como referência. Na Figura~\ref{fig:tela_localizacao}.b, a ficha de um animal encontrado apresenta o local informado no anúncio. Na Figura~\ref{fig:tela_localizacao}.c, o animal foi visto na rua; como se trata de uma via pública, a ficha mostra o local do avistamento, a situação da pista e o botão para ver a rota até a área.
 
-O sistema também compara as publicações de animais perdidos e encontrados para sugerir possíveis correspondências, conforme a Seção~\ref{sec:correspondencia}. Ao terminar um registro, se houver anúncios parecidos, o aplicativo abre a janela mostrada na Figura~\ref{fig:tela_correspondencias}. As mesmas sugestões continuam disponíveis depois na ficha da publicação (Figura~\ref{fig:tela_detalhes}.b).
+O sistema também compara as publicações de animais perdidos e encontrados para sugerir possíveis correspondências, conforme a Seção~\ref{sec:correspondencia}. Ao terminar um registro, se houver anúncios parecidos, o aplicativo abre a janela mostrada na Figura~\ref{fig:tela_correspondencias}. As mesmas sugestões continuam disponíveis depois na ficha da publicação (Figura~\ref{fig:tela_detalhes}.e).
 
 \begin{figure}[H]
     \centering
@@ -368,34 +409,48 @@ Para divulgar o caso fora do aplicativo e conversar com outros usuários, o WeFI
 
 \begin{figure}[H]
     \centering
-    \caption{Compartilhamento de Cartaz e Mensagens Privadas}
+    \caption{Cartaz de Divulgação em Diferentes Formatos e Mensagens Privadas}
     \label{fig:tela_cartaz_mensagens}
     \vspace{0.15cm}
     \begin{minipage}[t]{0.31\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/figura21_tela_cartaz.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/cartaz-adocao-qr.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.a) Compartilhamento de Cartaz}
+        {\small Figura~\thefigure.a) Cartaz com QR Code}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.31\textwidth}
         \centering
+        \capturaTela{imagens/04_telas_aplicativo/cartaz-adocao-stories.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.b) Formato para Stories/Status}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/cartaz-adocao-feed.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.c) Formato quadrado para Feed}
+    \end{minipage}
+    \par\vspace{0.15cm}
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
         \capturaTela{imagens/04_telas_aplicativo/tela-mensagens.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.b) Central de Mensagens}
+        {\small Figura~\thefigure.d) Central de Mensagens}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.31\textwidth}
         \centering
         \capturaTela{imagens/04_telas_aplicativo/tela-conversa.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.c) Conversa Privada}
+        {\small Figura~\thefigure.e) Conversa Privada}
     \end{minipage}
     \par\vspace{0.12cm}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:tela_cartaz_mensagens}.a, a tela permite selecionar o cartaz com QR code ou os formatos para \textit{stories/status} e \textit{feed} quadrado e compartilhar a imagem pelo aplicativo. O cartaz reúne a foto, as características do animal e o local do desaparecimento; o autor também pode escolher se o seu WhatsApp aparece na arte, e essa escolha vale quando outras pessoas compartilham a publicação. Por padrão, o telefone fica de fora, e o contato é feito pelo chat do aplicativo, por meio do código QR. O código leva a uma página pública do WeFIND que não mostra endereço nem telefone. Essa página orienta quem viu o cartaz a abrir a publicação no aplicativo, ou a instalá-lo, para registrar um avistamento ou conversar com o responsável. A Figura~\ref{fig:tela_cartaz_mensagens}.b mostra a central de mensagens, com as conversas agrupadas por publicação, e a Figura~\ref{fig:tela_cartaz_mensagens}.c, uma conversa privada entre o tutor e uma pessoa que viu o animal, que exibe uma dica de segurança para combinar a entrega do animal apenas após a comprovação de tutela.
+As Figuras~\ref{fig:tela_cartaz_mensagens}.a--c mostram a seleção e a prévia do cartaz com QR Code, do formato vertical para \textit{Stories/Status} e do formato quadrado para o \textit{Feed}. A arte adapta as informações ao tipo da publicação; no exemplo, apresenta quatro animais disponíveis para adoção e sua origem. Por padrão, o telefone não é exibido, e o contato é feito pelo chat do aplicativo. O QR Code leva a uma página pública do WeFIND que não mostra endereço nem telefone e orienta quem recebeu o cartaz a abrir ou instalar o aplicativo. A Figura~\ref{fig:tela_cartaz_mensagens}.d mostra a central de mensagens, com as conversas agrupadas por publicação, e a Figura~\ref{fig:tela_cartaz_mensagens}.e, uma conversa privada entre o tutor e uma pessoa que viu o animal, que exibe uma dica de segurança para combinar a entrega apenas após a comprovação de tutela.
 
 Os avisos do sistema ficam reunidos na central de notificações, apresentada na Figura~\ref{fig:tela_notificacoes}. Nela, o usuário acompanha lembretes de renovação, novos avistamentos, mensagens e as possíveis correspondências encontradas pelo mecanismo heurístico. Quando uma correspondência é encontrada, o aviso também chega como notificação no celular.
 
@@ -435,38 +490,31 @@ Para os usuários que autorizaram esse canal, os mesmos avisos chegam também pe
 
 No protótipo, as mensagens são enviadas pela Evolution API a partir do número de WhatsApp do próprio autor, conectado ao serviço para os testes. Por isso, no aparelho do autor, elas aparecem como enviadas por ele mesmo. Em uma versão em produção, o envio seria feito por um número institucional do WeFIND, e os códigos de verificação, que seguem pelo mesmo canal, não foram incluídos na figura.
 
-A comprovação de tutela, descrita na Seção~\ref{sec:tutela}, começa na ficha de um animal encontrado e termina no chat, com o encontro de devolução combinado. A Figura~\ref{fig:tela_comprovacao_tutela} mostra a parte feita pelo tutor.
+A comprovação de tutela, descrita na Seção~\ref{sec:tutela}, começa na ficha de um animal encontrado e continua pelo formulário enviado pelo tutor. A Figura~\ref{fig:tela_comprovacao_tutela} mostra essas duas etapas.
 
 \begin{figure}[H]
     \centering
-    \caption{Solicitação de Devolução pelo Tutor}
+    \caption{Ficha do Animal Encontrado e Formulário de Comprovação de Tutela}
     \label{fig:tela_comprovacao_tutela}
     \vspace{0.15cm}
-    \begin{minipage}[t]{0.31\textwidth}
+    \begin{minipage}[t]{0.46\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-tutela-solicitar.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-encontrado-tutela.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.a) Ficha com Endereço Protegido}
+        {\small Figura~\thefigure.a) Ficha e solicitação de devolução}
     \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.31\textwidth}
+    \hspace{0.06\textwidth}
+    \begin{minipage}[t]{0.46\textwidth}
         \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-tutela-formulario.jpeg}
+        \capturaTela{imagens/04_telas_aplicativo/tela-formulario-comprovacao-tutela.jpeg}
         \par\vspace{0.12cm}
-        {\small Figura~\thefigure.b) Envio da Comprovação}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.31\textwidth}
-        \centering
-        \capturaTela{imagens/04_telas_aplicativo/tela-tutela-em-analise.jpeg}
-        \par\vspace{0.12cm}
-        {\small Figura~\thefigure.c) Comprovação em Análise}
+        {\small Figura~\thefigure.b) Formas de comprovar a tutela}
     \end{minipage}
     \par\vspace{0.12cm}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:tela_comprovacao_tutela}.a, a ficha do animal acolhido mostra apenas a região do bairro e o aviso de endereço protegido, com o botão ``Solicitar devolução''. Na Figura~\ref{fig:tela_comprovacao_tutela}.b, o tutor escolhe como deseja comprovar a tutela (fotos do animal, carteira de vacinação ou marcas ocultas), anexa as imagens pela galeria ou pela câmera e escreve uma mensagem para quem acolheu o animal. Depois do envio, a ficha passa a exibir a comprovação como ``em análise'', com o endereço ainda protegido (Figura~\ref{fig:tela_comprovacao_tutela}.c), e uma mensagem automática abre a conversa com o autor da publicação.
+Na Figura~\ref{fig:tela_comprovacao_tutela}.a, a ficha do animal encontrado oferece a ação ``Solicitar devolução''. Na Figura~\ref{fig:tela_comprovacao_tutela}.b, o tutor escolhe entre fotos do animal, vacina ou documento e marcas ocultas; pode anexar imagens pela galeria ou pela câmera e enviar uma mensagem opcional para quem acolheu o animal. Depois do envio, o pedido fica em análise e uma mensagem automática abre a conversa com o autor da publicação.
 
 Ao abrir essa conversa, quem está com o animal vê no alto a faixa ``Confirmar tutor e combinar encontro'', com o botão ``Liberar local''. Apesar do nome, esse botão não revela o endereço. Se as fotos e as marcas conferem com o animal, a pessoa o usa para propor um ponto de encontro público. A Figura~\ref{fig:tela_encontro_devolucao} mostra essa etapa.
 
@@ -508,6 +556,16 @@ Os animais oferecidos para adoção aparecem no mesmo mural das demais publicaç
     \caption{Publicação para Adoção no Mural}
     \label{fig:tela_adocao}
     \capturaTela{imagens/04_telas_aplicativo/tela-feed-adocao.jpeg}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+Nos anúncios coletivos, a ficha informa quantos animais ainda estão disponíveis em relação ao total anunciado. O responsável pode atualizar individualmente a situação de cada animal conforme ele é adotado. A Figura~\ref{fig:tela_adocao_grupo} apresenta um exemplo de anúncio de quatro animais, cuja origem foi informada como ninhada do animal do responsável.
+
+\begin{figure}[H]
+    \centering
+    \caption{Ficha de Anúncio Coletivo para Adoção}
+    \label{fig:tela_adocao_grupo}
+    \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-adocao-grupo.jpeg}
     \fonte{Autoria própria (2026)}
 \end{figure}
 

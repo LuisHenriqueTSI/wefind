@@ -97,18 +97,19 @@ Identificador & UC03 \\ \hline
 Nome do Caso de Uso & Manter Publicação \\ \hline
 Ator Principal & Usuário (Autenticado) \\ \hline
 Atores Secundários & Banco de Dados (PostgreSQL) e Supabase Storage \\ \hline
-Resumo & Permite cadastrar, editar, encerrar como reencontrado ou excluir anúncios de animais perdidos e encontrados. \\ \hline
+Resumo & Permite cadastrar, editar, encerrar como reencontrado ou excluir publicações de animais perdidos e encontrados, além de cadastrar publicações diretas para adoção. \\ \hline
 Pré-Condições & Usuário autenticado e com permissão de localização ativa. \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
 1. O usuário aciona o botão de nova publicação (``+'') na barra de navegação.\par
-2. O sistema apresenta o formulário solicitando a categoria: ``Perdido'' ou ``Encontrado''.\par
+2. O sistema apresenta o formulário com as categorias ``Perdido'', ``Encontrado'' e ``Para Adoção''.\par
 3. O usuário seleciona a categoria correspondente à situação do animal.\par
-4. O usuário adiciona fotografias (com recorte integrado) e seleciona os atributos físicos do pet (espécie, raça, porte, cor, idade).\par
-5. O sistema executa obrigatoriamente por inclusão (\textit{<<include>>}) o caso de uso Selecionar Localização no Mapa, capturando as coordenadas geográficas.\par
-6. O usuário confirma a publicação.\par
-7. O sistema envia as fotos ao Storage e grava os dados na tabela \textit{items}.\par
-8. A publicação passa a ser exibida no mural e, conforme as regras de privacidade (Seção~\ref{sec:privacidade}), no mapa.
+4. O usuário adiciona fotografias (com recorte integrado) e informa os atributos do animal, como espécie, raça, porte, cor e idade.\par
+5. Para a categoria ``Para Adoção'', o usuário informa a origem e a quantidade anunciada, limitada a 50 animais, e registra sexo ou gênero, uma ou mais cores, idade e raça opcionalmente para cada animal.\par
+6. O sistema executa obrigatoriamente por inclusão (\textit{<<include>>}) o caso de uso Selecionar Localização no Mapa, capturando as coordenadas geográficas.\par
+7. O usuário confirma a publicação.\par
+8. O sistema envia as fotos ao Storage e grava os dados na tabela \textit{items}.\par
+9. A publicação passa a ser exibida no mural e, conforme as regras de privacidade (Seção~\ref{sec:privacidade}), no mapa.
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos Alternativos:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
@@ -388,8 +389,8 @@ Identificador & UC10 \\ \hline
 Nome do Caso de Uso & Disponibilizar para Adoção \\ \hline
 Ator Principal & Usuário Autenticado (autor da publicação) \\ \hline
 Atores Secundários & Usuários interessados na adoção \\ \hline
-Resumo & Permite oferecer um animal para adoção responsável, seja em uma publicação criada para esse fim, seja em uma publicação de animal encontrado que já passou pelo período mínimo de busca pelo tutor. \\ \hline
-Pré-Condições & Usuário autenticado; para animais encontrados, publicação ativa com o animal sob os cuidados do autor. \\ \hline
+Resumo & Permite criar uma publicação direta para adoção responsável ou disponibilizar para adoção um animal encontrado que já passou pelo período mínimo de busca pelo tutor. \\ \hline
+Pré-Condições & Usuário autenticado; para a conversão de um animal encontrado, publicação ativa com o animal sob os cuidados do autor. \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
 1. Na ficha da própria publicação de um animal encontrado, o autor aciona ``Disponibilizar para Adoção''.\par
@@ -401,14 +402,14 @@ Pré-Condições & Usuário autenticado; para animais encontrados, publicação 
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos Alternativos:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-1a. Adoção direta: no cadastro de uma nova publicação, o usuário escolhe a opção ``Para Adoção''; a publicação já é criada como disponível para adoção.\par
-5a. Pausar adoção: o autor pode retirar o animal da listagem de adoção a qualquer momento.
+1a. Cadastro direto: ao criar uma publicação, o usuário escolhe ``Para Adoção'', informa a origem (resgatados ou encontrados, ninhada do próprio animal, abrigo ou protetor, ou outra origem), define a quantidade anunciada (até 50) e registra sexo ou gênero, uma ou mais cores, idade e raça opcional para cada animal. O sistema cria a publicação como disponível para adoção.\par
+5a. Atualização individual: na ficha da publicação, o autor marca cada animal como adotado ou disponível; o sistema atualiza a quantidade ainda disponível no anúncio.
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos de Exceção:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
 2a. Período de busca não concluído: o sistema informa quantos dias faltam e mantém a publicação ativa como animal encontrado.
 } \\ \hline
-Pós-Condições & Publicação disponível para adoção no mural, com contato pelo chat. \\ \hline
+Pós-Condições & Publicação disponível para adoção no mural, com a quantidade disponível atualizada e contato pelo chat. \\ \hline
 \end{tabular}
 \end{table}
 
@@ -897,7 +898,7 @@ A comparação entre anúncios perdidos e encontrados pode apoiar a identificaç
 Todos os 48 respondentes pediriam prova de tutela antes da devolução: 32 sempre e 16 se desconfiassem da pessoa. & RF18 & Solicitação de devolução com relato e fotos, análise pelo autor da publicação, aprovação ou recusa e encontro de devolução em local público combinado pelo chat, com confirmação, remarcação ou cancelamento e notificação a cada etapa. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Observação do autor em grupos do \textit{Facebook}: quem anuncia ter encontrado um animal recebe julgamentos nos comentários (sem estudo formal). & RF04 & Opção de publicar o relato de animal encontrado anonimamente, com ``Relato anônimo da comunidade'' no lugar do nome e da foto do autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 23 dos 48 respondentes (47,9\%) marcaram que seus animais não usam nenhuma forma de identificação da lista; um marcou microchip. & RF19 & Cadastro preventivo dos animais de estimação, carteirinha digital com código QR e contato do tutor, e conversão do cadastro em publicação de animal perdido. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-21 dos 48 respondentes (43,8\%) atribuíram nota 4 ou 5 à utilidade da seção de adoção; 19 (39,6\%) deram nota 2. & RF20 & Publicação para adoção e disponibilização de animal encontrado para adoção após sete dias de busca pelo tutor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+21 dos 48 respondentes (43,8\%) atribuíram nota 4 ou 5 à utilidade da seção de adoção; 19 (39,6\%) deram nota 2. & RF20 & Publicação direta para adoção, inclusive de grupos de animais com disponibilidade atualizada individualmente, e conversão de animal encontrado para adoção após sete dias de busca pelo tutor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 21 dos 48 respondentes (43,8\%) aceitariam avaliar com estrelas e comentário uma pessoa que ajudou; 27 (56,3\%) responderam talvez. & RF21 & Classificação entre membros após uma conversa, com estrelas, etiquetas e comentário, e média exibida no perfil público. & Verificado pelo autor em outubro de 2026, após a avaliação com participantes (Seção 8.1). \\ \hline
 \end{longtable}
 }
