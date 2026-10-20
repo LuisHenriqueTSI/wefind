@@ -4,10 +4,10 @@ Esta pasta contém a página estática publicada pela GitHub Pages. Ela também 
 
 ## APK para download
 
-O APK 2.8.1 é servido como arquivo estático pela GitHub Pages:
+O APK 2.8.2 é servido como arquivo estático pela GitHub Pages:
 
 ```text
-https://luishenriquetsi.github.io/wefind/downloads/WeFIND_v2.8.1.apk
+https://luishenriquetsi.github.io/wefind/downloads/WeFIND_v2.8.2.apk
 ```
 
 O arquivo é versionado com Git LFS. O workflow de publicação baixa o conteúdo LFS antes de enviar a pasta `landing-page` para a GitHub Pages.
