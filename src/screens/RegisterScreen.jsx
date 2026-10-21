@@ -21,7 +21,6 @@ import COLORS from '../constants/theme';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { WeFindText } from '../components/WeFindBrand';
-import { TERMS_URL, PRIVACY_URL } from '../constants/links';
 
 const formatBrazilianPhone = (value = '') => {
   const digits = String(value || '').replace(/\D/g, '').slice(0, 11);
@@ -120,13 +119,15 @@ const RegisterScreen = ({ navigation, route }) => {
   const [whatsappConsent, setWhatsappConsent] = useState(
     prefill.whatsappConsent !== undefined ? prefill.whatsappConsent : true
   );
-  const [termsAccepted, setTermsAccepted] = useState(prefill.termsAccepted === true);
-  const [privacyAccepted, setPrivacyAccepted] = useState(prefill.privacyAccepted === true);
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const scrollRef = useRef(null);
+  // A tela de cadastro não rola: só libera a rolagem se o conteúdo não couber (celulares muito pequenos)
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+  const needsScroll = viewportHeight > 0 && contentHeight > viewportHeight + 2;
 
   const validateForm = () => {
     const newErrors = {};
@@ -162,12 +163,6 @@ const RegisterScreen = ({ navigation, route }) => {
     if (password !== confirmPassword) {
       newErrors.confirmPassword = 'Senhas não conferem';
     }
-    if (!termsAccepted) {
-      newErrors.termsAccepted = 'Aceite os Termos de Uso para continuar';
-    }
-    if (!privacyAccepted) {
-      newErrors.privacyAccepted = 'Aceite a Política de Privacidade para continuar';
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -195,8 +190,6 @@ const RegisterScreen = ({ navigation, route }) => {
           name: name.trim(),
           whatsapp: whatsapp.replace(/\D/g, ''),
           whatsappConsent,
-          termsAccepted,
-          privacyAccepted,
           devCode: result.devCode || null,
         });
       }
@@ -216,6 +209,11 @@ const RegisterScreen = ({ navigation, route }) => {
         enableResetScrollToCoords={false}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        scrollEnabled={needsScroll}
+        bounces={false}
+        overScrollMode="never"
+        onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
+        onContentSizeChange={(_, height) => setContentHeight(height)}
         extraScrollHeight={Platform.OS === 'ios' ? 80 : 120}
         extraHeight={Platform.OS === 'ios' ? 120 : 160}
         keyboardOpeningTime={0}
@@ -231,14 +229,11 @@ const RegisterScreen = ({ navigation, route }) => {
               resizeMode="contain"
             />
           </View>
-          <WeFindText size={24} uppercase style={{ marginTop: 8, letterSpacing: -0.4 }} />
+          <WeFindText size={20} uppercase style={{ marginTop: 4, letterSpacing: -0.4 }} />
         </View>
 
         <View style={styles.headerBox}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Criar nova conta</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            Preencha seus dados para começar no <WeFindText size={13} style={{ fontWeight: '800' }} />
-          </Text>
         </View>
 
         <View style={[styles.formBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
@@ -310,30 +305,21 @@ const RegisterScreen = ({ navigation, route }) => {
           {password.length > 0 && (() => {
             const pwdStrength = calculatePasswordStrength(password);
             return (
-              <View style={[styles.passwordStrengthBox, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : '#F8FAFC', borderColor: colors.cardBorder }]}>
-                <View style={styles.strengthHeaderRow}>
-                  <Text style={[styles.strengthLabelTitle, { color: colors.textSecondary }]}>
-                    Força: <Text style={{ color: pwdStrength.color, fontWeight: '800' }}>{pwdStrength.label}</Text>
-                  </Text>
-                  <Text style={{ fontSize: 10.5, color: colors.textMuted }}>
-                    {pwdStrength.isValid ? 'Requisitos atendidos' : 'mín. 8 chars, letras e números'}
-                  </Text>
-                </View>
-
-                {/* Barra de 4 segmentos */}
-                <View style={styles.strengthBarRow}>
+              <View style={styles.passwordStrengthInline}>
+                <View style={[styles.strengthBarRow, { flex: 1, marginBottom: 0 }]}>
                   {[1, 2, 3, 4].map((seg) => (
                     <View
                       key={seg}
                       style={[
                         styles.strengthBarSegment,
-                        {
-                          backgroundColor: seg <= pwdStrength.level ? pwdStrength.color : (isDark ? '#334155' : '#E2E8F0'),
-                        },
+                        { backgroundColor: seg <= pwdStrength.level ? pwdStrength.color : (isDark ? '#334155' : '#E2E8F0') },
                       ]}
                     />
                   ))}
                 </View>
+                <Text style={{ fontSize: 11, fontWeight: '800', color: pwdStrength.color, marginLeft: 8 }}>
+                  {pwdStrength.label}
+                </Text>
               </View>
             );
           })()}
@@ -389,33 +375,6 @@ const RegisterScreen = ({ navigation, route }) => {
               </Text>
             </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.consentRow}
-            onPress={() => setTermsAccepted((prev) => !prev)}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.checkbox, { borderColor: errors.termsAccepted ? '#EF4444' : colors.border, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }, termsAccepted && [styles.checkboxChecked, { backgroundColor: colors.primary, borderColor: colors.primary }]]}>
-              {termsAccepted ? <MaterialIcons name="check" size={15} color="#FFFFFF" /> : null}
-            </View>
-            <Text style={[styles.consentText, { color: colors.textSecondary }]}>
-              Li e aceito os <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL(TERMS_URL)}>Termos de uso</Text> *
-            </Text>
-          </TouchableOpacity>
-          {errors.termsAccepted && <Text style={styles.consentError}>{errors.termsAccepted}</Text>}
-
-          <TouchableOpacity
-            style={styles.consentRow}
-            onPress={() => setPrivacyAccepted((prev) => !prev)}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.checkbox, { borderColor: errors.privacyAccepted ? '#EF4444' : colors.border, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }, privacyAccepted && [styles.checkboxChecked, { backgroundColor: colors.primary, borderColor: colors.primary }]]}>
-              {privacyAccepted ? <MaterialIcons name="check" size={15} color="#FFFFFF" /> : null}
-            </View>
-            <Text style={[styles.consentText, { color: colors.textSecondary }]}>
-              Li e aceito a <Text style={{ color: colors.primary, fontWeight: '700' }} onPress={() => Linking.openURL(PRIVACY_URL)}>Política de privacidade</Text> *
-            </Text>
-          </TouchableOpacity>
-          {errors.privacyAccepted && <Text style={styles.consentError}>{errors.privacyAccepted}</Text>}
 
           <TouchableOpacity
             onPress={handleRegister}
@@ -448,8 +407,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 18,
-    paddingTop: 8,
-    paddingBottom: 24,
+    paddingTop: 4,
+    paddingBottom: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -460,9 +419,9 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   logoSquircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 24,
+    width: 60,
+    height: 60,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -474,12 +433,12 @@ const styles = StyleSheet.create({
   },
   headerBox: {
     alignItems: 'center',
-    marginBottom: 10,
-    marginTop: 2,
+    marginBottom: 8,
+    marginTop: 0,
     paddingHorizontal: 16,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     marginBottom: 2,
     letterSpacing: -0.3,
@@ -494,11 +453,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 390,
     borderRadius: 20,
-    paddingVertical: 14,
-    paddingHorizontal: 16,    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
   },
   input: {
-    marginBottom: 8,
+    marginBottom: 4,
   },
   inputField: {
     borderRadius: 12,
@@ -513,6 +473,13 @@ const styles = StyleSheet.create({
     padding: 8,
     marginBottom: 8,
     marginTop: -2,
+  },
+  passwordStrengthInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: -2,
+    marginBottom: 6,
+    paddingHorizontal: 2,
   },
   strengthHeaderRow: {
     flexDirection: 'row',
@@ -541,7 +508,7 @@ const styles = StyleSheet.create({
   consentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: 6,
     gap: 8,
   },
   checkbox: {

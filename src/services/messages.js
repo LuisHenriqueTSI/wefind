@@ -5,7 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const hiddenConversationsKey = (userId) => `hidden_conversations_${userId}`;
 
-const conversationKey = (userId, otherUserId) => [userId, otherUserId].sort().join('_');
+// Cada publicação tem sua própria conversa, mesmo entre os mesmos dois usuários.
+const conversationKey = (userId, otherUserId, itemId = null) =>
+  `${[userId, otherUserId].sort().join('_')}_${itemId != null && itemId !== '' ? itemId : 'geral'}`;
 
 const getHiddenConversationKeys = async (userId) => {
   try {
@@ -22,15 +24,15 @@ const saveHiddenConversationKeys = async (userId, keys) => {
   await AsyncStorage.setItem(hiddenConversationsKey(userId), JSON.stringify(keys));
 };
 
-export const hideConversation = async (userId, otherUserId) => {
+export const hideConversation = async (userId, otherUserId, itemId = null) => {
   if (!userId || !otherUserId) throw new Error('Conversa inválida.');
   const keys = await getHiddenConversationKeys(userId);
-  const key = conversationKey(userId, otherUserId);
+  const key = conversationKey(userId, otherUserId, itemId);
   if (!keys.includes(key)) await saveHiddenConversationKeys(userId, [...keys, key]);
 };
 
-const showConversationAgain = async (userId, otherUserId) => {
-  const key = conversationKey(userId, otherUserId);
+const showConversationAgain = async (userId, otherUserId, itemId = null) => {
+  const key = conversationKey(userId, otherUserId, itemId);
   const keys = await getHiddenConversationKeys(userId);
   const nextKeys = keys.filter((hiddenKey) => hiddenKey !== key);
   if (nextKeys.length !== keys.length) await saveHiddenConversationKeys(userId, nextKeys);
@@ -67,7 +69,7 @@ export const sendMessage = async (messageData) => {
     if (conversation.status === 'encerrada') {
       throw new Error('Esta conversa foi encerrada e não aceita novas mensagens.');
     }
-    await showConversationAgain(messageData.sender_id, messageData.receiver_id);
+    await showConversationAgain(messageData.sender_id, messageData.receiver_id, messageData.item_id);
 
     const nextMessageId = await getNextMessageId();
     const sentAt = new Date().toISOString();
@@ -191,8 +193,9 @@ export const getConversations = async (userId) => {
           ? relatedConversation.participant_a
           : msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
       const otherDeleted = Boolean(relatedConversation && !otherId);
+      // Agrupa por usuário + publicação: cada publicação vira uma conversa separada.
       const key = otherId
-        ? [userId, otherId].sort().join('_')
+        ? conversationKey(userId, otherId, msg.item_id)
         : relatedConversation?.participant_a === null || relatedConversation?.participant_b === null
           ? `deleted_${msg.conversation_id}`
           : null;
@@ -266,13 +269,15 @@ export const getMessages = async (userId, otherUserId, options = 50) => {
     let limit = 50;
     let itemId = null;
     let conversationId = null;
+    let generalOnly = false;
 
     if (typeof options === 'number') {
       limit = options;
     } else if (typeof options === 'object' && options !== null) {
       limit = options.limit || 50;
-      itemId = options.itemId || null;
+      itemId = options.itemId ?? null;
       conversationId = options.conversationId || null;
+      generalOnly = Boolean(options.generalOnly);
     } else if (typeof options === 'string' && options.length > 5 && isNaN(Number(options))) {
       itemId = options;
     }
@@ -286,8 +291,10 @@ export const getMessages = async (userId, otherUserId, options = 50) => {
       query = query.or(`and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`);
     }
 
-    if (itemId && !conversationId) {
-      query = query.eq('item_id', itemId);
+    if (!conversationId) {
+      // Só as mensagens desta publicação (ou só as conversas gerais, sem publicação)
+      if (itemId != null && itemId !== '') query = query.eq('item_id', itemId);
+      else if (generalOnly) query = query.is('item_id', null);
     }
 
     const { data, error } = await query
@@ -306,15 +313,20 @@ export const getMessages = async (userId, otherUserId, options = 50) => {
   }
 };
 
-export const markMessagesAsRead = async (userId, otherUserId) => {
+export const markMessagesAsRead = async (userId, otherUserId, itemId) => {
   try {
     console.log('[markMessagesAsRead] Marcando mensagens como lidas...');
 
-    const { error } = await supabase
+    let query = supabase
       .from('messages')
       .update({ read: true })
       .eq('receiver_id', userId)
       .eq('sender_id', otherUserId);
+    // Se a publicação foi informada, marca como lida só a conversa dela
+    if (itemId !== undefined) {
+      query = itemId != null && itemId !== '' ? query.eq('item_id', itemId) : query.is('item_id', null);
+    }
+    const { error } = await query;
 
     if (error) {
       console.log('[markMessagesAsRead] Erro:', error.message);

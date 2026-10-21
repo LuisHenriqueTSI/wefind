@@ -249,7 +249,7 @@ export default function NotificationsScreen({ navigation, onNotificationsUpdated
 
     if (notification.type === 'message') {
       if (notification.otherId) {
-        await markMessagesAsRead(user.id, notification.otherId);
+        await markMessagesAsRead(user.id, notification.otherId, notification.itemId ?? null);
       }
       navigation.navigate('Chat', {
         conversation: {

@@ -103,11 +103,18 @@ export async function registerForPushNotificationsAsync(userId = null) {
       // Salva no perfil do Supabase se o usuário estiver autenticado
       if (userId) {
         try {
+          // Mescla com os extra_fields atuais para não apagar outras preferências do perfil
+          const { data: currentProfile } = await supabase
+            .from('profiles')
+            .select('extra_fields')
+            .eq('id', userId)
+            .maybeSingle();
           await supabase
             .from('profiles')
             .update({
               expo_push_token: token,
               extra_fields: {
+                ...(currentProfile?.extra_fields || {}),
                 expo_push_token: token,
               },
             })

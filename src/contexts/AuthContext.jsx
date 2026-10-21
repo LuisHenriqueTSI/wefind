@@ -115,6 +115,9 @@ export const AuthProvider = ({ children }) => {
           if (session?.user) {
             activeUserIdRef.current = session.user.id;
             setUser(session.user);
+            // Registra o aparelho para push logo após o login (e-mail ou Google),
+            // sem esperar o app ser fechado e aberto de novo
+            registerForPushNotificationsAsync(session.user.id).catch(() => {});
             syncRatingNotifications(session.user.id).catch((error) => {
               console.warn('[Auth] Não foi possível sincronizar notificações de classificação:', error.message);
             });

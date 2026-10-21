@@ -581,14 +581,14 @@ const ItemDetailScreen = ({ route, navigation }) => {
     }
 
     Alert.alert(
-      isCurrentlyAdoption ? 'Pausar Adoção' : 'Disponibilizar para Adoção',
+      isCurrentlyAdoption ? 'Marcar como adotado' : 'Disponibilizar para Adoção',
       isCurrentlyAdoption
-        ? 'Deseja remover este pet da listagem de adoção?'
+        ? 'Confirma que este pet foi adotado e deseja encerrar a publicação de adoção?'
         : 'Ao disponibilizar para adoção responsável, outros membros poderão entrar em contato para adotá-lo. Continuar?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: isCurrentlyAdoption ? 'Remover' : 'Disponibilizar',
+          text: isCurrentlyAdoption ? 'Marcar como adotado' : 'Disponibilizar',
           onPress: () => confirmAdoptionChange(isCurrentlyAdoption),
         },
       ]
@@ -614,7 +614,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
         'Sucesso',
         !isCurrentlyAdoption
           ? 'Pet disponibilizado para adoção responsável com sucesso!'
-          : 'Pet removido da listagem de adoção.'
+          : 'Adoção concluída. Pet removido da listagem de adoção.'
       );
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível atualizar o status de adoção.');
@@ -659,6 +659,50 @@ const ItemDetailScreen = ({ route, navigation }) => {
               }));
             } catch (error) {
               Alert.alert('Erro', error?.message || 'Não foi possível atualizar a quantidade disponível.');
+            } finally {
+              setUpdatingAdoptionCount(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleMarkAdopted = () => {
+    if (updatingAdoptionCount) return;
+    const petName = item?.animal_name || item?.title || 'o animal';
+    const pendingAnimals = adoptionAnimals.filter((animal) => animal.adoption_status !== 'adopted').length;
+    const isMultiple = adoptionTotalCount > 1;
+    Alert.alert(
+      isMultiple ? 'Animais adotados' : 'Marcar como adotado',
+      isMultiple
+        ? `Confirma que ${pendingAnimals === adoptionTotalCount ? 'todos os animais' : `os ${pendingAnimals} animais restantes`} deste anúncio foram adotados e deseja encerrar a publicação de adoção?`
+        : `Confirma que ${petName} foi adotado(a) e deseja encerrar a publicação de adoção?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Marcar como adotado',
+          onPress: async () => {
+            setUpdatingAdoptionCount(true);
+            try {
+              const updatedAnimals = adoptionAnimals.map((animal) => ({ ...animal, adoption_status: 'adopted' }));
+              const updated = await itemsService.updateAdoptionAnimals(
+                item.id,
+                {
+                  ...(item.extra_fields || {}),
+                  adoption_total_count: adoptionTotalCount,
+                  adoption_remaining_count: 0,
+                  adopted_at: new Date().toISOString(),
+                },
+                updatedAnimals
+              );
+              setItem((previous) => ({
+                ...previous,
+                extra_fields: updated.extra_fields,
+              }));
+              Alert.alert('Que notícia boa!', 'Adoção concluída. Pet removido da listagem de adoção.');
+            } catch (error) {
+              Alert.alert('Erro', error?.message || 'Não foi possível marcar como adotado.');
             } finally {
               setUpdatingAdoptionCount(false);
             }
@@ -922,6 +966,31 @@ const ItemDetailScreen = ({ route, navigation }) => {
     }
   };
 
+  // Abre o mapa na pista mais recente (área aproximada, nunca o ponto exato).
+  // Com pista quente/morna já traça a rota; pista fria só centraliza o mapa.
+  const handleOpenLatestClue = () => {
+    if (!item) return;
+    const routeStatus = getRouteStatus(item);
+    if (!routeStatus.area) return;
+    const mapParams = {
+      focusItemId: item.id,
+      showRoute: Boolean(routeStatus.available),
+      targetCoords: {
+        latitude: Number(routeStatus.area.latitude),
+        longitude: Number(routeStatus.area.longitude),
+      },
+    };
+    if (!user) {
+      navigation.navigate('Map', mapParams);
+      return;
+    }
+    try {
+      navigation.navigate('MainApp', { screen: 'MapTab', params: mapParams });
+    } catch (e) {
+      navigation.navigate('Map', mapParams);
+    }
+  };
+
   const requiresOwnershipProof = item.extra_fields?.requires_ownership_proof !== false;
   const isDirectAdoption = Boolean(item.extra_fields?.is_direct_adoption || item.status === 'adoption');
   const isAdoption = Boolean(isDirectAdoption || itemsService.isPetAvailableForAdoption(item));
@@ -952,6 +1021,8 @@ const ItemDetailScreen = ({ route, navigation }) => {
   const isAdoptionClosed = isDirectAdoption
     && rawAdoptionRemainingCount != null
     && adoptionRemainingCount === 0;
+  // Anúncio de adoção já concluído: não deve voltar a mostrar "Reencontrado!" nem "P/ Adoção"
+  const wasAdopted = Boolean(item.extra_fields?.adopted_at) || isAdoptionClosed;
   const adoptionQuantityLabel = isAdoptionClosed
     ? adoptionTotalCount === 1
       ? 'Este animal já foi adotado.'
@@ -1112,13 +1183,13 @@ const ItemDetailScreen = ({ route, navigation }) => {
             <Ionicons
               name={isAdoption ? 'heart' : isFound ? 'checkmark-circle' : 'alert-circle'}
               size={15}
-              color={isAdoption ? '#BE185D' : isFound ? '#1E3E24' : '#C2410C'}
+              color={isAdoption ? '#DB2777' : isFound ? '#1E3E24' : '#C2410C'}
               style={{ marginRight: 5 }}
             />
             <Text
               style={[
                 styles.statusPillText,
-                { color: isAdoption ? '#BE185D' : isFound ? '#1E3E24' : '#C2410C' },
+                { color: isAdoption ? '#DB2777' : isFound ? '#1E3E24' : '#C2410C' },
               ]}
             >
               {isAdoptionClosed
@@ -1275,7 +1346,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                     paddingVertical: 5,
                   }}
                 >
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#F472B6' : '#BE185D' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#DB2777' }}>
                     {stripEmoji(trait)}
                   </Text>
                 </View>
@@ -1383,7 +1454,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                       style={{
                         alignSelf: 'flex-start',
                         borderWidth: 1,
-                        borderColor: isAdopted ? colors.primary : '#BE185D',
+                        borderColor: isAdopted ? colors.primary : '#DB2777',
                         borderRadius: 8,
                         paddingHorizontal: 10,
                         paddingVertical: 6,
@@ -1391,7 +1462,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                       }}
                     >
                       <Text style={{
-                        color: isAdopted ? colors.primary : '#BE185D',
+                        color: isAdopted ? colors.primary : '#DB2777',
                         fontSize: 11,
                         fontWeight: '700',
                       }}>
@@ -1649,14 +1720,29 @@ const ItemDetailScreen = ({ route, navigation }) => {
               cold: { bg: '#F8FAFC', border: '#E2E8F0', text: '#475569', icon: 'ac-unit' },
               protected: { bg: '#F0F9FF', border: '#BAE6FD', text: '#0369A1', icon: 'lock-outline' },
             }[routeInfoText.tone];
+            const canOpenClue = Boolean(routeStatus.area);
             return (
-              <View style={{ flexDirection: 'row', alignItems: 'flex-start', backgroundColor: tone.bg, borderColor: tone.border, borderWidth: 1, borderRadius: 10, padding: 9, marginTop: 6, marginBottom: 4 }}>
+              <TouchableOpacity
+                onPress={handleOpenLatestClue}
+                disabled={!canOpenClue}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Ver a pista mais recente no mapa"
+                style={{ flexDirection: 'row', alignItems: 'flex-start', backgroundColor: tone.bg, borderColor: tone.border, borderWidth: 1, borderRadius: 10, padding: 9, marginTop: 6, marginBottom: 4 }}
+              >
                 <MaterialIcons name={tone.icon} size={16} color={tone.text} style={{ marginRight: 6, marginTop: 1 }} />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 12.5, fontWeight: '800', color: tone.text }}>{routeInfoText.title}</Text>
                   <Text style={{ fontSize: 11.5, color: '#475569', lineHeight: 16, marginTop: 1 }}>{routeInfoText.text}</Text>
+                  {canOpenClue && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+                      <MaterialIcons name="map" size={13} color={tone.text} style={{ marginRight: 4 }} />
+                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: tone.text }}>Ver pista no mapa</Text>
+                      <MaterialIcons name="chevron-right" size={15} color={tone.text} />
+                    </View>
+                  )}
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })()}
           {getRouteStatus(item).available && (
@@ -1669,7 +1755,8 @@ const ItemDetailScreen = ({ route, navigation }) => {
               borderRadius: 12,
               paddingVertical: 11,
               paddingHorizontal: 14,
-              marginTop: 4,            }}
+              marginTop: 4,
+            }}
             onPress={handleOpenRoute}
             activeOpacity={0.85}
             accessibilityLabel="Ver rota no mapa"
@@ -1756,6 +1843,31 @@ const ItemDetailScreen = ({ route, navigation }) => {
               ) : null}
             </View>
           ) : null}
+
+          {/* Botão simples para conversar com quem publicou */}
+          {!isOwner && (
+            <TouchableOpacity
+              onPress={handleSendMessage}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Enviar mensagem para quem publicou"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.primary,
+                borderRadius: 12,
+                paddingVertical: 12,
+                paddingHorizontal: 14,
+                marginTop: 14,
+              }}
+            >
+              <Ionicons name="chatbubble-ellipses-outline" size={19} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }} numberOfLines={1}>
+                {isAdoption ? 'Quero adotar - enviar mensagem' : 'Enviar mensagem'}
+              </Text>
+            </TouchableOpacity>
+          )}
           </View>
 
           {/* 6. CORRESPONDÊNCIAS E MATCHES INTELIGENTES */}
@@ -1878,7 +1990,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 </Text>
               </TouchableOpacity>
 
-              {isOwner && !isAdmin && (item.status === 'lost' || item.status === 'found') && (
+              {isOwner && !isAdmin && !isAdoption && !isDirectAdoption && !wasAdopted && (item.status === 'lost' || item.status === 'found') && (
                 <TouchableOpacity
                   style={[styles.ownerActionBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={handleMarkResolved}
@@ -1910,21 +2022,21 @@ const ItemDetailScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
               )}
 
-              {isOwner && item.status === 'found' && item.extra_fields?.found_custody !== 'spotted' && !isAdmin && (
+              {isOwner && item.status === 'found' && item.extra_fields?.found_custody !== 'spotted' && !isAdmin && !wasAdopted && (
                 <TouchableOpacity
                   style={[styles.ownerActionBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                  onPress={handleToggleAdoption}
-                  disabled={togglingAdoption}
+                  onPress={isAdoption ? handleMarkAdopted : handleToggleAdoption}
+                  disabled={togglingAdoption || updatingAdoptionCount}
                 >
                   <MaterialIcons
                     name="favorite"
                     size={17}
-                    color={item.extra_fields?.available_for_adoption ? COLORS.secondaryDark : isDark ? '#4ADE80' : '#2E5634'}
+                    color={isAdoption ? '#DB2777' : isDark ? '#4ADE80' : '#2E5634'}
                   />
                   <Text
-                    style={[styles.ownerActionText, { color: item.extra_fields?.available_for_adoption ? COLORS.secondaryDark : isDark ? '#4ADE80' : '#2E5634' }]}
+                    style={[styles.ownerActionText, { color: isAdoption ? '#DB2777' : isDark ? '#4ADE80' : '#2E5634' }]}
                   >
-                    {togglingAdoption ? 'Salvando...' : item.extra_fields?.available_for_adoption ? 'Pausar Adoção' : 'P/ Adoção'}
+                    {togglingAdoption || updatingAdoptionCount ? 'Salvando...' : isAdoption ? (adoptionTotalCount > 1 ? 'Todos adotados' : 'Marcar como adotado') : 'P/ Adoção'}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -2464,7 +2576,7 @@ const ItemDetailScreen = ({ route, navigation }) => {
             return;
           }
           setMatchModalVisible(false);
-          navigation.navigate('ChatScreen', { otherId, itemId, itemTitle });
+          navigation.navigate('ChatScreen', { conversation: { otherId, itemId, itemTitle } });
         }}
       />
     </ScrollView>

@@ -447,27 +447,32 @@ const ShareCardFlyer = React.forwardRef(({ item, imageUrl, format = 'a4', showPh
               </View>
             )}
             {(item.breed || item.extra_fields?.breed) && (
-              <View style={styles.attributeBadge}>
+              <View style={styles.attributeBadge}>
+
                 <Text style={styles.attributeText}>{item.breed || item.extra_fields?.breed}</Text>
               </View>
             )}
             {(item.gender || item.extra_fields?.gender) && (item.gender || item.extra_fields?.gender) !== 'Não informado' && (
-              <View style={styles.attributeBadge}>
+              <View style={styles.attributeBadge}>
+
                 <Text style={styles.attributeText}>{item.gender || item.extra_fields?.gender}</Text>
               </View>
             )}
             {(item.age || item.extra_fields?.age) && (item.age || item.extra_fields?.age) !== 'Não informado' && (
-              <View style={styles.attributeBadge}>
+              <View style={styles.attributeBadge}>
+
                 <Text style={styles.attributeText}>{item.age || item.extra_fields?.age}</Text>
               </View>
             )}
             {(item.size || item.extra_fields?.size) && (item.size || item.extra_fields?.size) !== 'Não informado' && (
-              <View style={styles.attributeBadge}>
+              <View style={styles.attributeBadge}>
+
                 <Text style={styles.attributeText}>{item.size || item.extra_fields?.size}</Text>
               </View>
             )}
             {(item.color || item.extra_fields?.color) && (
-              <View style={styles.attributeBadge}>
+              <View style={styles.attributeBadge}>
+
                 <Text style={styles.attributeText}>{item.color || item.extra_fields?.color}</Text>
               </View>
             )}
@@ -674,7 +679,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   adoptionAvailabilityText: {
-    color: '#BE185D',
+    color: '#DB2777',
     fontSize: 10.5,
     fontWeight: '900',
     textAlign: 'center',
@@ -717,7 +722,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   compactAdoptionCount: {
-    color: '#BE185D',
+    color: '#DB2777',
     fontSize: 8.5,
     lineHeight: 11,
     fontWeight: '900',

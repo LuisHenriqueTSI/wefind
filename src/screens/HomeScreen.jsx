@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { Modal, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -47,7 +47,7 @@ import OptimizedImage from '../components/OptimizedImage';
 import PetFallbackImage from '../components/PetFallbackImage';
 import MapLocationPicker from '../components/MapLocationPicker';
 import { WeFindText, WeFindLogo } from '../components/WeFindBrand';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AdvancedFiltersModal from '../components/AdvancedFiltersModal';
 import LoginPillButton from '../components/LoginPillButton';
 import ProfileMenu from '../components/ProfileMenu';
@@ -104,6 +104,8 @@ const regionToUf = {
 
 const normalizeRegionName = (value) => String(value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const normalizedRegionToUf = Object.fromEntries(Object.entries(regionToUf).map(([name, uf]) => [normalizeRegionName(name), uf]));
+
+const GUEST_LOCATION_KEY = '@wefind/guest_auto_location';
 
 const formatItemDate = (value) => {
   if (!value) return '';
@@ -186,9 +188,9 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
   const isFound = !isAdoption && item.status === 'found';
   const isLost = !isAdoption && item.status === 'lost';
 
-  const statusBg = isAdoption ? (isDark ? COLORS.secondaryLight : COLORS.secondaryLight) : isFound ? (isDark ? 'rgba(4, 120, 87, 0.2)' : '#ECFDF5') : (isDark ? 'rgba(220, 38, 38, 0.2)' : '#FEF2F2');
-  const statusBorder = isAdoption ? COLORS.secondaryBorder : isFound ? '#A7D8B0' : '#FECACA';
-  const statusTextColor = isAdoption ? COLORS.secondaryDark : isFound ? '#2E5634' : '#DC2626';
+  const statusBg = isAdoption ? (isDark ? 'rgba(219, 39, 119, 0.16)' : '#FDF2F8') : isFound ? (isDark ? 'rgba(4, 120, 87, 0.2)' : '#ECFDF5') : (isDark ? 'rgba(220, 38, 38, 0.2)' : '#FEF2F2');
+  const statusBorder = isAdoption ? (isDark ? 'rgba(219, 39, 119, 0.4)' : '#FBCFE8') : isFound ? '#A7D8B0' : '#FECACA';
+  const statusTextColor = isAdoption ? '#DB2777' : isFound ? '#2E5634' : '#DC2626';
   const statusIcon = isAdoption ? 'favorite' : isFound ? 'check-circle' : 'error-outline';
   const statusLabel = isAdoption ? 'Para Adoção' : isFound ? 'Encontrado' : 'Perdido';
 
@@ -530,7 +532,7 @@ const ItemCard = React.memo(({ item, user, userProfile, thumbnails, handleSendMe
                       borderColor: isDark ? 'rgba(219, 39, 119, 0.3)' : '#FBCFE8',
                     }}
                   >
-                    <Text style={{ fontSize: 11.5, color: isDark ? '#F472B6' : '#BE185D', fontWeight: '700' }}>
+                    <Text style={{ fontSize: 11.5, color: '#DB2777', fontWeight: '700' }}>
                       {chip.text}
                     </Text>
                   </View>
@@ -798,6 +800,8 @@ const HomeScreen = ({ navigation, route }) => {
   // Localidade padrão do usuário, mas permite alterar livremente
   const [locationFilter, setLocationFilter] = useState('');
   const [locationFilterTouched, setLocationFilterTouched] = useState(false);
+  // Última localidade obtida pelo GPS para o visitante (mantida só neste aparelho)
+  const guestAutoLocationRef = useRef(null);
   // Modal de edição de localidade
   const [editLocationModal, setEditLocationModal] = useState(false);
   // Estado e cidade do perfil, fixos para filtro
@@ -826,6 +830,8 @@ const HomeScreen = ({ navigation, route }) => {
         setUserCoords(null);
         setLocationFilter('');
         setLocationFilterTouched(false);
+        // Visitante que permitiu a localização: mantém a cidade atual dele
+        if (guestAutoLocationRef.current) applyAutoLocationState(guestAutoLocationRef.current);
       }
     });
     return unsubscribe;
@@ -850,10 +856,25 @@ const HomeScreen = ({ navigation, route }) => {
           setUserCoords(null);
           setLocationFilter('');
           setLocationFilterTouched(false);
+
+          // Visitante que já permitiu a localização antes: reaplica a última cidade
+          // na hora (a posição é atualizada em segundo plano alguns segundos depois)
+          try {
+            const { status } = await Location.getForegroundPermissionsAsync();
+            const cachedGuest = status === 'granted' ? await AsyncStorage.getItem(GUEST_LOCATION_KEY) : null;
+            if (cachedGuest) {
+              const place = JSON.parse(cachedGuest);
+              if (place?.city && place?.uf) {
+                guestAutoLocationRef.current = place;
+                applyAutoLocationState(place);
+              }
+            }
+          } catch (_) {}
           return;
         }
 
         // Usuário autenticado: Carrega o raio e a localização salva
+        guestAutoLocationRef.current = null;
         const storedRadius = await AsyncStorage.getItem('@wefind/search_radius');
         if (storedRadius) {
           const r = Number(storedRadius);
@@ -939,6 +960,245 @@ const HomeScreen = ({ navigation, route }) => {
 
     loadInitialLocation();
   }, [user, userProfile]);
+
+  // Referências para o pedido automático de localização não sobrescrever uma escolha do usuário
+  const locationFilterRef = useRef('');
+  const locationFilterTouchedRef = useRef(false);
+  useEffect(() => { locationFilterRef.current = locationFilter; }, [locationFilter]);
+  useEffect(() => { locationFilterTouchedRef.current = locationFilterTouched; }, [locationFilterTouched]);
+
+  // Pedido automático de localização (usuário logado sem localização salva E visitante):
+  // pede a permissão assim que a tela inicial abre.
+  // Permitiu -> filtra a tela inicial pela cidade atual. Negou -> continua em "Todo o Brasil".
+  // Se negar, não pergunta de novo. Se permitir mas a localização falhar (GPS lento,
+  // tela recarregada), tenta de novo na próxima abertura sem mostrar outro pedido.
+  const homeMountedRef = useRef(true);
+  const autoLocationRunningRef = useRef(false);
+  const currentUserIdRef = useRef(user?.id || null);
+  currentUserIdRef.current = user?.id || null;
+  useEffect(() => () => { homeMountedRef.current = false; }, []);
+
+  // Aplica na tela uma localidade obtida pelo GPS ({ city, uf, district, coords, radius })
+  function applyAutoLocationState(place) {
+    if (!place?.city || !place?.uf || !homeMountedRef.current) return;
+    const radius = Number(place.radius) > 0 ? Number(place.radius) : 25;
+    const addressText = [place.district, `${place.city} - ${place.uf}`].filter(Boolean).join(', ');
+    setSessionCity(place.city);
+    setSessionState(place.uf);
+    setSessionDistrict(place.district || '');
+    setSessionStreet('');
+    setSessionAddressText(addressText);
+    setProfileEditCity(place.city);
+    setProfileEditState(place.uf);
+    setProfileEditDistrict(place.district || '');
+    setProfileEditStreet('');
+    setProfileEditAddressText(addressText);
+    setProfileEditCoords(place.coords || null);
+    setProfileEditRadiusKm(radius);
+    setSearchRadiusKm(radius);
+    setUserCoords(place.coords || null);
+    setLocationFilter(`${place.city}, ${place.uf}`);
+  }
+
+  useEffect(() => {
+    const isGuest = !user?.id;
+    // Usuário logado: espera o perfil carregar para saber se ele já tem cidade
+    if (!isGuest && !userProfile) return undefined;
+    if (!isGuest && userProfile?.city && userProfile?.state) return undefined;
+
+    const userId = user?.id || null;
+    const ownerKey = isGuest ? 'guest' : userId;
+    const deniedKey = `@wefind/auto_location_asked_${ownerKey}`;
+    const doneKey = `@wefind/auto_location_done_${ownerKey}`;
+
+    const reverseGeocode = async (coords) => {
+      // 1) Geocodificador do próprio aparelho
+      try {
+        const addresses = await Location.reverseGeocodeAsync(coords);
+        const addr = addresses?.[0];
+        const rawRegion = String(addr?.region || '').trim();
+        const uf = states.includes(rawRegion.toUpperCase())
+          ? rawRegion.toUpperCase()
+          : normalizedRegionToUf[normalizeRegionName(rawRegion)] || '';
+        const city = addr?.city || addr?.subregion || '';
+        if (city && uf) return { city, uf, district: addr?.district || '' };
+      } catch (error) {
+        console.log('[HomeScreen][autoLocation] reverseGeocodeAsync falhou:', error?.message);
+      }
+      // 2) Alternativa pela internet (OpenStreetMap), caso o aparelho não resolva o endereço
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&addressdetails=1&accept-language=pt-BR&lat=${coords.latitude}&lon=${coords.longitude}`;
+        const response = await fetch(url, { headers: { 'User-Agent': 'WeFIND-App/1.0', Accept: 'application/json' } });
+        const data = await response.json();
+        const address = data?.address || {};
+        const iso = String(address['ISO3166-2-lvl4'] || '');
+        const uf = iso.startsWith('BR-')
+          ? iso.slice(3).toUpperCase()
+          : normalizedRegionToUf[normalizeRegionName(address.state)] || '';
+        const city = address.city || address.town || address.municipality || address.village || '';
+        const district = address.suburb || address.neighbourhood || address.city_district || '';
+        if (city && uf) return { city, uf, district };
+      } catch (error) {
+        console.log('[HomeScreen][autoLocation] Geocodificação alternativa falhou:', error?.message);
+      }
+      return null;
+    };
+
+    const getPosition = async () => {
+      try {
+        const last = await Location.getLastKnownPositionAsync({ maxAge: 10 * 60 * 1000 });
+        if (last?.coords) return last.coords;
+      } catch (_) {}
+      const withTimeout = (promise, ms) => Promise.race([
+        promise.catch(() => null),
+        new Promise((resolve) => setTimeout(() => resolve(null), ms)),
+      ]);
+      let position = await withTimeout(
+        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+        20000
+      );
+      if (!position?.coords) {
+        position = await withTimeout(
+          Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low }),
+          15000
+        );
+      }
+      if (!position?.coords) {
+        position = await Location.getLastKnownPositionAsync().catch(() => null);
+      }
+      return position?.coords || null;
+    };
+
+    const timer = setTimeout(async () => {
+      if (autoLocationRunningRef.current) return;
+      autoLocationRunningRef.current = true;
+      try {
+        if (!isGuest) {
+          if (await AsyncStorage.getItem(doneKey)) return;
+          const storedLoc = await AsyncStorage.getItem('@wefind/saved_location');
+          if (storedLoc) {
+            try {
+              const parsedLoc = JSON.parse(storedLoc);
+              if (parsedLoc?.city && parsedLoc?.state) return;
+            } catch (_) {}
+          }
+        }
+        if (locationFilterTouchedRef.current) return;
+
+        let { status, canAskAgain } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          // Já perguntou antes e a pessoa negou: não insiste
+          if (await AsyncStorage.getItem(deniedKey)) return;
+          if (canAskAgain !== false) {
+            try {
+              ({ status } = await Location.requestForegroundPermissionsAsync());
+            } catch (_) {
+              // Outro pedido de permissão (ex.: notificações) ainda aberto: tenta de novo em seguida
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+              ({ status } = await Location.requestForegroundPermissionsAsync());
+            }
+          }
+          if (status !== 'granted') {
+            await AsyncStorage.setItem(deniedKey, new Date().toISOString());
+            console.log('[HomeScreen][autoLocation] Permissão negada: mantendo "Todo o Brasil".');
+            return;
+          }
+        }
+
+        const rawCoords = await getPosition();
+        if (!rawCoords) {
+          console.log('[HomeScreen][autoLocation] Não foi possível obter a posição; tentará na próxima abertura.');
+          return;
+        }
+        const coords = { latitude: Number(rawCoords.latitude), longitude: Number(rawCoords.longitude) };
+
+        const found = await reverseGeocode(coords);
+        if (!found) {
+          console.log('[HomeScreen][autoLocation] Cidade não identificada; tentará na próxima abertura.');
+          return;
+        }
+        const { city, uf, district } = found;
+
+        // Se a pessoa entrou/saiu da conta ou escolheu uma localidade enquanto isso, não sobrescreve
+        if (currentUserIdRef.current !== userId || locationFilterTouchedRef.current) return;
+
+        let radius = 25;
+        try {
+          const storedRadius = Number(await AsyncStorage.getItem('@wefind/search_radius'));
+          if (storedRadius > 0) radius = storedRadius;
+        } catch (_) {}
+
+        const place = { city, uf, district, coords, radius };
+
+        if (isGuest) {
+          // Visitante: guarda só neste aparelho; nada vai para o servidor
+          await AsyncStorage.setItem(GUEST_LOCATION_KEY, JSON.stringify(place));
+          guestAutoLocationRef.current = place;
+          applyAutoLocationState(place);
+          console.log('[HomeScreen][autoLocation] Localidade do visitante aplicada:', `${city} - ${uf}`);
+          return;
+        }
+
+        const addressText = [district, `${city} - ${uf}`].filter(Boolean).join(', ');
+        // Salva primeiro: mesmo que a tela tenha sido recarregada, a próxima carga já usa este local
+        await AsyncStorage.setItem(
+          '@wefind/saved_location',
+          JSON.stringify({
+            addressText,
+            street: '',
+            district,
+            neighborhood: district,
+            city,
+            state: uf,
+            coords,
+            radiusKm: radius,
+          })
+        );
+        await AsyncStorage.setItem('@wefind/search_radius', String(radius));
+        await AsyncStorage.setItem(doneKey, new Date().toISOString());
+        applyAutoLocationState(place);
+        console.log('[HomeScreen][autoLocation] Localidade aplicada:', `${city} - ${uf}`);
+
+        // Guarda só cidade/estado/bairro no perfil (as coordenadas exatas ficam apenas no aparelho)
+        try {
+          await userService.updateProfile(userId, { state: uf, city, neighborhood: district });
+          if (typeof setUserProfile === 'function') {
+            setUserProfile((prev) => (prev ? { ...prev, state: uf, city, neighborhood: district } : prev));
+          }
+        } catch (profileError) {
+          console.warn('[HomeScreen] Não foi possível salvar a cidade no perfil:', profileError?.message);
+        }
+      } catch (err) {
+        console.warn('[HomeScreen][autoLocation] Falha ao obter localização automática:', err?.message || err);
+      } finally {
+        autoLocationRunningRef.current = false;
+      }
+    }, 0);
+
+    // Só cancela o pedido se ele ainda não começou; o que já está em andamento termina normalmente
+    return () => clearTimeout(timer);
+  }, [user?.id, Boolean(userProfile), userProfile?.city, userProfile?.state]);
+
+  // Convite para cadastrar o WhatsApp (ex.: quem entrou com Google e não tem número no perfil)
+  const [showWhatsappPrompt, setShowWhatsappPrompt] = useState(false);
+  const whatsappPromptKey = user?.id ? `@wefind/whatsapp_prompt_dismissed_${user.id}` : null;
+  useEffect(() => {
+    let cancelled = false;
+    const hasPhone = Boolean(String(userProfile?.whatsapp || userProfile?.phone || '').replace(/\D/g, ''));
+    if (!user?.id || !userProfile || hasPhone) {
+      setShowWhatsappPrompt(false);
+      return undefined;
+    }
+    AsyncStorage.getItem(whatsappPromptKey)
+      .then((dismissed) => { if (!cancelled) setShowWhatsappPrompt(!dismissed); })
+      .catch(() => { if (!cancelled) setShowWhatsappPrompt(true); });
+    return () => { cancelled = true; };
+  }, [user?.id, userProfile, whatsappPromptKey]);
+
+  const dismissWhatsappPrompt = () => {
+    setShowWhatsappPrompt(false);
+    if (whatsappPromptKey) AsyncStorage.setItem(whatsappPromptKey, new Date().toISOString()).catch(() => {});
+  };
 
   // Localidade ativa para exibição no cabeçalho (apenas Cidade - Estado)
   const activeCity = sessionCity;
@@ -2058,109 +2318,80 @@ const HomeScreen = ({ navigation, route }) => {
         </View>
       </Modal>
       {/* Filtros rápidos */}
-      <View style={[styles.filterToolbar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterToolbarContent}>
-          <TouchableOpacity
-            style={[
-              styles.filterToggle,
-              { backgroundColor: isDark ? '#1E293B' : COLORS.primaryLight, borderColor: isDark ? '#334155' : COLORS.primaryBorder, position: 'relative' },
-              showAdvancedFilters && styles.filterToggleActive,
-            ]}
-            onPress={() => setShowAdvancedFilters(v => !v)}
-            accessibilityLabel="Abrir filtros avançados"
-          >
-            <MaterialIcons name="more-vert" size={16} color={showAdvancedFilters ? '#fff' : colors.primary} />
-            {activeAdvancedFiltersCount > 0 && (
-              <View style={{
-                position: 'absolute',
-                top: -4,
-                right: -4,
-                backgroundColor: colors.primary,
-                borderRadius: 10,
-                minWidth: 18,
-                height: 18,
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingHorizontal: 4,
-                borderWidth: 2,
-                borderColor: colors.surface,
-              }}>
-                <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '900' }}>{activeAdvancedFiltersCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.filterChip,
-              { backgroundColor: isDark ? '#1E293B' : '#E5E7EB', borderColor: isDark ? '#334155' : '#E5E7EB' },
-              filters.status === 'all' && styles.filterChipActive,
-            ]}
-            onPress={() => setFilters({ ...filters, status: 'all' })}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'all' && styles.filterChipTextActive]}>Todos</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterChip,
-              { backgroundColor: isDark ? '#1E293B' : '#E5E7EB', borderColor: isDark ? '#334155' : '#E5E7EB' },
-              filters.status === 'lost' && styles.filterChipActive,
-            ]}
-            onPress={() => setFilters({ ...filters, status: 'lost' })}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'lost' && styles.filterChipTextActive]}>Perdidos</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterChip,
-              { backgroundColor: isDark ? '#1E293B' : '#E5E7EB', borderColor: isDark ? '#334155' : '#E5E7EB' },
-              filters.status === 'found' && styles.filterChipActive,
-            ]}
-            onPress={() => setFilters({ ...filters, status: 'found' })}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'found' && styles.filterChipTextActive]}>Encontrados</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterChip,
-              { backgroundColor: isDark ? '#1E293B' : '#E5E7EB', borderColor: isDark ? '#334155' : '#E5E7EB' },
-              filters.status === 'adoption' && styles.filterChipActive,
-            ]}
-            onPress={() => setFilters({ ...filters, status: 'adoption' })}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.filterChipText, { color: isDark ? '#94A3B8' : '#1F2937' }, filters.status === 'adoption' && styles.filterChipTextActive]}>Adoção</Text>
-          </TouchableOpacity>
-
-          {user && (
-            <TouchableOpacity
-              style={[
-                styles.filterChip,
-                { backgroundColor: isDark ? '#1E293B' : '#E5E7EB', borderColor: isDark ? '#334155' : '#E5E7EB' },
-                filters.showMyItems && styles.filterChipActive,
-              ]}
-              onPress={handleMyItemsToggle}
-              activeOpacity={0.85}
-              accessibilityLabel="Minhas publicações"
-            >
-              <Text
+      {(() => {
+        const quickFilterOptions = [
+          { key: 'all', label: 'Todos', icon: 'apps', accent: colors.primary },
+          { key: 'lost', label: 'Perdidos', icon: 'report-problem', accent: isDark ? '#F87171' : '#DC2626' },
+          { key: 'found', label: 'Encontrados', icon: 'pets', accent: isDark ? '#60A5FA' : '#2563EB' },
+          { key: 'adoption', label: 'Adoção', icon: 'favorite', accent: '#DB2777' },
+        ];
+        const advancedActive = showAdvancedFilters || activeAdvancedFiltersCount > 0;
+        return (
+          <View style={styles.quickFiltersWrap}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.quickFiltersRow}>
+              <TouchableOpacity
                 style={[
-                  styles.filterChipText,
-                  { color: isDark ? '#94A3B8' : '#1F2937' },
-                  filters.showMyItems && styles.filterChipTextActive,
+                  styles.quickFilterToggle,
+                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  advancedActive && { backgroundColor: colors.primary, borderColor: colors.primary },
                 ]}
+                onPress={() => setShowAdvancedFilters(v => !v)}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Abrir filtros avançados"
               >
-                Minhas publicações
-              </Text>
-            </TouchableOpacity>
-          )}
-        </ScrollView>
-      </View>
+                <MaterialIcons name="tune" size={19} color={advancedActive ? '#FFFFFF' : colors.text} />
+                {activeAdvancedFiltersCount > 0 && (
+                  <View style={[styles.quickFilterBadge, { borderColor: colors.background || colors.surface }]}>
+                    <Text style={styles.quickFilterBadgeText}>{activeAdvancedFiltersCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              <View style={[styles.quickFiltersDivider, { backgroundColor: colors.border }]} />
+
+              {quickFilterOptions.map((option) => {
+                const active = filters.status === option.key && !filters.showMyItems;
+                return (
+                  <TouchableOpacity
+                    key={option.key}
+                    style={[
+                      styles.quickChip,
+                      { backgroundColor: colors.surface, borderColor: colors.border },
+                      active && { backgroundColor: option.accent, borderColor: option.accent },
+                    ]}
+                    onPress={() => setFilters({ ...filters, status: option.key, showMyItems: false })}
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                  >
+                    <MaterialIcons name={option.icon} size={16} color={active ? '#FFFFFF' : option.accent} />
+                    <Text style={[styles.quickChipText, { color: active ? '#FFFFFF' : colors.text }]}>{option.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+
+              {user && (
+                <TouchableOpacity
+                  style={[
+                    styles.quickChip,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    filters.showMyItems && { backgroundColor: COLORS.secondary, borderColor: COLORS.secondary },
+                  ]}
+                  onPress={handleMyItemsToggle}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel="Minhas publicações"
+                  accessibilityState={{ selected: Boolean(filters.showMyItems) }}
+                >
+                  <MaterialIcons name="person-outline" size={16} color={filters.showMyItems ? '#FFFFFF' : COLORS.secondary} />
+                  <Text style={[styles.quickChipText, { color: filters.showMyItems ? '#FFFFFF' : colors.text }]}>Minhas</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+          </View>
+        );
+      })()}
 
       {/* MODAL DE FILTROS AVANÇADOS */}
       <AdvancedFiltersModal
@@ -2173,35 +2404,93 @@ const HomeScreen = ({ navigation, route }) => {
         }}
         onClear={handleResetAdvancedFilters}
       />
-      {/* Banner Informativo do Raio de Busca (Apenas quando houver cidade/estado específico) */}
-      {Boolean(locationFilter && locationFilter.trim().length > 0 && headerLocationSummary !== 'Todo o Brasil') && (
-        <View style={[styles.radiusBanner, { backgroundColor: isDark ? '#091512' : COLORS.primaryLight, borderColor: isDark ? '#1C362D' : COLORS.primaryBorder }]}>
-          <View style={styles.radiusBannerLeft}>
-            <View style={[styles.radarIconContainer, { backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }]}>
-              <MaterialIcons name="radar" size={18} color={colors.primary} />
-            </View>
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={[styles.radiusBannerTitle, { color: isDark ? colors.primaryLight : colors.primaryDark }]}>
-                Raio de {searchRadiusKm} km ativo
+      {/* Convite para cadastrar WhatsApp e receber alertas por lá */}
+      {showWhatsappPrompt && (
+        <View style={{
+          marginHorizontal: 16,
+          marginTop: 10,
+          marginBottom: 4,
+          padding: 12,
+          borderRadius: 14,
+          borderWidth: 1,
+          backgroundColor: isDark ? 'rgba(37, 211, 102, 0.10)' : '#F0FDF4',
+          borderColor: isDark ? 'rgba(37, 211, 102, 0.35)' : '#BBF7D0',
+        }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+            <MaterialCommunityIcons name="whatsapp" size={22} color="#25D366" style={{ marginRight: 8, marginTop: 1 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13.5, fontWeight: '800', color: colors.text }}>
+                Quer receber alertas pelo WhatsApp?
               </Text>
-              <Text style={[styles.radiusBannerSubtitle, { color: isDark ? '#34D399' : '#1E3E24' }]} numberOfLines={1}>
-                Exibindo {radiusStatusText} próximos a sua localização
+              <Text style={{ fontSize: 12, lineHeight: 17, marginTop: 3, color: colors.textSecondary }}>
+                Cadastre seu número para receber avisos de animais perdidos perto de você e de possíveis correspondências. É opcional.
               </Text>
             </View>
+            <TouchableOpacity onPress={dismissWhatsappPrompt} accessibilityLabel="Fechar aviso do WhatsApp" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <MaterialIcons name="close" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            onPress={() => {
-              setSelectedQuickRadius(searchRadiusKm);
-              setShowQuickRadiusModal(true);
-            }}
-            style={[styles.radiusResetButton, { backgroundColor: isDark ? '#0F172A' : '#FFFFFF', borderColor: isDark ? '#1C362D' : '#A7F3D0', flexDirection: 'row', alignItems: 'center', gap: 4 }]}
-            activeOpacity={0.8}
-          >
-            <MaterialIcons name="tune" size={14} color={colors.primary} />
-            <Text style={[styles.radiusResetText, { color: isDark ? '#34D399' : colors.primary }]}>Ajustar raio</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
+            <TouchableOpacity
+              onPress={dismissWhatsappPrompt}
+              style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 9 }}
+              activeOpacity={0.8}
+            >
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: colors.textMuted }}>Agora não</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('EditProfile')}
+              style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 9, backgroundColor: '#25D366' }}
+              activeOpacity={0.85}
+            >
+              <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#FFFFFF' }}>Cadastrar WhatsApp</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
+      {/* Linha compacta de raio / localidade */}
+      {(() => {
+        const hasLocalFilter = Boolean(locationFilter && locationFilter.trim().length > 0 && headerLocationSummary !== 'Todo o Brasil');
+        const resultCount = Array.isArray(finalDisplayItems) ? finalDisplayItems.length : 0;
+        const countLabel = !loading ? `${resultCount} ${resultCount === 1 ? 'resultado' : 'resultados'}` : null;
+        const openLocation = () => {
+          setProfileEditCity(activeCity);
+          setProfileEditState(activeState);
+          setProfileEditDistrict(sessionDistrict);
+          setProfileEditStreet(sessionStreet);
+          setProfileEditAddressText(sessionAddressText);
+          setProfileEditRadiusKm(searchRadiusKm);
+          setShowProfileLocationModal(true);
+        };
+        return (
+          <View style={styles.radiusRow}>
+            <TouchableOpacity
+              style={[styles.radiusPill, { backgroundColor: isDark ? 'rgba(82, 153, 96, 0.14)' : COLORS.primaryLight, borderColor: isDark ? '#274B30' : COLORS.primaryBorder }]}
+              onPress={hasLocalFilter ? () => { setSelectedQuickRadius(searchRadiusKm); setShowQuickRadiusModal(true); } : openLocation}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={hasLocalFilter ? `Raio de ${searchRadiusKm} quilômetros. Toque para ajustar` : 'Mostrando todo o Brasil. Toque para definir sua localização'}
+            >
+              <MaterialIcons name={hasLocalFilter ? 'radar' : 'public'} size={16} color={colors.primary} />
+              <Text style={[styles.radiusPillText, { color: colors.text }]} numberOfLines={1}>
+                {hasLocalFilter ? (
+                  <>
+                    <Text style={{ fontWeight: '800', color: colors.primary }}>{searchRadiusKm} km</Text>
+                    {` de ${headerLocationSummary}`}
+                  </>
+                ) : (
+                  <Text style={{ fontWeight: '800', color: colors.primary }}>Todo o Brasil</Text>
+                )}
+              </Text>
+              <Text style={[styles.radiusPillAction, { color: colors.primary }]}>{hasLocalFilter ? 'Ajustar' : 'Definir local'}</Text>
+              <MaterialIcons name="chevron-right" size={16} color={colors.primary} />
+            </TouchableOpacity>
+            {countLabel ? (
+              <Text style={[styles.radiusCount, { color: colors.textMuted }]} numberOfLines={1}>{countLabel}</Text>
+            ) : null}
+          </View>
+        );
+      })()}
 
       {/* Modal Rápida de Ajuste do Raio de Busca */}
       <Modal
@@ -2364,6 +2653,94 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F9FAFB',
+  },
+  quickFiltersWrap: {
+    marginTop: 10,
+  },
+  quickFiltersRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 2,
+  },
+  quickFilterToggle: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickFilterBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.secondary,
+    borderWidth: 2,
+  },
+  quickFilterBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '900',
+  },
+  quickFiltersDivider: {
+    width: 1,
+    height: 22,
+    marginHorizontal: 2,
+  },
+  quickChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 38,
+    paddingHorizontal: 14,
+    borderRadius: 19,
+    borderWidth: 1,
+    gap: 6,
+  },
+  quickChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  radiusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  radiusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    gap: 6,
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  radiusPillText: {
+    flexShrink: 1,
+    fontSize: 12.5,
+    fontWeight: '600',
+  },
+  radiusPillAction: {
+    fontSize: 12,
+    fontWeight: '800',
+    marginLeft: 4,
+  },
+  radiusCount: {
+    fontSize: 12,
+    fontWeight: '600',
+    flexShrink: 0,
   },
   filterToolbar: {
     paddingVertical: 8,

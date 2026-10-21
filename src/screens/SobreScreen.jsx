@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -13,6 +15,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import * as storiesService from '../services/stories';
+import * as itemsService from '../services/items';
 import OptimizedImage from '../components/OptimizedImage';
 import LoginPillButton from '../components/LoginPillButton';
 import COLORS from '../constants/theme';
@@ -86,8 +89,70 @@ const PhoneShot = ({ source, width, style }) => (
   </View>
 );
 
+const isSameLocalDay = (value) => {
+  if (!value) return false;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  return date.toDateString() === new Date().toDateString();
+};
+
+const formatHoursAgo = (value) => {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(value).getTime()) / 60000));
+  if (minutes < 60) return minutes <= 1 ? 'agora' : `há ${minutes} min`;
+  return `há ${Math.floor(minutes / 60)} h`;
+};
+
 const SobreScreen = ({ navigation }) => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
+  // "Encontrados hoje" na cidade do usuário (perfil, local salvo ou localização do visitante)
+  const [todayCity, setTodayCity] = useState(null);
+  const [todayFound, setTodayFound] = useState([]);
+  const [todayLoading, setTodayLoading] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      const loadTodayFound = async () => {
+        let city = userProfile?.city || '';
+        let state = userProfile?.state || '';
+        if (!city || !state) {
+          try {
+            const saved = JSON.parse((await AsyncStorage.getItem('@wefind/saved_location')) || 'null');
+            if (saved?.city && saved?.state) { city = saved.city; state = saved.state; }
+          } catch (_) {}
+        }
+        if ((!city || !state) && !user) {
+          try {
+            const guest = JSON.parse((await AsyncStorage.getItem('@wefind/guest_auto_location')) || 'null');
+            if (guest?.city && guest?.uf) { city = guest.city; state = guest.uf; }
+          } catch (_) {}
+        }
+        if (!active) return;
+        if (!city || !state) {
+          setTodayCity(null);
+          setTodayFound([]);
+          return;
+        }
+        setTodayCity({ city, state });
+        setTodayLoading(true);
+        try {
+          const items = await itemsService.listItemsWithPhotosAndOwner({ status: 'found', city, state });
+          const todayItems = (items || [])
+            .filter((item) => isSameLocalDay(item.created_at))
+            .filter((item) => !itemsService.isPetAvailableForAdoption(item))
+            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          if (active) setTodayFound(todayItems);
+        } catch (err) {
+          console.log('[SobreScreen] Erro ao carregar encontrados de hoje:', err?.message);
+          if (active) setTodayFound([]);
+        } finally {
+          if (active) setTodayLoading(false);
+        }
+      };
+      loadTodayFound();
+      return () => { active = false; };
+    }, [user?.id, userProfile?.city, userProfile?.state])
+  );
   const { colors, isDark } = useTheme();
   const [stories, setStories] = useState([]);
 
@@ -169,6 +234,62 @@ const SobreScreen = ({ navigation }) => {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Encontrados hoje na cidade do usuário */}
+        {todayCity ? (
+          <View style={styles.section}>
+            <View style={styles.storiesHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text, flex: 1, fontSize: 20, lineHeight: 25 }]}>
+                Encontrados hoje em {todayCity.city}
+              </Text>
+              {todayFound.length > 0 ? (
+                <View style={[styles.todayCount, { backgroundColor: colors.primaryLight }]}>
+                  <Text style={[styles.todayCountText, { color: colors.primary }]}>{todayFound.length}</Text>
+                </View>
+              ) : null}
+            </View>
+            {todayLoading && todayFound.length === 0 ? (
+              <Text style={[styles.sectionLead, { color: colors.textSecondary }]}>Carregando...</Text>
+            ) : todayFound.length === 0 ? (
+              <View style={[styles.todayEmpty, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+                <MaterialIcons name="pets" size={20} color={colors.textMuted} />
+                <Text style={[styles.todayEmptyText, { color: colors.textSecondary }]}>
+                  Nenhum animal foi registrado como encontrado hoje em {todayCity.city} - {todayCity.state}.
+                </Text>
+              </View>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.todayRow}>
+                {todayFound.slice(0, 10).map((item) => {
+                  const photo = item.item_photos?.[0]?.url || null;
+                  return (
+                    <TouchableOpacity
+                      key={String(item.id)}
+                      style={[styles.todayCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+                      activeOpacity={0.88}
+                      onPress={() => navigation.navigate('ItemDetail', { itemId: item.id })}
+                    >
+                      {photo ? (
+                        <OptimizedImage uri={photo} style={styles.todayPhoto} resizeMode="cover" />
+                      ) : (
+                        <View style={[styles.todayPhoto, styles.storyPhotoVazia, { backgroundColor: colors.primaryLight }]}>
+                          <MaterialIcons name="pets" size={26} color={colors.primary} />
+                        </View>
+                      )}
+                      <View style={styles.todayInfo}>
+                        <Text style={[styles.todayTitle, { color: colors.text }]} numberOfLines={2}>
+                          {item.title || item.species || 'Animal encontrado'}
+                        </Text>
+                        <Text style={[styles.todayMeta, { color: colors.textMuted }]} numberOfLines={1}>
+                          {[item.neighborhood, formatHoursAgo(item.created_at)].filter(Boolean).join(' · ')}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          </View>
+        ) : null}
 
         {/* 2. Do sumiço ao reencontro */}
         <View style={styles.section}>
@@ -324,6 +445,16 @@ const styles = StyleSheet.create({
   phoneImg: { width: '100%', height: '100%' },
 
   section: { marginTop: 34 },
+  todayCount: { minWidth: 26, height: 26, borderRadius: 13, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  todayCountText: { fontSize: 13, fontWeight: '900' },
+  todayEmpty: { flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderRadius: 14, padding: 14, marginTop: 10 },
+  todayEmptyText: { flex: 1, fontSize: 13.5, lineHeight: 19 },
+  todayRow: { gap: 12, paddingRight: 4 },
+  todayCard: { width: 150, borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
+  todayPhoto: { width: '100%', height: 112 },
+  todayInfo: { padding: 10 },
+  todayTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '800' },
+  todayMeta: { fontSize: 11.5, marginTop: 4 },
   sectionTitle: { fontSize: 22, lineHeight: 27, fontWeight: '900', letterSpacing: -0.4 },
   sectionLead: { fontSize: 14, lineHeight: 20, marginTop: 8, marginBottom: 8 },
 

@@ -10,17 +10,18 @@ import {
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
-  Keyboard,
-  TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, Feather, FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import Button from './Button';
 import MapLocationPicker from './MapLocationPicker';
 import COLORS from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
 import { removeHouseNumberFromAddress } from '../utils/locationPrivacy';
 
 const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
+  const { colors, isDark } = useTheme();
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
   const [coordinate, setCoordinate] = useState(null);
@@ -123,234 +124,275 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
     }
   };
 
+  const canSend = Boolean(description.trim() && animalPlace) && !loading;
+  const fieldBg = isDark ? '#0F172A' : '#F8FAFC';
+  const cardStyle = { backgroundColor: colors.surface, borderColor: colors.border };
+  const inputStyle = [styles.input, { backgroundColor: fieldBg, borderColor: colors.border, color: colors.text }];
+
+  const SectionHeader = ({ number, title, optional }) => (
+    <View style={styles.sectionHeader}>
+      <View style={[styles.stepBadge, { backgroundColor: colors.primaryLight }]}>
+        <Text style={[styles.stepBadgeText, { color: colors.primary }]}>{number}</Text>
+      </View>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+      {optional ? <Text style={[styles.optionalTag, { color: colors.textMuted }]}>opcional</Text> : null}
+    </View>
+  );
+
   return (
     <>
-      <Modal visible={visible && !mapPickerVisible} animationType="slide" transparent statusBarTranslucent onRequestClose={handleClose}>
-        {/* Com o edge-to-edge do Android (app.json) a janela do modal não
-            encolhe sozinha com o teclado: o KeyboardAvoidingView reserva o
-            espaço nas duas plataformas e o cartão encolhe (com rolagem). */}
-        <KeyboardAvoidingView behavior="padding" style={styles.overlay}>
-          {/* Fundo: toque fora do cartão fecha o teclado. Fica ATRÁS do cartão
-              (e não em volta dele) para não disputar o gesto de rolagem. */}
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={StyleSheet.absoluteFill} />
-          </TouchableWithoutFeedback>
+      <Modal
+        visible={visible && !mapPickerVisible}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        statusBarTranslucent
+        onRequestClose={handleClose}
+      >
+        <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+          {/* Cabeçalho */}
+          <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+            <TouchableOpacity
+              onPress={handleClose}
+              style={[styles.headerBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+              accessibilityLabel="Fechar"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialIcons name="close" size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+            <View style={styles.headerText}>
+              <Text style={[styles.title, { color: colors.text }]}>Vi o pet</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]} numberOfLines={1}>
+                Sua pista ajuda o tutor a encontrar o animal
+              </Text>
+            </View>
+            <View style={[styles.headerIcon, { backgroundColor: colors.primaryLight }]}>
+              <MaterialIcons name="visibility" size={20} color={colors.primary} />
+            </View>
+          </View>
 
-                <View style={styles.modal}>
-                  {/* Header */}
-                  <View style={styles.header}>
-                    <View style={styles.headerTitleRow}>
-                      <View style={styles.iconCircle}>
-                        <MaterialIcons name="visibility" size={20} color={COLORS.primary} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.title}>Compartilhar informação</Text>
-                        <Text style={styles.subtitle}>Ajude o tutor com detalhes ou pistas sobre o pet</Text>
-                      </View>
-                    </View>
-                    <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
-                      <MaterialIcons name="close" size={20} color="#6B7280" />
-                    </TouchableOpacity>
-                  </View>
-
-            {/* flexShrink: o conteúdo rola dentro do cartão em vez de vazar
-                para fora dele (antes, ao marcar o local, a prévia do endereço
-                empurrava foto, contatos e botões para fora da tela). */}
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
             <ScrollView
               ref={scrollRef}
-              style={styles.scroll}
-              showsVerticalScrollIndicator={false}
+              style={{ flex: 1 }}
               contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
             >
-              {/* Campo de Descrição */}
-              <Text style={styles.inputLabel}>Detalhes e informações *</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Ex: Vi o pet correndo na calçada em direção ao parque..."
-                placeholderTextColor="#9CA3AF"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                numberOfLines={3}
-              />
-
-              {/* Onde o animal está: define se o local pode virar rota */}
-              <Text style={styles.inputLabel}>Onde o animal está? *</Text>
-              <View style={styles.placeRow}>
-                {[
-                  { key: 'street', icon: 'directions-walk', title: 'Solto na rua', hint: 'calçada, praça, terreno aberto' },
-                  { key: 'private', icon: 'home', title: 'Em casa ou quintal', hint: 'comigo ou dentro de um imóvel' },
-                ].map((opt) => {
-                  const active = animalPlace === opt.key;
-                  return (
-                    <TouchableOpacity
-                      key={opt.key}
-                      style={[styles.placeOption, active && styles.placeOptionActive]}
-                      onPress={() => setAnimalPlace(opt.key)}
-                      activeOpacity={0.8}
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: active }}
-                    >
-                      <MaterialIcons name={opt.icon} size={20} color={active ? COLORS.primary : '#64748B'} />
-                      <Text style={[styles.placeTitle, active && { color: COLORS.primary }]}>{opt.title}</Text>
-                      <Text style={styles.placeHint}>{opt.hint}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              {animalPlace === 'street' && (
-                <View style={styles.placeNotice}>
-                  <MaterialIcons name="info-outline" size={15} color="#0369A1" />
-                  <Text style={styles.placeNoticeText}>
-                    Marque a rua onde viu o animal, não o seu endereço. A rota mostra só uma área aproximada.
-                  </Text>
-                </View>
-              )}
-              {animalPlace === 'private' && (
-                <View style={[styles.placeNotice, { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' }]}>
-                  <MaterialIcons name="lock-outline" size={15} color="#15803D" />
-                  <Text style={[styles.placeNoticeText, { color: '#166534' }]}>
-                    O tutor recebe sua informação, mas este local não vira rota e o endereço fica protegido.
-                  </Text>
-                </View>
-              )}
-
-              {/* Seção de Localização com Mapa */}
-              <Text style={styles.inputLabel}>Onde foi visto?</Text>
-              <View style={styles.locationCard} onLayout={rememberOffset('location')}>
-                <View style={styles.locationCardHeader}>
-                  <MaterialIcons name="location-on" size={20} color={COLORS.primary} />
-                  <Text style={styles.locationCardTitle}>
-                    {location ? 'Localização Selecionada' : 'Marcar no mapa'}
-                  </Text>
-                </View>
-
-                {location ? (
-                  <View style={styles.locationPreview}>
-                    <Text style={styles.locationText}>{location}</Text>
-                    {coordinate && (
-                      <Text style={styles.coordsText}>
-                        Lat: {coordinate.latitude?.toFixed(4)}, Lng: {coordinate.longitude?.toFixed(4)}
-                      </Text>
-                    )}
-                  </View>
-                ) : null}
-
-                <TouchableOpacity
-                  style={styles.mapButton}
-                  onPress={() => setMapPickerVisible(true)}
-                  activeOpacity={0.8}
-                >
-                  <Feather name="map-pin" size={16} color="#FFFFFF" />
-                  <Text style={styles.mapButtonText}>
-                    {location ? 'Alterar no mapa interativo' : 'Abrir mapa interativo'}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Input manual opcional de complemento */}
+              {/* 1. O que viu */}
+              <View style={[styles.card, cardStyle]}>
+                <SectionHeader number="1" title="O que você viu?" />
                 <TextInput
-                  style={[styles.input, { marginTop: 8, marginBottom: 0 }]}
-                  placeholder="Ou digite o local manualmente (ex: Perto da Padaria Central)"
-                  placeholderTextColor="#9CA3AF"
+                  style={[inputStyle, styles.textArea]}
+                  placeholder="Ex.: Vi o pet correndo na calçada em direção ao parque, parecia assustado..."
+                  placeholderTextColor={colors.textMuted}
+                  value={description}
+                  onChangeText={setDescription}
+                  multiline
+                  numberOfLines={4}
+                  maxLength={500}
+                />
+                <Text style={[styles.counter, { color: colors.textMuted }]}>{description.length}/500</Text>
+              </View>
+
+              {/* 2. Onde o animal está: define se o local pode virar rota */}
+              <View style={[styles.card, cardStyle]}>
+                <SectionHeader number="2" title="Onde o animal está?" />
+                <View style={styles.placeRow}>
+                  {[
+                    { key: 'street', icon: 'directions-walk', title: 'Solto na rua', hint: 'Calçada, praça ou terreno aberto' },
+                    { key: 'private', icon: 'home', title: 'Em casa ou quintal', hint: 'Comigo ou dentro de um imóvel' },
+                  ].map((opt) => {
+                    const active = animalPlace === opt.key;
+                    return (
+                      <TouchableOpacity
+                        key={opt.key}
+                        style={[
+                          styles.placeOption,
+                          { backgroundColor: fieldBg, borderColor: colors.border },
+                          active && { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+                        ]}
+                        onPress={() => setAnimalPlace(opt.key)}
+                        activeOpacity={0.85}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: active }}
+                      >
+                        <View style={styles.placeTop}>
+                          <View style={[styles.placeIcon, { backgroundColor: active ? colors.primary : (isDark ? '#1E293B' : '#E2E8F0') }]}>
+                            <MaterialIcons name={opt.icon} size={18} color={active ? '#FFFFFF' : colors.textSecondary} />
+                          </View>
+                          <MaterialIcons
+                            name={active ? 'radio-button-checked' : 'radio-button-unchecked'}
+                            size={18}
+                            color={active ? colors.primary : colors.textMuted}
+                          />
+                        </View>
+                        <Text style={[styles.placeTitle, { color: active ? colors.primary : colors.text }]}>{opt.title}</Text>
+                        <Text style={[styles.placeHint, { color: colors.textSecondary }]}>{opt.hint}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                {animalPlace === 'street' && (
+                  <View style={[styles.notice, { backgroundColor: isDark ? 'rgba(14, 165, 233, 0.12)' : '#F0F9FF', borderColor: isDark ? 'rgba(14, 165, 233, 0.35)' : '#BAE6FD' }]}>
+                    <MaterialIcons name="info-outline" size={16} color={isDark ? '#7DD3FC' : '#0369A1'} />
+                    <Text style={[styles.noticeText, { color: isDark ? '#BAE6FD' : '#075985' }]}>
+                      Marque a rua onde viu o animal, não o seu endereço. A rota mostra só uma área aproximada.
+                    </Text>
+                  </View>
+                )}
+                {animalPlace === 'private' && (
+                  <View style={[styles.notice, { backgroundColor: isDark ? 'rgba(22, 163, 74, 0.12)' : '#F0FDF4', borderColor: isDark ? 'rgba(22, 163, 74, 0.35)' : '#BBF7D0' }]}>
+                    <MaterialIcons name="lock-outline" size={16} color={isDark ? '#86EFAC' : '#15803D'} />
+                    <Text style={[styles.noticeText, { color: isDark ? '#BBF7D0' : '#166534' }]}>
+                      O tutor recebe sua informação, mas este local não vira rota e o endereço fica protegido.
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* 3. Local */}
+              <View style={[styles.card, cardStyle]} onLayout={rememberOffset('location')}>
+                <SectionHeader number="3" title="Onde foi visto?" optional />
+                <TouchableOpacity
+                  style={[
+                    styles.mapPickBox,
+                    { borderColor: location ? colors.primary : colors.border, backgroundColor: location ? colors.primaryLight : fieldBg },
+                  ]}
+                  onPress={() => setMapPickerVisible(true)}
+                  activeOpacity={0.85}
+                >
+                  <View style={[styles.mapPickIcon, { backgroundColor: colors.primary }]}>
+                    <Feather name="map-pin" size={18} color="#FFFFFF" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.mapPickTitle, { color: colors.text }]}>
+                      {location ? 'Local marcado' : 'Marcar no mapa'}
+                    </Text>
+                    <Text style={[styles.mapPickText, { color: colors.textSecondary }]} numberOfLines={2}>
+                      {location || 'Toque para escolher o ponto onde o animal foi visto'}
+                    </Text>
+                  </View>
+                  <Text style={[styles.mapPickAction, { color: colors.primary }]}>{location ? 'Alterar' : 'Abrir'}</Text>
+                </TouchableOpacity>
+                <TextInput
+                  style={[inputStyle, { marginTop: 10 }]}
+                  placeholder="Ou descreva o local (ex.: perto da Padaria Central)"
+                  placeholderTextColor={colors.textMuted}
                   value={location}
                   onChangeText={setLocation}
                   onFocus={() => scrollToSection('location')}
                 />
               </View>
 
-              {/* Foto da Informação */}
-              <Text style={styles.inputLabel}>Foto do pet no local (opcional)</Text>
-              {photoUrl ? (
-                <View style={styles.photoContainer}>
-                  <Image source={{ uri: photoUrl }} style={styles.photoPreview} />
+              {/* 4. Foto */}
+              <View style={[styles.card, cardStyle]}>
+                <SectionHeader number="4" title="Foto do animal" optional />
+                {photoUrl ? (
+                  <View style={styles.photoContainer}>
+                    <Image source={{ uri: photoUrl }} style={styles.photoPreview} />
+                    <TouchableOpacity style={styles.removePhotoBtn} onPress={() => setPhotoUrl('')} accessibilityLabel="Remover foto">
+                      <MaterialIcons name="close" size={18} color="#FFFFFF" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
                   <TouchableOpacity
-                    style={styles.removePhotoBtn}
-                    onPress={() => setPhotoUrl('')}
+                    onPress={handlePickImage}
+                    style={[styles.uploadBox, { borderColor: colors.border, backgroundColor: fieldBg }]}
+                    activeOpacity={0.8}
                   >
-                    <MaterialIcons name="delete" size={18} color="#FFFFFF" />
+                    <View style={[styles.uploadIcon, { backgroundColor: colors.primaryLight }]}>
+                      <Feather name="camera" size={20} color={colors.primary} />
+                    </View>
+                    <Text style={[styles.uploadText, { color: colors.text }]}>
+                      {uploading ? 'Carregando foto...' : 'Adicionar uma foto'}
+                    </Text>
+                    <Text style={[styles.uploadHint, { color: colors.textMuted }]}>Ajuda o tutor a confirmar que é o pet dele</Text>
                   </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity onPress={handlePickImage} style={styles.uploadBox} activeOpacity={0.7}>
-                  <Feather name="camera" size={22} color={COLORS.primary} />
-                  <Text style={styles.uploadText}>
-                    {uploading ? 'Carregando foto...' : 'Adicionar foto da informação'}
-                  </Text>
+                )}
+              </View>
+
+              {/* 5. Contatos */}
+              <View style={[styles.card, cardStyle]}>
+                <TouchableOpacity
+                  onPress={() => setShowContacts(!showContacts)}
+                  style={styles.contactsToggle}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.stepBadge, { backgroundColor: colors.primaryLight }]}>
+                    <Text style={[styles.stepBadgeText, { color: colors.primary }]}>5</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Contato para retorno</Text>
+                    <Text style={[styles.contactsHint, { color: colors.textMuted }]}>Opcional · o tutor também pode falar com você pelo chat</Text>
+                  </View>
+                  <Feather name={showContacts ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
-              )}
 
-              {/* Seção de Contatos Opcionais */}
-              <TouchableOpacity
-                onPress={() => setShowContacts(!showContacts)}
-                style={styles.toggleContactsRow}
-                activeOpacity={0.7}
-              >
-                <Feather name={showContacts ? 'chevron-up' : 'chevron-down'} size={18} color="#4B5563" />
-                <Text style={styles.toggleContactsText}>
-                  {showContacts ? 'Ocultar contatos para retorno' : 'Deixar contatos para o tutor falar comigo'}
-                </Text>
-              </TouchableOpacity>
-
-              {showContacts && (
-                <View style={styles.contactsBox}>
-                  <View style={styles.contactField}>
-                    <FontAwesome name="whatsapp" size={16} color="#25D366" style={{ width: 22 }} />
-                    <TextInput
-                      style={styles.contactInput}
-                      onFocus={() => scrollToSection('contacts')}
-                      placeholder="WhatsApp (apenas números com DDD)"
-                      placeholderTextColor="#9CA3AF"
-                      value={whatsapp}
-                      onChangeText={text => setWhatsapp(text.replace(/[^0-9]/g, ''))}
-                      keyboardType="numeric"
-                      maxLength={15}
-                    />
+                {showContacts && (
+                  <View style={{ gap: 8, marginTop: 12 }}>
+                    {[
+                      { icon: 'whatsapp', color: '#25D366', placeholder: 'WhatsApp com DDD', value: whatsapp, onChange: (text) => setWhatsapp(text.replace(/[^0-9]/g, '')), keyboard: 'numeric', maxLength: 15 },
+                      { icon: 'instagram', color: '#C13584', placeholder: 'Instagram (ex.: @seunome)', value: instagram, onChange: setInstagram },
+                      { icon: 'facebook-square', color: '#1877F3', placeholder: 'Facebook', value: facebook, onChange: setFacebook },
+                    ].map((field) => (
+                      <View key={field.icon} style={[styles.contactField, { backgroundColor: fieldBg, borderColor: colors.border }]}>
+                        <FontAwesome name={field.icon} size={17} color={field.color} style={{ width: 24 }} />
+                        <TextInput
+                          style={[styles.contactInput, { color: colors.text }]}
+                          onFocus={() => scrollToSection('contacts')}
+                          placeholder={field.placeholder}
+                          placeholderTextColor={colors.textMuted}
+                          value={field.value}
+                          onChangeText={field.onChange}
+                          keyboardType={field.keyboard || 'default'}
+                          maxLength={field.maxLength}
+                          autoCapitalize="none"
+                        />
+                      </View>
+                    ))}
                   </View>
-
-                  <View style={styles.contactField}>
-                    <FontAwesome name="instagram" size={16} color="#C13584" style={{ width: 22 }} />
-                    <TextInput
-                      style={styles.contactInput}
-                      onFocus={() => scrollToSection('contacts')}
-                      placeholder="Instagram (ex: @seunome)"
-                      placeholderTextColor="#9CA3AF"
-                      value={instagram}
-                      onChangeText={setInstagram}
-                      autoCapitalize="none"
-                    />
-                  </View>
-
-                  <View style={styles.contactField}>
-                    <FontAwesome name="facebook-square" size={16} color="#1877F3" style={{ width: 22 }} />
-                    <TextInput
-                      style={styles.contactInput}
-                      onFocus={() => scrollToSection('contacts')}
-                      placeholder="Facebook (opcional)"
-                      placeholderTextColor="#9CA3AF"
-                      value={facebook}
-                      onChangeText={setFacebook}
-                      autoCapitalize="none"
-                    />
-                  </View>
-                </View>
-              )}
+                )}
+              </View>
             </ScrollView>
 
-            {/* Ações */}
-            <View style={styles.actions}>
-              <Button title="Cancelar" onPress={handleClose} variant="secondary" style={styles.button} />
-              <Button
-                title={loading ? 'Enviando...' : 'Enviar Informação'}
-                onPress={handleSend}
-                disabled={loading || !description.trim() || !animalPlace}
-                style={styles.button}
-              />
+            {/* Rodapé fixo */}
+            <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+              {!canSend && !loading ? (
+                <Text style={[styles.footerHint, { color: colors.textMuted }]}>
+                  Preencha o que você viu e onde o animal está para enviar.
+                </Text>
+              ) : null}
+              <View style={styles.footerRow}>
+                <TouchableOpacity
+                  style={[styles.cancelBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+                  onPress={handleClose}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.cancelText, { color: colors.textSecondary }]}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.sendBtn, { backgroundColor: colors.primary }, !canSend && { opacity: 0.45 }]}
+                  onPress={handleSend}
+                  disabled={!canSend}
+                  activeOpacity={0.85}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#FFFFFF" />
+                  ) : (
+                    <>
+                      <MaterialIcons name="send" size={17} color="#FFFFFF" />
+                      <Text style={styles.sendText}>Enviar pista</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
-            {loading && <ActivityIndicator style={{ marginTop: 8 }} color={COLORS.primary} />}
-                </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </Modal>
 
       {/* Seletor de Mapa Interativo Integrado */}
@@ -368,283 +410,78 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
 };
 
 const styles = StyleSheet.create({
-  placeRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
-  },
-  placeOption: {
-    flex: 1,
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-  },
-  placeOptionActive: {
-    borderColor: COLORS.primary,
-    backgroundColor: '#F0FDF4',
-  },
-  placeTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#334155',
-    marginTop: 4,
-  },
-  placeHint: {
-    fontSize: 10.5,
-    color: '#64748B',
-    textAlign: 'center',
-    marginTop: 1,
-  },
-  placeNotice: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-    backgroundColor: '#F0F9FF',
-    borderColor: '#BAE6FD',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 8,
-    marginBottom: 10,
-  },
-  placeNoticeText: {
-    flex: 1,
-    fontSize: 11.5,
-    lineHeight: 16,
-    color: '#075985',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-    paddingTop: 40,
-  },
-  modal: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
-    width: '100%',
-    maxWidth: 440,
-    maxHeight: '88%',
-    // Encolhe para caber entre o topo e o teclado (paddingBottom do overlay)
-    flexShrink: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 8,
-  },
+  screen: { flex: 1 },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  headerTitleRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    marginRight: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    gap: 12,
   },
-  iconCircle: {
+  headerBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  headerText: { flex: 1 },
+  headerIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 18, fontWeight: '900', letterSpacing: -0.3 },
+  subtitle: { fontSize: 12.5, marginTop: 1 },
+
+  scrollContent: { padding: 16, paddingBottom: 24, gap: 12 },
+  card: { borderWidth: 1, borderRadius: 16, padding: 14 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  stepBadge: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  stepBadgeText: { fontSize: 12, fontWeight: '900' },
+  sectionTitle: { fontSize: 15, fontWeight: '800', flexShrink: 1 },
+  optionalTag: { fontSize: 11.5, fontWeight: '600', marginLeft: 6 },
+
+  input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14.5 },
+  textArea: { minHeight: 104, textAlignVertical: 'top' },
+  counter: { fontSize: 11, textAlign: 'right', marginTop: 4 },
+
+  placeRow: { flexDirection: 'row', gap: 10 },
+  placeOption: { flex: 1, borderWidth: 1.5, borderRadius: 14, padding: 12 },
+  placeTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  placeIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  placeTitle: { fontSize: 14, fontWeight: '800' },
+  placeHint: { fontSize: 11.5, lineHeight: 15, marginTop: 2 },
+  notice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, borderWidth: 1, borderRadius: 12, padding: 10, marginTop: 10 },
+  noticeText: { flex: 1, fontSize: 12, lineHeight: 17 },
+
+  mapPickBox: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1.5, borderRadius: 14, padding: 12 },
+  mapPickIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  mapPickTitle: { fontSize: 14, fontWeight: '800' },
+  mapPickText: { fontSize: 12.5, lineHeight: 17, marginTop: 1 },
+  mapPickAction: { fontSize: 13, fontWeight: '800' },
+
+  uploadBox: { alignItems: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 14, paddingVertical: 18, paddingHorizontal: 12 },
+  uploadIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  uploadText: { fontSize: 14, fontWeight: '800' },
+  uploadHint: { fontSize: 12, marginTop: 2, textAlign: 'center' },
+  photoContainer: { borderRadius: 14, overflow: 'hidden' },
+  photoPreview: { width: '100%', height: 190 },
+  removePhotoBtn: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-  },
-  subtitle: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 0,
-  },
-  closeBtn: {
-    padding: 4,
-    borderRadius: 16,
-    backgroundColor: '#F8FAFC',
-  },
-  scroll: {
-    flexGrow: 0,
-    flexShrink: 1,
-  },
-  scrollContent: {
-    paddingBottom: 8,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#334155',
-    marginBottom: 6,
-    marginTop: 7,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#0F172A',
-    backgroundColor: '#F8FAFC',
-  },
-  textArea: {
-    minHeight: 58,
-    textAlignVertical: 'top',
-  },
-  locationCard: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 10,
-  },
-  locationCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-    gap: 6,
-  },
-  locationCardTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#1E293B',
-  },
-  locationPreview: {
-    backgroundColor: COLORS.primaryLight,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.primary,
-  },
-  locationText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.primaryDark,
-    lineHeight: 18,
-  },
-  coordsText: {
-    fontSize: 11,
-    color: COLORS.primary,
-    marginTop: 2,
-  },
-  mapButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    gap: 8,
-  },
-  mapButtonText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  uploadBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
-    borderStyle: 'dashed',
-    borderRadius: 10,
-    paddingVertical: 10,
-    gap: 8,
-  },
-  uploadText: {
-    color: '#15803D',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  photoContainer: {
-    position: 'relative',
-    borderRadius: 10,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  photoPreview: {
-    width: '100%',
-    height: 88,
-    borderRadius: 10,
-  },
-  removePhotoBtn: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: '#DC2626',
-    borderRadius: 14,
-    padding: 4,
-  },
-  toggleContactsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 9,
-    marginBottom: 4,
-    paddingVertical: 2,
-  },
-  toggleContactsText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#475569',
-  },
-  contactsBox: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 10,
-    padding: 10,
-    gap: 8,
-    marginTop: 4,
-  },
-  contactField: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-  },
-  contactInput: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    fontSize: 13,
-    color: '#0F172A',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-    marginTop: 14,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  button: {
-    flex: 1,
-  },
+
+  contactsToggle: { flexDirection: 'row', alignItems: 'center' },
+  contactsHint: { fontSize: 12, marginTop: 1 },
+  contactField: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 12, paddingHorizontal: 12 },
+  contactInput: { flex: 1, paddingVertical: 11, paddingHorizontal: 6, fontSize: 14 },
+
+  footer: { borderTopWidth: 1, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12 },
+  footerHint: { fontSize: 12, textAlign: 'center', marginBottom: 8 },
+  footerRow: { flexDirection: 'row', gap: 10 },
+  cancelBtn: { flex: 1, height: 50, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  cancelText: { fontSize: 15, fontWeight: '700' },
+  sendBtn: { flex: 1.6, height: 50, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  sendText: { color: '#FFFFFF', fontSize: 15.5, fontWeight: '800' },
 });
 
 export default SightingModal;

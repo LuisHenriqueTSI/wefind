@@ -1100,6 +1100,53 @@ const RegisterItemScreen = ({ navigation, route }) => {
 
     const locationPhrase = formatLocationPhrase(rawLoc);
 
+    // Adoção direta: o título considera a quantidade de animais do anúncio
+    // (ex.: "4 filhotes de cachorro para adoção no Centro").
+    if (status === 'adoption') {
+      const parsedCount = Number(adoptionTotalCount);
+      const count = Number.isSafeInteger(parsedCount) && parsedCount >= 1
+        ? parsedCount
+        : Math.max(1, adoptionAnimals.length);
+      const animals = adoptionAnimals.slice(0, count);
+      const SPECIES_WORDS = {
+        Cachorro: { singular: 'cachorro', singularFemale: 'cachorra', plural: 'cachorros', pluralFemale: 'cachorras' },
+        Gato: { singular: 'gato', singularFemale: 'gata', plural: 'gatos', pluralFemale: 'gatas' },
+        Ave: { singular: 'ave', singularFemale: 'ave', plural: 'aves', pluralFemale: 'aves' },
+        Cavalo: { singular: 'cavalo', singularFemale: 'égua', plural: 'cavalos', pluralFemale: 'éguas' },
+        Bovino: { singular: 'bovino', singularFemale: 'bovino', plural: 'bovinos', pluralFemale: 'bovinos' },
+      };
+      const words = SPECIES_WORDS[species] || {
+        singular: species === 'Outro' || species === 'Animal' ? 'animal' : species.toLowerCase(),
+        singularFemale: species === 'Outro' || species === 'Animal' ? 'animal' : species.toLowerCase(),
+        plural: 'animais',
+        pluralFemale: 'animais',
+      };
+      const everyAnimal = (predicate) => animals.length === count && animals.every(predicate);
+      const allFemale = everyAnimal((animal) => animal.gender === 'Fêmea');
+      const allPuppies = everyAnimal((animal) => animal.age === 'Filhote');
+      const colorKey = (animal) => (Array.isArray(animal.color) ? animal.color : [animal.color])
+        .filter(Boolean)
+        .join(' com ')
+        .toLowerCase();
+      const FEMININE_COLORS = { preto: 'preta', branco: 'branca', amarelo: 'amarela', dourado: 'dourada' };
+      const rawColor = count === 1 && animals[0] ? colorKey(animals[0]) : '';
+      const sharedColor = allFemale
+        ? rawColor.split(' ').map((word) => FEMININE_COLORS[word] || word).join(' ')
+        : rawColor;
+      const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
+
+      let subject;
+      if (count === 1) {
+        const noun = allFemale ? words.singularFemale : words.singular;
+        subject = [capitalize(noun), allPuppies ? 'filhote' : '', sharedColor].filter(Boolean).join(' ');
+      } else if (allPuppies) {
+        subject = `${count} filhotes de ${words.singular}`;
+      } else {
+        subject = `${count} ${allFemale ? words.pluralFemale : words.plural}`;
+      }
+      return [subject, 'para adoção', locationPhrase].filter(Boolean).join(' ');
+    }
+
     if (colorLabel && locationPhrase) {
       return `${species} ${colorLabel} ${statusLabel} ${locationPhrase}`.trim();
     }
@@ -1948,7 +1995,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
       }}
       onStartChat={(otherId, itemId, itemTitle) => {
         setPetMatchModalVisible(false);
-        navigation.navigate('ChatScreen', { otherId, itemId, itemTitle });
+        navigation.navigate('ChatScreen', { conversation: { otherId, itemId, itemTitle } });
       }}
     />
   );
@@ -2214,7 +2261,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                     style={[
                       styles.statusButton,
                       { backgroundColor: isDark ? '#1E293B' : '#F9FAFB', borderColor: isDark ? '#334155' : '#E5E7EB' },
-                      status === 'adoption' && { backgroundColor: '#BE185D', borderColor: '#BE185D' },
+                      status === 'adoption' && { backgroundColor: '#DB2777', borderColor: '#DB2777' },
                     ]}
                     onPress={() => {
                       setStatus('adoption');
@@ -2235,9 +2282,9 @@ const RegisterItemScreen = ({ navigation, route }) => {
 
               {/* Informação sobre Publicação Direta para Adoção */}
               {status === 'adoption' && (
-                <View style={{ backgroundColor: isDark ? 'rgba(190, 24, 93, 0.15)' : '#FDF2F8', borderWidth: 1.5, borderColor: isDark ? '#BE185D' : '#FBCFE8', borderRadius: 12, padding: 14, marginBottom: 20 }}>
+                <View style={{ backgroundColor: isDark ? 'rgba(190, 24, 93, 0.15)' : '#FDF2F8', borderWidth: 1.5, borderColor: isDark ? '#DB2777' : '#FBCFE8', borderRadius: 12, padding: 14, marginBottom: 20 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 6 }}>
-                    <MaterialIcons name="favorite" size={18} color={isDark ? '#F472B6' : '#BE185D'} />
+                    <MaterialIcons name="favorite" size={18} color={'#DB2777'} />
                     <Text style={{ fontSize: 13.5, fontWeight: '800', color: isDark ? '#F9A8D4' : '#9D174D' }}>
                       Anúncio para adoção
                     </Text>
@@ -2303,7 +2350,7 @@ const RegisterItemScreen = ({ navigation, route }) => {
                     style={{
                       minHeight: 44,
                       borderWidth: 1,
-                      borderColor: isDark ? '#BE185D' : '#F9A8D4',
+                      borderColor: isDark ? '#DB2777' : '#F9A8D4',
                       borderRadius: 10,
                       paddingHorizontal: 12,
                       color: colors.text,
@@ -3465,7 +3512,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    marginBottom: 12,  },
+    marginBottom: 12,
+  },
   mapButtonText: {
     color: '#FFFFFF',
     fontWeight: '800',

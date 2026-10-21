@@ -244,8 +244,19 @@ const AdvancedFiltersModal = ({
                 { label: 'Idoso', value: 'idoso' },
               ])}
 
+              {renderMultiSelectSection('Cor', 'colors', [
+                { label: 'Preto', value: 'preto' },
+                { label: 'Branco', value: 'branco' },
+                { label: 'Marrom', value: 'marrom' },
+                { label: 'Caramelo', value: 'caramelo' },
+                { label: 'Cinza', value: 'cinza' },
+                { label: 'Amarelo', value: 'amarelo' },
+                { label: 'Mesclado', value: 'mesclado' },
+                { label: 'Outra', value: 'outra' },
+              ])}
+
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Condição</Text>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Destaque</Text>
                 <View style={styles.pillContainer}>
                   <TouchableOpacity
                     style={[
@@ -275,23 +286,6 @@ const AdvancedFiltersModal = ({
                       Visto na rua
                     </Text>
                   </TouchableOpacity>
-                </View>
-              </View>
-
-              {renderMultiSelectSection('Cor (selecione uma ou mais)', 'colors', [
-                { label: 'Preto', value: 'preto' },
-                { label: 'Branco', value: 'branco' },
-                { label: 'Marrom', value: 'marrom' },
-                { label: 'Caramelo', value: 'caramelo' },
-                { label: 'Cinza', value: 'cinza' },
-                { label: 'Amarelo', value: 'amarelo' },
-                { label: 'Mesclado', value: 'mesclado' },
-                { label: 'Outra', value: 'outra' },
-              ])}
-
-              <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Destaque e ordenação</Text>
-                <View style={styles.pillContainer}>
                   <TouchableOpacity
                     onPress={() => setLocalFilters(prev => ({ ...prev, hasReward: !prev.hasReward }))}
                     style={[
@@ -309,7 +303,12 @@ const AdvancedFiltersModal = ({
                       Com recompensa
                     </Text>
                   </TouchableOpacity>
+                </View>
+              </View>
 
+              <View style={[styles.section, { marginBottom: 0 }]}>
+                <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Ordenar por</Text>
+                <View style={styles.pillContainer}>
                   {[
                     { label: 'Mais próximos', value: 'distance' },
                     { label: 'Mais recentes', value: 'newest' },
@@ -369,8 +368,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderBottomWidth: 1,
   },
   headerLeft: {
@@ -379,7 +378,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
   },
   badge: {
@@ -393,29 +392,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    paddingBottom: 40,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 12,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 12,
+    fontSize: 11.5,
+    fontWeight: '800',
+    marginBottom: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   pillContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
   pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     borderWidth: 1,
   },
   pillActive: {
@@ -426,7 +425,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   pillText: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '600',
   },
   pillTextActive: {
@@ -436,14 +435,14 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
+    paddingTop: 10,
+    paddingBottom: 10,
     borderTopWidth: 1,
     gap: 10,
   },
   btnOutline: {
     flex: 1,
-    minHeight: 48,
+    minHeight: 44,
     borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
@@ -455,7 +454,7 @@ const styles = StyleSheet.create({
   },
   btnPrimary: {
     flex: 1,
-    minHeight: 48,
+    minHeight: 44,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',

@@ -183,11 +183,13 @@ const ChatScreen = (props) => {
           getMessages(
             user.id,
             otherId,
-            otherDeleted ? { conversationId, limit: 120 } : itemId || 50,
+            otherDeleted
+              ? { conversationId, limit: 120 }
+              : { itemId: itemId ?? null, generalOnly: !itemId, limit: 50 },
           ),
           (otherDeleted
             ? markConversationMessagesAsRead(user.id, conversationId)
-            : markMessagesAsRead(user.id, otherId)
+            : markMessagesAsRead(user.id, otherId, itemId ?? null)
           ).catch((readError) => {
             console.warn('[ChatScreen] Não foi possível marcar as mensagens como lidas:', readError.message);
           }),
@@ -327,6 +329,7 @@ const ChatScreen = (props) => {
     if (!user?.id || !otherId || otherDeleted) return;
 
     const channelName = `chat-room-${[user.id, otherId].sort().join('-')}-${itemId || 'general'}`;
+    const isSameThread = (msg) => String(msg?.item_id ?? '') === String(itemId ?? '');
     const channel = supabase.channel(channelName);
 
     const cleanupChannel = () => {
@@ -348,12 +351,13 @@ const ChatScreen = (props) => {
         },
         (payload) => {
           const msg = payload.new;
-          if (msg.receiver_id === user.id) {
+          // Ignora mensagens de outra publicação com o mesmo usuário
+          if (msg.receiver_id === user.id && isSameThread(msg)) {
             setMessages((prev) => {
               if (prev.some(m => m.id === msg.id)) return prev;
               return [...prev, msg].sort((a, b) => new Date(a.sent_at) - new Date(b.sent_at));
             });
-            markMessagesAsRead(user.id, otherId);
+            markMessagesAsRead(user.id, otherId, itemId ?? null);
           }
         }
       )
@@ -367,7 +371,7 @@ const ChatScreen = (props) => {
         },
         (payload) => {
           const msg = payload.new;
-          if (msg.receiver_id === otherId) {
+          if (msg.receiver_id === otherId && isSameThread(msg)) {
             setMessages((prev) => {
               if (prev.some(m => m.id === msg.id)) return prev;
               return [...prev, msg].sort((a, b) => new Date(a.sent_at) - new Date(b.sent_at));

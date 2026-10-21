@@ -53,6 +53,24 @@ const getOwnerProfileSelection = async () => {
     : '';
 };
 
+// Nome e foto públicos de quem publicou (para visitantes). Usa a função nova
+// get_public_item_owner_profiles; se ela ainda não existir no banco, cai na antiga (só nome).
+const getPublicItemOwners = async (itemIds = []) => {
+  const ids = itemIds.map(Number).filter(Number.isSafeInteger);
+  if (ids.length === 0) return {};
+
+  const { data, error } = await supabase.rpc('get_public_item_owner_profiles', { p_item_ids: ids });
+  if (!error) {
+    return Object.fromEntries((data || []).map((row) => [
+      row.item_id,
+      { name: row.owner_name, avatarUrl: row.owner_avatar_url || null },
+    ]));
+  }
+
+  const names = await getPublicItemOwnerNames(ids);
+  return Object.fromEntries(Object.entries(names).map(([id, name]) => [id, { name, avatarUrl: null }]));
+};
+
 const getPublicItemOwnerNames = async (itemIds = []) => {
   const ids = itemIds.map(Number).filter(Number.isSafeInteger);
   if (ids.length === 0) return {};
@@ -72,10 +90,10 @@ const attachPublicItemRelations = async (items = []) => {
   if (!items.length) return [];
 
   const itemIds = items.map(item => item.id).filter(Boolean);
-  const [{ data: photos, error: photosError }, { data: rewards, error: rewardsError }, ownerNames] = await Promise.all([
+  const [{ data: photos, error: photosError }, { data: rewards, error: rewardsError }, owners] = await Promise.all([
     supabase.from('item_photos').select('id, item_id, url').in('item_id', itemIds),
     supabase.from('rewards').select('id, item_id, amount, currency, status, description').in('item_id', itemIds),
-    getPublicItemOwnerNames(itemIds),
+    getPublicItemOwners(itemIds),
   ]);
 
   if (photosError) {
@@ -99,7 +117,8 @@ const attachPublicItemRelations = async (items = []) => {
   return items.map(item => ({
     ...item,
     profiles: null,
-    owner_name: ownerNames[item.id] || item.owner_name || 'Tutor',
+    owner_name: owners[item.id]?.name || item.owner_name || 'Tutor',
+    owner_avatar: owners[item.id]?.avatarUrl || item.owner_avatar || null,
     item_photos: photosByItem[item.id] || [],
     rewards: normalizeItemRewards({ ...item, rewards: rewardsByItem[item.id] || [] }),
     renewalInfo: getRenewalInfo(item),
@@ -875,8 +894,9 @@ export const getItemDetails = async (itemId) => {
     }
 
     if (isPublicRequest) {
-      const ownerNames = await getPublicItemOwnerNames([item.id]);
-      item.owner_name = ownerNames[item.id] || item.owner_name || 'Tutor';
+      const owners = await getPublicItemOwners([item.id]);
+      item.owner_name = owners[item.id]?.name || item.owner_name || 'Tutor';
+      item.owner_avatar = owners[item.id]?.avatarUrl || item.owner_avatar || null;
     }
 
     // Get photos
@@ -894,7 +914,7 @@ export const getItemDetails = async (itemId) => {
         .single();
       profile = ownerProfile;
     } else if (item.owner_name) {
-      profile = { name: item.owner_name };
+      profile = { name: item.owner_name, avatar_url: item.owner_avatar || null };
     }
 
     // Get rewards
@@ -1118,7 +1138,7 @@ const cleanupExpiredItemsClientSide = async () => {
     // No cliente, apenas busca e remove os itens pertencentes ao usuário logado
     const { data, error } = await supabase
       .from('items')
-      .select('id, owner_id, title, created_at, expires_at, resolved')
+      .select('id, owner_id, title, created_at, resolved')
       .eq('owner_id', currentUser.id)
       .lte('created_at', cutoffDate);
 

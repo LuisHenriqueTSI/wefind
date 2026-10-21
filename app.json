@@ -2,7 +2,7 @@
   "expo": {
     "name": "WeFIND",
     "slug": "wefind-app",
-    "version": "2.8.0",
+    "version": "2.8.4",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
