@@ -1,5 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Easing,
+  TouchableWithoutFeedback,
   View,
   Text,
   StyleSheet,
@@ -11,13 +16,10 @@ import {
   BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useFocusEffect } from '@react-navigation/native';
-import { MaterialIcons, MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import COLORS from '../constants/theme';
-import Button from '../components/Button';
 import Input from '../components/Input';
 import { WeFindText } from '../components/WeFindBrand';
 import { getFriendlyAuthErrorMessage } from '../utils/authErrors';
@@ -29,6 +31,47 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Teclado: a tela não rola e o layout não muda. Se o teclado for cobrir o botão
+  // "Entrar", o conteúdo inteiro desliza para cima só o necessário.
+  const submitRef = useRef(null);
+  const shiftY = useRef(new Animated.Value(0)).current;
+  const currentShift = useRef(0);
+  const topSpacing = Math.round(Math.min(72, Dimensions.get('screen').height * 0.07));
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const animateTo = (value, duration) => {
+      currentShift.current = value;
+      Animated.timing(shiftY, {
+        toValue: value,
+        duration: duration || 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const onShow = (e) => {
+      const keyboardTop = e?.endCoordinates?.screenY;
+      if (!submitRef.current || typeof keyboardTop !== 'number') return;
+      submitRef.current.measureInWindow((x, y, w, h) => {
+        // y já inclui o deslocamento atual; somamos de volta para medir a posição original
+        const originalBottom = y - currentShift.current + h;
+        const overlap = originalBottom + 16 - keyboardTop;
+        animateTo(overlap > 0 ? -overlap : 0, e?.duration);
+      });
+    };
+    const onHide = (e) => animateTo(0, e?.duration);
+
+    const showSub = Keyboard.addListener(showEvent, onShow);
+    const hideSub = Keyboard.addListener(hideEvent, onHide);
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [shiftY]);
 
   // Captura o botão físico de voltar do Android e redireciona para a tela inicial
   useFocusEffect(
@@ -104,41 +147,45 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const fieldStyle = [
+    styles.inputField,
+    {
+      backgroundColor: isDark ? colors.card : '#FFFFFF',
+      borderColor: isDark ? '#334155' : '#E2E8F0',
+      color: colors.text,
+    },
+  ];
+  const busy = loading || googleLoading;
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.scrollContent}
-        enableOnAndroid={true}
-        enableResetScrollToCoords={false}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        extraScrollHeight={Platform.OS === 'ios' ? 40 : 60}
-        extraHeight={Platform.OS === 'ios' ? 80 : 100}
-        keyboardOpeningTime={0}
-      >
-        {/* Top App Logo & Brand */}
-        <View style={styles.brandHeroContainer}>
-          <View style={[styles.logoSquircle, { backgroundColor: isDark ? colors.card : '#FFFFFF', borderColor: isDark ? colors.cardBorder : COLORS.primaryBorder }]}>
-            <Image
-              source={require('../../assets/logo.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <Animated.View
+          style={[styles.container, { paddingTop: topSpacing, transform: [{ translateY: shiftY }] }]}
+        >
+          {/* Marca */}
+          <View style={styles.brand}>
+            <View
+              style={[
+                styles.logoBox,
+                { backgroundColor: isDark ? colors.card : '#FFFFFF', borderColor: colors.cardBorder },
+              ]}
+            >
+              <Image source={require('../../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
+            </View>
+            <WeFindText size={24} uppercase style={{ marginTop: 12, letterSpacing: -0.5 }} />
           </View>
-          <WeFindText size={28} uppercase style={{ marginTop: 10, letterSpacing: -0.5 }} />
-        </View>
 
-        {/* Title Header */}
-        <View style={styles.headerBox}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Acesse sua conta</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            Digite seu e-mail e senha para continuar
-          </Text>
-        </View>
+          {/* Título */}
+          <View style={styles.titleBlock}>
+            <Text style={[styles.title, { color: colors.text }]}>Entrar</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Use o e-mail e a senha da sua conta.
+            </Text>
+          </View>
 
-        {/* Form Container */}
-        <View style={[styles.formBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-          <View style={styles.inputWrapper}>
+          {/* Formulário */}
+          <View style={styles.form}>
             <Input
               label="E-mail"
               placeholder="seu@email.com"
@@ -149,105 +196,102 @@ const LoginScreen = ({ navigation }) => {
               }}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
               error={errors.email}
               style={styles.input}
-              inputStyle={[
-                styles.inputField,
-                {
-                  backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
-                  borderColor: isDark ? '#334155' : '#E2E8F0',
-                  color: colors.text,
-                },
-              ]}
+              inputStyle={fieldStyle}
               returnKeyType="next"
             />
-          </View>
 
-          <View style={styles.inputWrapper}>
             <Input
               label="Senha"
-              placeholder="••••••••"
+              placeholder="Sua senha"
               value={password}
               onChangeText={(text) => {
                 setPassword(text);
                 if (errors.password) setErrors((prev) => ({ ...prev, password: null }));
               }}
               secureTextEntry={true}
+              autoComplete="password"
+              textContentType="password"
               error={errors.password}
-              style={styles.input}
-              inputStyle={[
-                styles.inputField,
-                {
-                  backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
-                  borderColor: isDark ? '#334155' : '#E2E8F0',
-                  color: colors.text,
-                },
-              ]}
-              returnKeyType="done"
+              style={styles.inputLast}
+              inputStyle={fieldStyle}
+              returnKeyType="go"
+              onSubmitEditing={handleLogin}
             />
-          </View>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('EsqueciSenha')}
-            style={styles.forgotPasswordContainer}
-            activeOpacity={0.75}
-          >
-            <Text style={[styles.forgotPassword, { color: colors.primary }]}>Esqueceu sua senha?</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={handleLogin}
-            disabled={loading || googleLoading}
-            style={[styles.loginButton, { backgroundColor: colors.primary }, (loading || googleLoading) && styles.disabledButton]}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.loginButtonText}>{loading ? 'Autenticando...' : 'Entrar na Conta'}</Text>
-            {!loading && <Feather name="arrow-right" size={18} color="#FFFFFF" style={{ marginLeft: 6 }} />}
-          </TouchableOpacity>
-
-          <View style={styles.oauthDivider}>
-            <View style={[styles.oauthDividerLine, { backgroundColor: colors.cardBorder }]} />
-            <Text style={[styles.oauthDividerText, { color: colors.textMuted }]}>ou</Text>
-            <View style={[styles.oauthDividerLine, { backgroundColor: colors.cardBorder }]} />
-          </View>
-
-          <TouchableOpacity
-            onPress={handleGoogleLogin}
-            disabled={loading || googleLoading}
-            style={[
-              styles.googleButton,
-              { backgroundColor: colors.background, borderColor: colors.cardBorder },
-              (loading || googleLoading) && styles.disabledButton,
-            ]}
-            activeOpacity={0.85}
-          >
-            <MaterialCommunityIcons name="google" size={20} color={colors.text} />
-            <Text style={[styles.googleButtonText, { color: colors.text }]}>
-              {googleLoading ? 'Conectando...' : 'Entrar com Google'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Footer Navigation */}
-        <View style={styles.footerContainer}>
-          <View style={styles.footerRow}>
-            <Text style={[styles.footerText, { color: colors.textSecondary }]}>Ainda não faz parte? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')} activeOpacity={0.75}>
-              <Text style={[styles.createAccountText, { color: colors.primary }]}>Criar nova conta</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('EsqueciSenha')}
+              style={styles.forgotPassword}
+              activeOpacity={0.7}
+              hitSlop={8}
+            >
+              <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Esqueci minha senha</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              ref={submitRef}
+              collapsable={false}
+              onPress={handleLogin}
+              disabled={busy}
+              style={[styles.primaryButton, { backgroundColor: colors.primary }, busy && styles.disabledButton]}
+              activeOpacity={0.85}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Entrar</Text>
+              )}
+            </TouchableOpacity>
+
+                <View style={styles.divider}>
+                  <View style={[styles.dividerLine, { backgroundColor: colors.cardBorder }]} />
+                  <Text style={[styles.dividerText, { color: colors.textMuted }]}>ou</Text>
+                  <View style={[styles.dividerLine, { backgroundColor: colors.cardBorder }]} />
+                </View>
+
+                <TouchableOpacity
+                  onPress={handleGoogleLogin}
+                  disabled={busy}
+                  style={[
+                    styles.googleButton,
+                    { backgroundColor: isDark ? colors.card : '#FFFFFF', borderColor: isDark ? '#334155' : '#E2E8F0' },
+                    busy && styles.disabledButton,
+                  ]}
+                  activeOpacity={0.85}
+                >
+                  {googleLoading ? (
+                    <ActivityIndicator color={colors.text} size="small" />
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons name="google" size={19} color={colors.text} />
+                      <Text style={[styles.googleButtonText, { color: colors.text }]}>Continuar com Google</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('PublicApp')}
-            style={styles.guestLink}
-            activeOpacity={0.7}
-          >
-            <Text style={[styles.guestLinkText, { color: colors.textMuted }]}>
-              Continuar explorando sem login ➔
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAwareScrollView>
+          {/* Rodapé */}
+            <View style={styles.footer}>
+              <View style={styles.footerRow}>
+                <Text style={[styles.footerText, { color: colors.textSecondary }]}>Não tem conta? </Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Register')} activeOpacity={0.7} hitSlop={8}>
+                  <Text style={[styles.footerLink, { color: colors.primary }]}>Criar conta</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('PublicApp')}
+                style={styles.guestLink}
+                activeOpacity={0.7}
+                hitSlop={8}
+              >
+                <Text style={[styles.guestLinkText, { color: colors.textSecondary }]}>Continuar sem entrar</Text>
+              </TouchableOpacity>
+            </View>
+        </Animated.View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 };
@@ -256,145 +300,131 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'flex-start',
+    width: '100%',
+    maxWidth: 440,
+    alignSelf: 'center',
   },
-  brandHeroContainer: {
+  brand: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
+    marginBottom: 28,
   },
-  logoSquircle: {
-    width: 104,
-    height: 104,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 22,
+    borderWidth: 1,
+    padding: 8,
     overflow: 'hidden',
-    borderWidth: 1.5,
-    padding: 10,  },
+  },
   logoImage: {
     width: '100%',
     height: '100%',
   },
-  headerBox: {
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 16,
+  titleBlock: {
+    marginBottom: 22,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '900',
-    marginBottom: 6,
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
     letterSpacing: -0.4,
-    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 13.5,
-    lineHeight: 19,
-    textAlign: 'center',
+  subtitle: {
+    fontSize: 15.5,
+    lineHeight: 22,
+    marginTop: 6,
   },
-  formBox: {
+  form: {
     width: '100%',
-    maxWidth: 390,
-    borderRadius: 24,
-    paddingVertical: 22,
-    paddingHorizontal: 20,    borderWidth: 1,
-  },
-  inputWrapper: {
-    marginBottom: 4,
   },
   input: {
-    marginBottom: 12,
+    marginBottom: 14,
+  },
+  inputLast: {
+    marginBottom: 0,
   },
   inputField: {
-    borderRadius: 14,
+    borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 14,
-    fontSize: 15,
-    height: 50,
-  },
-  forgotPasswordContainer: {
-    alignSelf: 'flex-end',
-    marginBottom: 18,
-    marginTop: 2,
-    paddingVertical: 2,
+    fontSize: 16,
+    height: 52,
   },
   forgotPassword: {
-    fontSize: 13,
-    fontWeight: '700',
+    alignSelf: 'flex-end',
+    marginTop: 10,
+    marginBottom: 20,
   },
-  loginButton: {
-    flexDirection: 'row',
+  forgotPasswordText: {
+    fontSize: 14.5,
+    fontWeight: '600',
+  },
+  primaryButton: {
+    height: 52,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 16,
-    paddingVertical: 14,  },
-  disabledButton: {
-    opacity: 0.6,
   },
-  loginButtonText: {
-    fontWeight: '800',
-    fontSize: 15.5,
-    letterSpacing: 0.2,
+  primaryButtonText: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
-  oauthDivider: {
+  disabledButton: {
+    opacity: 0.55,
+  },
+  divider: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginVertical: 16,
+    marginVertical: 18,
   },
-  oauthDividerLine: {
+  dividerLine: {
     flex: 1,
     height: 1,
   },
-  oauthDividerText: {
-    fontSize: 13,
-    fontWeight: '600',
+  dividerText: {
+    fontSize: 14,
   },
   googleButton: {
-    minHeight: 50,
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
   },
   googleButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
   },
-  footerContainer: {
+  footer: {
     alignItems: 'center',
-    marginTop: 22,
+    marginTop: 28,
   },
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
   },
   footerText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 15,
   },
-  createAccountText: {
-    fontWeight: '800',
-    fontSize: 14,
+  footerLink: {
+    fontSize: 15,
+    fontWeight: '600',
   },
   guestLink: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    marginTop: 14,
+    paddingVertical: 4,
   },
   guestLinkText: {
-    fontSize: 12.5,
-    fontWeight: '600',
+    fontSize: 14.5,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 });
 

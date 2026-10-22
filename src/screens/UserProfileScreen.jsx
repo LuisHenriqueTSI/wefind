@@ -348,7 +348,7 @@ const UserProfileScreen = ({ route, navigation }) => {
     return (
       <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 14 }}>Carregando perfil...</Text>
+        <Text style={{ color: colors.textSecondary, marginTop: 12, fontSize: 15.5 }}>Carregando perfil...</Text>
       </View>
     );
   }
@@ -532,11 +532,11 @@ const UserProfileScreen = ({ route, navigation }) => {
                 <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center' }}>
                   <MaterialIcons name="home-work" size={15} color="#16A34A" />
                 </View>
-                <Text style={{ fontSize: 13, fontWeight: '800', color: '#15803D' }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#15803D' }}>
                   Voluntário de lar temporário
                 </Text>
               </View>
-              <Text style={{ fontSize: 12, color: isDark ? '#CBD5E1' : '#166534', lineHeight: 16 }}>
+              <Text style={{ fontSize: 13.5, color: isDark ? '#CBD5E1' : '#166534', lineHeight: 16 }}>
                 Disponível para acolher: {fosterProfile.species?.map(s => s === 'dogs' ? 'Cães' : (s === 'cats' ? 'Gatos' : (s === 'birds' ? 'Aves' : 'Outros'))).join(', ') || 'Pets'}.
                 {fosterProfile.neighborhood ? ` • ${fosterProfile.neighborhood}` : ''}
               </Text>
@@ -592,12 +592,12 @@ const UserProfileScreen = ({ route, navigation }) => {
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <MaterialIcons name="admin-panel-settings" size={18} color="#D97706" />
-                <Text style={{ fontSize: 13, fontWeight: '800', color: isDark ? '#FCD34D' : '#92400E' }}>
+                <Text style={{ fontSize: 14.5, fontWeight: '800', color: isDark ? '#FCD34D' : '#92400E' }}>
                   Moderação do administrador
                 </Text>
               </View>
               <View style={{ backgroundColor: profile?.role === 'admin' || profile?.adm ? '#2E5634' : '#64748B', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
-                <Text style={{ color: '#FFFFFF', fontSize: 10.5, fontWeight: '800' }}>
+                <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '800' }}>
                   {profile?.role === 'admin' || profile?.adm ? 'ADMIN' : 'USUÁRIO'}
                 </Text>
               </View>
@@ -610,7 +610,7 @@ const UserProfileScreen = ({ route, navigation }) => {
                 activeOpacity={0.8}
               >
                 <MaterialIcons name="shield" size={15} color={colors.primary} style={{ marginRight: 4 }} />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
+                <Text style={{ fontSize: 13.5, fontWeight: '700', color: colors.primary }}>
                   {profile?.role === 'admin' || profile?.adm ? 'Revogar Admin' : 'Tornar Admin'}
                 </Text>
               </TouchableOpacity>
@@ -621,7 +621,7 @@ const UserProfileScreen = ({ route, navigation }) => {
                 activeOpacity={0.8}
               >
                 <MaterialIcons name="delete-forever" size={16} color="#DC2626" style={{ marginRight: 4 }} />
-                <Text style={{ fontSize: 12, fontWeight: '800', color: '#DC2626' }}>
+                <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#DC2626' }}>
                   Excluir conta
                 </Text>
               </TouchableOpacity>
@@ -836,7 +836,7 @@ const UserProfileScreen = ({ route, navigation }) => {
           {!isOwnProfile && existingMyRating && (
             <View style={[styles.alreadyRatedNote, { backgroundColor: isDark ? '#1E293B' : '#F0FDF4', borderColor: isDark ? '#334155' : '#BBF7D0' }]}>
               <MaterialIcons name="check-circle" size={16} color="#16A34A" style={{ marginRight: 6 }} />
-              <Text style={{ flex: 1, fontSize: 12.5, fontWeight: '600', color: isDark ? '#CBD5E1' : '#166534' }}>
+              <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: isDark ? '#CBD5E1' : '#166534' }}>
                 Você já classificou {displayName.split(' ')[0]} com {existingMyRating.stars} {existingMyRating.stars === 1 ? 'estrela' : 'estrelas'}.
               </Text>
             </View>
@@ -876,7 +876,7 @@ const UserProfileScreen = ({ route, navigation }) => {
                     {rating.reviewerAvatar ? (
                       <Image source={{ uri: rating.reviewerAvatar }} style={styles.reviewerAvatarImg} />
                     ) : (
-                      <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 13 }}>
+                      <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 14.5 }}>
                         {rating.reviewerName.trim()[0]?.toUpperCase() || 'U'}
                       </Text>
                     )}
@@ -1141,7 +1141,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   profileName: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
     textAlign: 'center',
     letterSpacing: -0.3,
@@ -1158,11 +1158,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   reputationScore: {
-    fontSize: 13.5,
+    fontSize: 15,
     fontWeight: '900',
   },
   reputationCount: {
-    fontSize: 11.5,
+    fontSize: 13,
     fontWeight: '700',
   },
   metaRow: {
@@ -1176,11 +1176,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   metaText: {
-    fontSize: 12.5,
+    fontSize: 14,
     fontWeight: '500',
   },
   bioText: {
-    fontSize: 13,
+    fontSize: 14.5,
     fontStyle: 'italic',
     textAlign: 'center',
     lineHeight: 19,
@@ -1206,7 +1206,7 @@ const styles = StyleSheet.create({
     flex: 1,  },
   primaryActionBtnText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '800',
   },
   rateActionBtn: {
@@ -1218,7 +1218,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,  },
   rateActionBtnText: {
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '800',
   },
   iconActionBtn: {
@@ -1238,7 +1238,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   activityTitle: {
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '800',
     marginBottom: 6,
   },
@@ -1249,11 +1249,11 @@ const styles = StyleSheet.create({
   },
   activityLabel: {
     flex: 1,
-    fontSize: 12.5,
+    fontSize: 14,
     fontWeight: '600',
   },
   activityValue: {
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '800',
   },
   alreadyRatedNote: {
@@ -1280,11 +1280,11 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   statNumber: {
-    fontSize: 17,
+    fontSize: 18.5,
     fontWeight: '900',
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '600',
     marginTop: 2,
   },
@@ -1305,7 +1305,7 @@ const styles = StyleSheet.create({
   },
   mainToggleBtnActive: {  },
   mainToggleText: {
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '800',
   },
   postsSection: {
@@ -1325,7 +1325,7 @@ const styles = StyleSheet.create({
   },
   tabChipActive: {},
   tabChipText: {
-    fontSize: 12,
+    fontSize: 13.5,
     fontWeight: '700',
   },
   tabChipTextActive: {
@@ -1350,7 +1350,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   tagChipText: {
-    fontSize: 12,
+    fontSize: 13.5,
     fontWeight: '700',
   },
   emptyPostsCard: {
@@ -1362,13 +1362,13 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   emptyPostsTitle: {
-    fontSize: 15,
+    fontSize: 16.5,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 4,
   },
   emptyPostsSubtitle: {
-    fontSize: 12.5,
+    fontSize: 14,
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -1407,21 +1407,21 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   petStatusBadgeText: {
-    fontSize: 10,
+    fontSize: 11.5,
     fontWeight: '800',
   },
   petSpeciesText: {
-    fontSize: 10,
+    fontSize: 11.5,
     fontWeight: '800',
     letterSpacing: 0.6,
   },
   petTitle: {
-    fontSize: 16,
+    fontSize: 17.5,
     fontWeight: '900',
     letterSpacing: -0.2,
   },
   petBreed: {
-    fontSize: 11.5,
+    fontSize: 13,
     fontWeight: '600',
   },
   iconActionBtn: {
@@ -1448,7 +1448,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   petName: {
-    fontSize: 14.5,
+    fontSize: 16,
     fontWeight: '800',
     flex: 1,
     marginRight: 6,
@@ -1459,7 +1459,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   petTagText: {
-    fontSize: 10,
+    fontSize: 11.5,
     fontWeight: '800',
     textTransform: 'uppercase',
   },
@@ -1470,7 +1470,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   petMetaText: {
-    fontSize: 11.5,
+    fontSize: 13,
     flex: 1,
   },
   petLocationRow: {
@@ -1480,7 +1480,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   petLocationText: {
-    fontSize: 11,
+    fontSize: 12.5,
     flex: 1,
   },
   ratingsSection: {
@@ -1511,7 +1511,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   ratingTotalText: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '700',
     marginTop: 5,
     textAlign: 'center',
@@ -1528,7 +1528,7 @@ const styles = StyleSheet.create({
   },
   breakdownStarLabel: {
     width: 24,
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '800',
   },
   breakdownBarTrack: {
@@ -1543,7 +1543,7 @@ const styles = StyleSheet.create({
   },
   breakdownCountText: {
     width: 18,
-    fontSize: 10.5,
+    fontSize: 12,
     fontWeight: '700',
     textAlign: 'right',
   },
@@ -1575,7 +1575,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   ratingTotalCount: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '600',
     marginTop: 4,
   },
@@ -1590,7 +1590,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   barStarLabel: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '700',
     width: 20,
   },
@@ -1605,7 +1605,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   barCount: {
-    fontSize: 10.5,
+    fontSize: 12,
     fontWeight: '600',
     width: 22,
     textAlign: 'right',
@@ -1620,7 +1620,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,  },
   leaveReviewCTAText: {
     color: '#FFFFFF',
-    fontSize: 13.5,
+    fontSize: 15,
     fontWeight: '800',
   },
   reviewCard: {
@@ -1645,7 +1645,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   reviewerName: {
-    fontSize: 14,
+    fontSize: 15.5,
     fontWeight: '800',
   },
   reviewTagsRow: {
@@ -1661,7 +1661,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   reviewTagText: {
-    fontSize: 10.5,
+    fontSize: 12,
     fontWeight: '700',
   },
   reviewAuthorRow: {
@@ -1683,7 +1683,7 @@ const styles = StyleSheet.create({
   },
   reviewAuthorInitial: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 16.5,
     fontWeight: '800',
   },
   reviewAuthorInfo: {
@@ -1691,11 +1691,11 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   reviewAuthorName: {
-    fontSize: 13.5,
+    fontSize: 15,
     fontWeight: '800',
   },
   reviewDate: {
-    fontSize: 11,
+    fontSize: 12.5,
     marginTop: 1,
   },
   reviewStarsRow: {
@@ -1703,7 +1703,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   reviewCommentText: {
-    fontSize: 13,
+    fontSize: 14.5,
     lineHeight: 18,
   },
   reviewPetContextRow: {
@@ -1715,7 +1715,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   reviewPetContextText: {
-    fontSize: 11.5,
+    fontSize: 13,
     fontWeight: '600',
   },
   emptyCard: {
@@ -1734,13 +1734,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   emptyTitle: {
-    fontSize: 15,
+    fontSize: 16.5,
     fontWeight: '800',
     marginBottom: 4,
     textAlign: 'center',
   },
   emptySub: {
-    fontSize: 12.5,
+    fontSize: 14,
     lineHeight: 17,
     textAlign: 'center',
   },
@@ -1784,13 +1784,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalEyebrow: {
-    fontSize: 9,
+    fontSize: 10.5,
     fontWeight: '900',
     letterSpacing: 1.1,
     marginBottom: 2,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '900',
     letterSpacing: -0.4,
   },
@@ -1802,12 +1802,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalSubtitle: {
-    fontSize: 13.5,
+    fontSize: 15,
     lineHeight: 20,
     marginBottom: 18,
   },
   modalRatingPrompt: {
-    fontSize: 13.5,
+    fontSize: 15,
     fontWeight: '800',
     textAlign: 'center',
     marginBottom: 6,
@@ -1829,17 +1829,17 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   starFeedbackText: {
-    fontSize: 12,
+    fontSize: 13.5,
     fontWeight: '900',
     marginTop: 2,
   },
   formLabel: {
-    fontSize: 14,
+    fontSize: 15.5,
     fontWeight: '900',
     marginBottom: 6,
   },
   formHint: {
-    fontSize: 11.5,
+    fontSize: 13,
     marginBottom: 10,
   },
   commentInput: {
@@ -1847,7 +1847,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 13,
-    fontSize: 13.5,
+    fontSize: 15,
     minHeight: 96,
     textAlignVertical: 'top',
     marginBottom: 20,
@@ -1865,7 +1865,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalCancelText: {
-    fontSize: 13.5,
+    fontSize: 15,
     fontWeight: '700',
   },
   modalSubmitBtn: {
@@ -1877,7 +1877,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',  },
   modalSubmitText: {
     color: '#FFFFFF',
-    fontSize: 13.5,
+    fontSize: 15,
     fontWeight: '800',
   },
   guardianBadge: {
@@ -1891,7 +1891,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   guardianBadgeText: {
-    fontSize: 11.5,
+    fontSize: 13,
     fontWeight: '800',
   },
 });

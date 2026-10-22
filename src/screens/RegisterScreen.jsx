@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
+  ActivityIndicator,
   View,
   Text,
   StyleSheet,
@@ -14,11 +15,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useFocusEffect } from '@react-navigation/native';
-import { MaterialIcons, Feather } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import COLORS from '../constants/theme';
-import Button from '../components/Button';
 import Input from '../components/Input';
 import { WeFindText } from '../components/WeFindBrand';
 
@@ -200,11 +199,20 @@ const RegisterScreen = ({ navigation, route }) => {
     }
   };
 
+  const fieldStyle = [
+    styles.inputField,
+    {
+      backgroundColor: isDark ? colors.card : '#FFFFFF',
+      borderColor: isDark ? '#334155' : '#E2E8F0',
+      color: colors.text,
+    },
+  ];
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
       <KeyboardAwareScrollView
         ref={scrollRef}
-        contentContainerStyle={[styles.scrollContent]}
+        contentContainerStyle={styles.scrollContent}
         enableOnAndroid={true}
         enableResetScrollToCoords={false}
         keyboardShouldPersistTaps="handled"
@@ -214,185 +222,169 @@ const RegisterScreen = ({ navigation, route }) => {
         overScrollMode="never"
         onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}
         onContentSizeChange={(_, height) => setContentHeight(height)}
-        extraScrollHeight={Platform.OS === 'ios' ? 80 : 120}
-        extraHeight={Platform.OS === 'ios' ? 120 : 160}
+        extraScrollHeight={Platform.OS === 'ios' ? 24 : 40}
+        extraHeight={Platform.OS === 'ios' ? 80 : 100}
         keyboardOpeningTime={0}
       >
-
-
-        {/* Top App Logo & Brand */}
-        <View style={styles.brandHeroContainer}>
-          <View style={[styles.logoSquircle, { backgroundColor: isDark ? colors.card : '#FFFFFF', borderColor: isDark ? colors.cardBorder : COLORS.primaryBorder }]}>
-            <Image
-              source={require('../../assets/logo.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
+        {/* Marca */}
+        <View style={styles.brandRow}>
+          <View style={[styles.logoBox, { backgroundColor: isDark ? colors.card : '#FFFFFF', borderColor: colors.cardBorder }]}>
+            <Image source={require('../../assets/logo.png')} style={styles.logoImage} resizeMode="contain" />
           </View>
-          <WeFindText size={20} uppercase style={{ marginTop: 4, letterSpacing: -0.4 }} />
+          <WeFindText size={18} uppercase style={{ marginLeft: 10, letterSpacing: -0.4 }} />
         </View>
 
-        <View style={styles.headerBox}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Criar nova conta</Text>
+        {/* Título */}
+        <View style={styles.titleBlock}>
+          <Text style={[styles.title, { color: colors.text }]}>Criar conta</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            Vamos confirmar seu número pelo WhatsApp no próximo passo.
+          </Text>
         </View>
 
-        <View style={[styles.formBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-          <Input
-            label="Nome Completo"
-            placeholder="Ex: Maria dos Santos"
-            value={name}
-            onChangeText={(text) => {
-              setName(text);
-              if (errors.name) setErrors((prev) => ({ ...prev, name: null }));
-            }}
-            error={errors.name}
-            editable
-            style={styles.input}
-            inputStyle={[styles.inputField, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0', color: colors.text }]}
-            returnKeyType="next"
-          />
+        {/* Formulário */}
+        <Input
+          label="Nome completo"
+          placeholder="Ex: Maria dos Santos"
+          value={name}
+          onChangeText={(text) => {
+            setName(text);
+            if (errors.name) setErrors((prev) => ({ ...prev, name: null }));
+          }}
+          autoCapitalize="words"
+          autoComplete="name"
+          error={errors.name}
+          style={styles.input}
+          inputStyle={fieldStyle}
+          returnKeyType="next"
+        />
 
-          <Input
-            label="E-mail"
-            placeholder="seu@email.com"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              if (errors.email) setErrors((prev) => ({ ...prev, email: null }));
-            }}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable
-            error={errors.email}
-            style={styles.input}
-            inputStyle={[styles.inputField, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0', color: colors.text }]}
-            returnKeyType="next"
-          />
+        <Input
+          label="E-mail"
+          placeholder="seu@email.com"
+          value={email}
+          onChangeText={(text) => {
+            setEmail(text);
+            if (errors.email) setErrors((prev) => ({ ...prev, email: null }));
+          }}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          error={errors.email}
+          style={styles.input}
+          inputStyle={fieldStyle}
+          returnKeyType="next"
+        />
 
-          <Input
-            label="WhatsApp (com DDD)"
-            placeholder="(11) 99999-9999"
-            value={formatBrazilianPhone(whatsapp)}
-            onChangeText={(text) => {
-              setWhatsapp(text.replace(/\D/g, ''));
-              if (errors.whatsapp) setErrors((prev) => ({ ...prev, whatsapp: null }));
-            }}
-            keyboardType="phone-pad"
-            editable
-            error={errors.whatsapp || errors.phone}
-            style={styles.input}
-            inputStyle={[styles.inputField, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0', color: colors.text }]}
-            returnKeyType="next"
-          />
+        <Input
+          label="WhatsApp"
+          placeholder="(11) 99999-9999"
+          value={formatBrazilianPhone(whatsapp)}
+          onChangeText={(text) => {
+            setWhatsapp(text.replace(/\D/g, ''));
+            if (errors.whatsapp) setErrors((prev) => ({ ...prev, whatsapp: null }));
+          }}
+          keyboardType="phone-pad"
+          error={errors.whatsapp || errors.phone}
+          style={styles.input}
+          inputStyle={fieldStyle}
+          returnKeyType="next"
+        />
 
-          <Input
-            label="Senha"
-            placeholder="Mínimo 8 caracteres com letras e números"
-            value={password}
-            onChangeText={(text) => {
-              setPassword(text);
-              if (errors.password) setErrors((prev) => ({ ...prev, password: null }));
-            }}
-            secureTextEntry={true}
-            editable
-            error={errors.password}
-            style={styles.input}
-            inputStyle={[styles.inputField, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0', color: colors.text }]}
-            returnKeyType="next"
-          />
+        <Input
+          label="Senha"
+          placeholder="8 caracteres, com letras e números"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (errors.password) setErrors((prev) => ({ ...prev, password: null }));
+          }}
+          secureTextEntry={true}
+          autoComplete="password-new"
+          error={errors.password}
+          style={password.length > 0 ? styles.inputTight : styles.input}
+          inputStyle={fieldStyle}
+          returnKeyType="next"
+        />
 
-          {/* INDICADOR DE FORÇA DA SENHA COMPACTO EM TEMPO REAL */}
-          {password.length > 0 && (() => {
-            const pwdStrength = calculatePasswordStrength(password);
-            return (
-              <View style={styles.passwordStrengthInline}>
-                <View style={[styles.strengthBarRow, { flex: 1, marginBottom: 0 }]}>
-                  {[1, 2, 3, 4].map((seg) => (
-                    <View
-                      key={seg}
-                      style={[
-                        styles.strengthBarSegment,
-                        { backgroundColor: seg <= pwdStrength.level ? pwdStrength.color : (isDark ? '#334155' : '#E2E8F0') },
-                      ]}
-                    />
-                  ))}
-                </View>
-                <Text style={{ fontSize: 11, fontWeight: '800', color: pwdStrength.color, marginLeft: 8 }}>
-                  {pwdStrength.label}
-                </Text>
+        {password.length > 0 && (() => {
+          const pwdStrength = calculatePasswordStrength(password);
+          return (
+            <View style={styles.strengthRow}>
+              <View style={styles.strengthBars}>
+                {[1, 2, 3, 4].map((seg) => (
+                  <View
+                    key={seg}
+                    style={[
+                      styles.strengthBar,
+                      { backgroundColor: seg <= pwdStrength.level ? pwdStrength.color : (isDark ? '#334155' : '#E2E8F0') },
+                    ]}
+                  />
+                ))}
               </View>
-            );
-          })()}
-
-          <Input
-            label="Confirmar Senha"
-            placeholder="Repita sua senha"
-            value={confirmPassword}
-            onChangeText={(text) => {
-              setConfirmPassword(text);
-              if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: null }));
-            }}
-            secureTextEntry={true}
-            editable
-            error={errors.confirmPassword}
-            style={styles.input}
-            inputStyle={[styles.inputField, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0', color: colors.text }]}
-            returnKeyType="done"
-          />
-
-          {/* Feedback de Confirmação de Senha em Tempo Real */}
-          {confirmPassword.length > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: -4, marginBottom: 8, paddingHorizontal: 2 }}>
-              <MaterialIcons
-                name={password === confirmPassword ? 'check-circle' : 'cancel'}
-                size={13}
-                color={password === confirmPassword ? '#10B981' : '#EF4444'}
-                style={{ marginRight: 4 }}
-              />
-              <Text
-                style={{
-                  fontSize: 11.5,
-                  fontWeight: '700',
-                  color: password === confirmPassword ? (isDark ? '#34D399' : '#2E5634') : '#EF4444',
-                }}
-              >
-                {password === confirmPassword ? 'As senhas conferem!' : 'As senhas não conferem'}
-              </Text>
+              <Text style={[styles.strengthLabel, { color: pwdStrength.color }]}>{pwdStrength.label}</Text>
             </View>
-          )}
+          );
+        })()}
 
-          {/* Checkbox de Consentimento de Notificações por WhatsApp */}
-          <TouchableOpacity
-              style={styles.consentRow}
-              onPress={() => setWhatsappConsent(prev => !prev)}
-              activeOpacity={0.8}
-            >
-              <View style={[styles.checkbox, { borderColor: colors.border, backgroundColor: isDark ? '#0F172A' : '#FFFFFF' }, whatsappConsent && [styles.checkboxChecked, { backgroundColor: colors.primary, borderColor: colors.primary }]]}>
-                {whatsappConsent ? <MaterialIcons name="check" size={15} color="#FFFFFF" /> : null}
-              </View>
-              <Text style={[styles.consentText, { color: colors.textSecondary }]}>
-                Desejo receber avisos em tempo real de animais encontrados no meu WhatsApp
-              </Text>
-            </TouchableOpacity>
+        <Input
+          label="Confirmar senha"
+          placeholder="Digite a senha novamente"
+          value={confirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: null }));
+          }}
+          secureTextEntry={true}
+          error={errors.confirmPassword}
+          style={styles.inputLast}
+          inputStyle={fieldStyle}
+          returnKeyType="done"
+          onSubmitEditing={handleRegister}
+        />
 
+        {confirmPassword.length > 0 && !errors.confirmPassword && password !== confirmPassword ? (
+          <Text style={styles.mismatchText}>As senhas não são iguais.</Text>
+        ) : null}
 
-          <TouchableOpacity
-            onPress={handleRegister}
-            disabled={isSubmitting}
-            style={[styles.registerButton, { backgroundColor: colors.primary }]}
-            activeOpacity={0.85}
+        {/* Consentimento */}
+        <TouchableOpacity
+          style={styles.consentRow}
+          onPress={() => setWhatsappConsent((prev) => !prev)}
+          activeOpacity={0.75}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: whatsappConsent }}
+        >
+          <View
+            style={[
+              styles.checkbox,
+              { borderColor: whatsappConsent ? colors.primary : colors.border, backgroundColor: whatsappConsent ? colors.primary : 'transparent' },
+            ]}
           >
-            <Text style={styles.registerButtonText}>
-              {isSubmitting ? 'Processando...' : 'Criar Minha Conta'}
-            </Text>
-            {!isSubmitting && <Feather name="arrow-right" size={18} color="#FFFFFF" style={{ marginLeft: 6 }} />}
-          </TouchableOpacity>
-        </View>
+            {whatsappConsent ? <Feather name="check" size={14} color="#FFFFFF" /> : null}
+          </View>
+          <Text style={[styles.consentText, { color: colors.textSecondary }]}>
+            Quero receber no WhatsApp avisos de animais perdidos perto de mim
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleRegister}
+          disabled={isSubmitting}
+          style={[styles.primaryButton, { backgroundColor: colors.primary }, isSubmitting && styles.disabledButton]}
+          activeOpacity={0.85}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <Text style={styles.primaryButtonText}>Criar conta</Text>
+          )}
+        </TouchableOpacity>
 
         <View style={styles.footerRow}>
-          <Text style={[styles.footerText, { color: colors.textSecondary }]}>Já possui uma conta? </Text>
-          <TouchableOpacity onPress={() => navigation.replace('Login')} activeOpacity={0.75}>
-            <Text style={[styles.loginLinkText, { color: colors.primary }]}>Acessar conta</Text>
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>Já tem conta? </Text>
+          <TouchableOpacity onPress={() => navigation.replace('Login')} activeOpacity={0.7} hitSlop={8}>
+            <Text style={[styles.footerLink, { color: colors.primary }]}>Entrar</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAwareScrollView>
@@ -406,193 +398,132 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 18,
-    paddingTop: 4,
-    paddingBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 20,
+    justifyContent: 'flex-start',
+    width: '100%',
+    maxWidth: 440,
+    alignSelf: 'center',
   },
-  brandHeroContainer: {
+  brandRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-    marginTop: 0,
+    marginBottom: 20,
   },
-  logoSquircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 11,
+    borderWidth: 1,
+    padding: 4,
     overflow: 'hidden',
-    borderWidth: 1.5,
-    padding: 8,  },
+  },
   logoImage: {
     width: '100%',
     height: '100%',
   },
-  headerBox: {
-    alignItems: 'center',
-    marginBottom: 8,
-    marginTop: 0,
-    paddingHorizontal: 16,
+  titleBlock: {
+    marginBottom: 18,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    marginBottom: 2,
-    letterSpacing: -0.3,
-    textAlign: 'center',
+  title: {
+    fontSize: 27,
+    fontWeight: '700',
+    letterSpacing: -0.4,
   },
-  headerSubtitle: {
-    fontSize: 12,
-    lineHeight: 16,
-    textAlign: 'center',
-  },
-  formBox: {
-    width: '100%',
-    maxWidth: 390,
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
+  subtitle: {
+    fontSize: 15,
+    lineHeight: 21,
+    marginTop: 4,
   },
   input: {
-    marginBottom: 4,
+    marginBottom: 12,
+  },
+  inputTight: {
+    marginBottom: 8,
+  },
+  inputLast: {
+    marginBottom: 0,
   },
   inputField: {
     borderRadius: 12,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    height: 44,
+    paddingHorizontal: 14,
+    fontSize: 16,
+    height: 48,
   },
-  passwordStrengthBox: {
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 8,
-    marginBottom: 8,
-    marginTop: -2,
-  },
-  passwordStrengthInline: {
+  strengthRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: -2,
-    marginBottom: 6,
-    paddingHorizontal: 2,
+    marginBottom: 12,
   },
-  strengthHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  strengthLabelTitle: {
-    fontSize: 11.5,
-    fontWeight: '600',
-  },
-  strengthBadgeText: {
-    fontSize: 11.5,
-    fontWeight: '800',
-  },
-  strengthBarRow: {
+  strengthBars: {
+    flex: 1,
     flexDirection: 'row',
     gap: 4,
-    marginBottom: 2,
   },
-  strengthBarSegment: {
+  strengthBar: {
     flex: 1,
     height: 4,
     borderRadius: 2,
   },
+  strengthLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 10,
+  },
+  mismatchText: {
+    color: '#DC2626',
+    fontSize: 13.5,
+    marginTop: 6,
+  },
   consentRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 6,
-    gap: 8,
+    alignItems: 'flex-start',
+    marginTop: 16,
+    marginBottom: 18,
   },
   checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 5,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  checkboxChecked: {
-    borderWidth: 0,
+    marginRight: 10,
+    marginTop: 1,
   },
   consentText: {
     flex: 1,
-    fontSize: 11.5,
-    lineHeight: 15,
+    fontSize: 14,
+    lineHeight: 20,
   },
-  consentError: {
-    color: '#EF4444',
-    fontSize: 11,
-    marginTop: -5,
-    marginBottom: 4,
-    marginLeft: 26,
-  },
-  verificationBox: {
-    borderRadius: 14,
-    borderWidth: 1.5,
-    padding: 12,
-    marginVertical: 8,
-  },
-  verificationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  verificationTitle: {
-    fontSize: 13.5,
-    fontWeight: '800',
-  },
-  editDataText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  verificationDesc: {
-    fontSize: 12,
-    lineHeight: 16,
-    marginBottom: 4,
-  },
-  resendBtn: {
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  resendBtnText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  registerButton: {
-    flexDirection: 'row',
+  primaryButton: {
+    height: 52,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 13,
-    paddingVertical: 11,
-    marginTop: 4,  },
-  registerButtonText: {
-    fontWeight: '800',
-    fontSize: 14.5,
-    letterSpacing: 0.2,
+  },
+  primaryButtonText: {
     color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  disabledButton: {
+    opacity: 0.55,
   },
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
+    marginTop: 18,
   },
   footerText: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 15,
   },
-  loginLinkText: {
-    fontWeight: '800',
-    fontSize: 13,
+  footerLink: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
 

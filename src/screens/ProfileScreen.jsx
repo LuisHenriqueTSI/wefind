@@ -12,7 +12,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
@@ -109,30 +109,10 @@ const ProfileScreen = ({ navigation }) => {
     : (effectiveCity || effectiveState || null);
 
   const communityLinks = [
-    {
-      label: 'Ranking da comunidade',
-      icon: 'leaderboard',
-      iconColor: colors.secondary,
-      route: 'Ranking',
-    },
-    {
-      label: 'Rede de lares temporários',
-      icon: 'groups',
-      iconColor: '#16A34A',
-      route: 'FosterVolunteers',
-    },
-    {
-      label: 'Mural de reencontros',
-      icon: 'favorite',
-      iconColor: '#EC4899',
-      route: 'MuralReencontros',
-    },
-    {
-      label: 'Sobre o WeFIND',
-      icon: 'info',
-      iconColor: colors.primary,
-      route: 'Sobre',
-    },
+    { label: 'Ranking da comunidade', icon: 'bar-chart-2', route: 'Ranking' },
+    { label: 'Rede de lares temporários', icon: 'users', route: 'FosterVolunteers' },
+    { label: 'Mural de reencontros', icon: 'heart', route: 'MuralReencontros' },
+    { label: 'Sobre o WeFIND', icon: 'info', route: 'Sobre' },
   ].filter((item) => (
     (item.route !== 'Ranking' || APP_FEATURES.communityRanking) &&
     (item.route !== 'FosterVolunteers' || APP_FEATURES.fosterVolunteers) &&
@@ -140,28 +120,48 @@ const ProfileScreen = ({ navigation }) => {
   ));
 
   const settingsLinks = [
-    {
-      label: 'Configurações',
-      icon: 'settings',
-      iconColor: colors.textSecondary,
-      route: 'Config',
-    },
-    {
-      label: 'Ajuda e suporte',
-      icon: 'help',
-      iconColor: colors.textSecondary,
-      route: 'AjudaSuporte',
-    },
+    { label: 'Configurações', icon: 'settings', route: 'Config' },
+    { label: 'Ajuda e suporte', icon: 'help-circle', route: 'AjudaSuporte' },
   ];
 
   const profileLinks = [
-    { label: 'Meus pets e carteirinhas', icon: 'pets', route: 'MyPets' },
-    { label: 'Meus anúncios', icon: 'campaign', route: 'MeusAnuncios', count: userItemsCount },
+    { label: 'Meus pets e carteirinhas', icon: 'paw-outline', lib: 'mci', route: 'MyPets' },
+    { label: 'Meus anúncios', icon: 'file-text', route: 'MeusAnuncios', count: userItemsCount },
     ...(APP_FEATURES.gamification
-      ? [{ label: 'Conquistas e nível', icon: 'workspace-premium', route: 'Gamification' }]
+      ? [{ label: 'Conquistas e nível', icon: 'award', route: 'Gamification' }]
       : []),
-    { label: 'Solicitações de devolução', icon: 'assignment-turned-in', route: 'ClaimsManagement' },
-    ...(isAdmin ? [{ label: 'Painel administrativo', icon: 'admin-panel-settings', route: 'Admin' }] : []),
+    { label: 'Solicitações de devolução', icon: 'inbox', route: 'ClaimsManagement' },
+    ...(isAdmin ? [{ label: 'Painel administrativo', icon: 'shield', route: 'Admin' }] : []),
+  ];
+
+  const iconBg = isDark ? 'rgba(255, 255, 255, 0.06)' : '#F1F5F9';
+
+  const renderIcon = (item, color = colors.text) => (
+    <View style={[styles.menuIconBox, { backgroundColor: iconBg }]}>
+      {item.lib === 'mci' ? (
+        <MaterialCommunityIcons name={item.icon} size={19} color={color} />
+      ) : (
+        <Feather name={item.icon} size={17} color={color} />
+      )}
+    </View>
+  );
+
+  const renderRow = (item, { onPress, right, isLast }) => (
+    <React.Fragment key={item.route || item.label}>
+      <TouchableOpacity style={styles.menuRow} onPress={onPress} activeOpacity={0.7}>
+        {renderIcon(item)}
+        <Text style={[styles.menuTitle, { color: colors.text }]} numberOfLines={1}>{item.label}</Text>
+        {right}
+        <Feather name="chevron-right" size={18} color={colors.textMuted} />
+      </TouchableOpacity>
+      {!isLast ? <View style={[styles.menuDivider, { backgroundColor: colors.cardBorder }]} /> : null}
+    </React.Fragment>
+  );
+
+  const secondGroup = [
+    ...(APP_FEATURES.fosterVolunteers ? [{ key: 'foster' }] : []),
+    ...communityLinks,
+    ...settingsLinks,
   ];
 
   return (
@@ -175,177 +175,115 @@ const ProfileScreen = ({ navigation }) => {
       onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}
       onContentSizeChange={(_, h) => setContentHeight(h)}
     >
-      {/* Identidade e dados principais */}
-      <View style={styles.identityCard}>
-        <View style={styles.identityRow}>
-          <TouchableOpacity
-            onPress={handlePickAvatar}
-            disabled={uploading}
-            activeOpacity={0.85}
-            style={styles.avatarWrapper}
-          >
-            {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
-            ) : (
-              <View style={[styles.avatarFallback, { backgroundColor: colors.primary }]}>
-                <Text style={styles.avatarInitial}>{initial}</Text>
-              </View>
-            )}
-            <View style={[styles.cameraBadge, { backgroundColor: colors.primary, borderColor: colors.surface }]}>
-              {uploading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Feather name="camera" size={13} color="#FFFFFF" />
-              )}
+      {/* Identidade */}
+      <View style={[styles.identityCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <TouchableOpacity
+          onPress={handlePickAvatar}
+          disabled={uploading}
+          activeOpacity={0.85}
+          style={styles.avatarWrapper}
+          accessibilityRole="button"
+          accessibilityLabel="Alterar foto de perfil"
+        >
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+          ) : (
+            <View style={[styles.avatarFallback, { backgroundColor: colors.primary }]}>
+              <Text style={styles.avatarInitial}>{initial}</Text>
             </View>
-          </TouchableOpacity>
+          )}
+          <View style={[styles.cameraBadge, { backgroundColor: colors.text, borderColor: colors.card }]}>
+            {uploading ? (
+              <ActivityIndicator size="small" color={colors.card} />
+            ) : (
+              <Feather name="camera" size={12} color={colors.card} />
+            )}
+          </View>
+        </TouchableOpacity>
 
-          <View style={styles.identityDetails}>
-            <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
-              {userProfile?.name || 'Usuário WeFIND'}
-            </Text>
-            {locationText ? (
+        <View style={styles.identityDetails}>
+          <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
+            {userProfile?.name || 'Usuário WeFIND'}
+          </Text>
+          {locationText ? (
+            <View style={styles.locationRow}>
+              <Feather name="map-pin" size={13} color={colors.textSecondary} style={{ marginRight: 4 }} />
               <Text style={[styles.userLocation, { color: colors.textSecondary }]} numberOfLines={1}>
                 {locationText}
               </Text>
-            ) : null}
-          </View>
+            </View>
+          ) : null}
         </View>
 
         <TouchableOpacity
-          style={[styles.editProfileButton, { borderTopColor: colors.divider }]}
+          style={[styles.editButton, { borderColor: colors.border }]}
           onPress={() => navigation.navigate('EditProfile')}
           activeOpacity={0.75}
+          accessibilityLabel="Editar perfil"
         >
-          <Text style={[styles.editProfileButtonText, { color: colors.primary }]}>Editar perfil e contatos</Text>
-          <MaterialIcons name="arrow-forward" size={17} color={colors.primary} />
+          <Text style={[styles.editButtonText, { color: colors.text }]}>Editar</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>MINHA CONTA</Text>
-      <View style={[styles.menuGroup, { backgroundColor: colors.card, borderColor: colors.divider }]}>
-        {profileLinks.map((item, index) => (
-          <React.Fragment key={item.route}>
-            <TouchableOpacity
-              style={styles.menuRow}
-              onPress={() => navigation.navigate(item.route)}
-              activeOpacity={0.75}
-            >
-              <MaterialIcons name={item.icon} size={20} color={colors.primary} style={styles.menuIcon} />
-              <Text style={[styles.menuTitle, styles.profileLinkTitle, { color: colors.text }]}>{item.label}</Text>
-              {item.count !== undefined && item.count > 0 ? (
-                <Text style={[styles.linkCount, { color: colors.textSecondary }]}>{item.count}</Text>
-              ) : null}
-              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
-            </TouchableOpacity>
-            {index < profileLinks.length - 1 ? (
-              <View style={[styles.menuDivider, { backgroundColor: colors.divider }]} />
-            ) : null}
-          </React.Fragment>
-        ))}
+      {/* Minha conta */}
+      <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Minha conta</Text>
+      <View style={[styles.menuGroup, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        {profileLinks.map((item, index) =>
+          renderRow(item, {
+            onPress: () => navigation.navigate(item.route),
+            isLast: index === profileLinks.length - 1,
+            right:
+              item.count !== undefined && item.count > 0 ? (
+                <View style={[styles.countPill, { backgroundColor: iconBg }]}>
+                  <Text style={[styles.countText, { color: colors.textSecondary }]}>{item.count}</Text>
+                </View>
+              ) : null,
+          })
+        )}
       </View>
 
-      {/* 4. GRUPO: COMUNIDADE & IMPACTO */}
-      <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>COMUNIDADE E PREFERÊNCIAS</Text>
+      {/* Comunidade e preferências */}
+      <Text style={[styles.groupTitle, { color: colors.textSecondary }]}>Comunidade e preferências</Text>
       <View style={[styles.menuGroup, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        {APP_FEATURES.fosterVolunteers && (
-          <>
-            <TouchableOpacity
-              style={styles.menuRow}
-              onPress={() => setFosterModalVisible(true)}
-              activeOpacity={0.75}
-            >
-              <MaterialIcons
-                name="home-work"
-                size={20}
-                color={fosterProfile?.isActive ? '#16A34A' : colors.textSecondary}
-                style={styles.menuIcon}
-              />
-              <View style={styles.menuTextBox}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={[styles.menuTitle, { color: colors.text }]}>Lar temporário</Text>
-                  <View style={{
-                    paddingHorizontal: 6,
-                    paddingVertical: 1.5,
-                    borderRadius: 6,
-                    backgroundColor: fosterProfile?.isActive ? '#DCFCE7' : (isDark ? '#334155' : '#E2E8F0'),
-                  }}>
-                    <Text style={{
-                      fontSize: 10,
-                      fontWeight: '800',
-                      color: fosterProfile?.isActive ? '#15803D' : colors.textSecondary,
-                    }}>
-                      {fosterProfile?.isActive ? 'ATIVO' : 'INATIVO'}
+        {secondGroup.map((item, index) => {
+          const isLast = index === secondGroup.length - 1;
+          if (item.key === 'foster') {
+            const active = !!fosterProfile?.isActive;
+            return renderRow(
+              { label: 'Lar temporário', icon: 'home', route: 'foster' },
+              {
+                onPress: () => setFosterModalVisible(true),
+                isLast,
+                right: (
+                  <View
+                    style={[
+                      styles.statusPill,
+                      { backgroundColor: active ? (isDark ? 'rgba(16, 185, 129, 0.15)' : '#ECFDF5') : iconBg },
+                    ]}
+                  >
+                    <View style={[styles.statusDot, { backgroundColor: active ? '#10B981' : colors.textMuted }]} />
+                    <Text style={[styles.statusText, { color: active ? (isDark ? '#34D399' : '#047857') : colors.textSecondary }]}>
+                      {active ? 'Ativo' : 'Inativo'}
                     </Text>
                   </View>
-                </View>
-              </View>
-              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
-            </TouchableOpacity>
-
-            <View style={[styles.menuDivider, { backgroundColor: colors.divider }]} />
-          </>
-        )}
-
-        {communityLinks.map((item, index) => (
-          <React.Fragment key={item.route}>
-            <TouchableOpacity
-              style={styles.menuRow}
-              onPress={() => navigation.navigate(item.route)}
-              activeOpacity={0.75}
-            >
-              <MaterialIcons name={item.icon} size={20} color={item.iconColor} style={styles.menuIcon} />
-              <View style={styles.menuTextBox}>
-                <Text style={[styles.menuTitle, { color: colors.text }]}>{item.label}</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
-            </TouchableOpacity>
-            {index < communityLinks.length - 1 ? (
-              <View style={[styles.menuDivider, { backgroundColor: colors.divider }]} />
-            ) : null}
-          </React.Fragment>
-        ))}
-        {/* Preferências no mesmo grupo: menos títulos e espaços, a tela cabe sem rolar */}
-        {communityLinks.length > 0 ? (
-          <View style={[styles.menuDivider, { backgroundColor: colors.divider }]} />
-        ) : null}
-        {settingsLinks.map((item, index) => (
-          <React.Fragment key={item.route}>
-            <TouchableOpacity
-              style={styles.menuRow}
-              onPress={() => navigation.navigate(item.route)}
-              activeOpacity={0.75}
-            >
-              <MaterialIcons name={item.icon} size={20} color={item.iconColor} style={styles.menuIcon} />
-              <View style={styles.menuTextBox}>
-                <Text style={[styles.menuTitle, { color: colors.text }]}>{item.label}</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={20} color={colors.textMuted} />
-            </TouchableOpacity>
-            {index < settingsLinks.length - 1 ? (
-              <View style={[styles.menuDivider, { backgroundColor: colors.divider }]} />
-            ) : null}
-          </React.Fragment>
-        ))}
+                ),
+              }
+            );
+          }
+          return renderRow(item, { onPress: () => navigation.navigate(item.route), isLast });
+        })}
       </View>
 
-      {/* 6. BOTÃO DE LOGOUT */}
+      {/* Sair */}
       <TouchableOpacity
-        style={[
-          styles.logoutButton,
-          {
-            backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#FEF2F2',
-            borderColor: isDark ? 'rgba(239, 68, 68, 0.25)' : '#FEE2E2',
-          },
-        ]}
+        style={[styles.logoutButton, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
         onPress={signOut}
-        activeOpacity={0.8}
+        activeOpacity={0.75}
       >
-        <Feather name="log-out" size={16} color="#DC2626" style={{ marginRight: 8 }} />
+        <Feather name="log-out" size={17} color="#DC2626" style={{ marginRight: 8 }} />
         <Text style={styles.logoutButtonText}>Sair da conta</Text>
       </TouchableOpacity>
 
-      {/* Modal de Lar Temporário Solidário */}
       {APP_FEATURES.fosterVolunteers && (
         <FosterVolunteerModal
           visible={fosterModalVisible}
@@ -364,126 +302,157 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 16,
+    paddingBottom: 20,
   },
   identityCard: {
-    marginBottom: 16,
-  },
-  identityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 22,
   },
   avatarWrapper: {
     position: 'relative',
     marginRight: 14,
   },
   avatarImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#E2E8F0',
   },
   avatarFallback: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitial: {
     color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 26,
+    fontWeight: '700',
   },
   cameraBadge: {
     position: 'absolute',
     bottom: -2,
     right: -2,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 2.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   identityDetails: {
     flex: 1,
+    marginRight: 10,
   },
   userName: {
     fontSize: 19,
     fontWeight: '700',
-    marginBottom: 2,
+    letterSpacing: -0.2,
   },
-  userLocation: {
-    fontSize: 12,
-  },
-  editProfileButton: {
+  locationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 12,
-    marginTop: 2,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    marginTop: 4,
   },
-  editProfileButtonText: {
-    fontSize: 13,
+  userLocation: {
+    fontSize: 14,
+    flexShrink: 1,
+  },
+  editButton: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  editButtonText: {
+    fontSize: 14.5,
     fontWeight: '600',
   },
   groupTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.35,
-    marginBottom: 6,
-    marginLeft: 2,
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 8,
+    marginLeft: 4,
   },
   menuGroup: {
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    marginBottom: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 22,
     overflow: 'hidden',
   },
   menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 46,
-    paddingVertical: 9,
+    minHeight: 50,
+    paddingVertical: 8,
     paddingHorizontal: 14,
   },
-  menuIcon: {
-    width: 24,
+  menuIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
-  menuTextBox: {
-    flex: 1,
-  },
   menuTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    flex: 1,
+    fontSize: 15.5,
+    fontWeight: '500',
   },
   menuDivider: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 50,
+    height: 1,
+    marginLeft: 58,
   },
-  profileLinkTitle: {
-    flex: 1,
-  },
-  linkCount: {
-    fontSize: 13,
+  countPill: {
+    minWidth: 26,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    alignItems: 'center',
     marginRight: 8,
+  },
+  countText: {
+    fontSize: 13.5,
+    fontWeight: '600',
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 5,
+  },
+  statusText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 11,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
+    height: 50,
+    borderRadius: 16,
+    borderWidth: 1,
   },
   logoutButtonText: {
     color: '#DC2626',
-    fontSize: 14,
-    fontWeight: '800',
+    fontSize: 15.5,
+    fontWeight: '600',
   },
 });
 

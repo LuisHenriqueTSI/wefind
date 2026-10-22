@@ -75,9 +75,12 @@ const AdvancedFiltersModal = ({
 
     return (
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-          {title}
-        </Text>
+        <View style={styles.sectionTitleRow}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary, marginBottom: 0 }]}>
+            {title}
+          </Text>
+          <Text style={[styles.sectionHint, { color: colors.textMuted }]}>Um ou mais</Text>
+        </View>
         <View style={styles.pillContainer}>
           {options.map((option) => {
             const isSelected = selectedValues.includes(option.value);
@@ -378,7 +381,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: '800',
   },
   badge: {
@@ -388,7 +391,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   badgeText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   scrollContent: {
@@ -397,12 +400,22 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   section: {
-    marginBottom: 12,
+    marginBottom: 14,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    marginBottom: 8,
+  },
+  sectionHint: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   sectionTitle: {
-    fontSize: 11.5,
+    fontSize: 13.5,
     fontWeight: '800',
-    marginBottom: 6,
+    marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -412,8 +425,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   pill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 16,
     borderWidth: 1,
   },
@@ -425,7 +438,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   pillText: {
-    fontSize: 12.5,
+    fontSize: 14.5,
     fontWeight: '600',
   },
   pillTextActive: {
@@ -449,7 +462,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   btnOutlineText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
   btnPrimary: {
@@ -461,7 +474,7 @@ const styles = StyleSheet.create({
   },
   btnPrimaryText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
   },
 });

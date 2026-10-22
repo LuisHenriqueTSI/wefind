@@ -1938,43 +1938,49 @@ const HomeScreen = ({ navigation, route }) => {
                 <Text style={{ color: '#FFFFFF', fontWeight: '300' }}>FIND</Text>
               </Text>
             </View>
-            <TouchableOpacity
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: 'rgba(255, 255, 255, 0.16)',
-                borderRadius: 20,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                marginTop: 2,
-                maxWidth: '100%',
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.28)',
-              }}
-              onPress={() => {
-                setProfileEditCity(activeCity);
-                setProfileEditState(activeState);
-                setProfileEditDistrict(sessionDistrict);
-                setProfileEditStreet(sessionStreet);
-                setProfileEditAddressText(sessionAddressText);
-                setProfileEditRadiusKm(searchRadiusKm);
-                setShowProfileLocationModal(true);
-              }}
-              accessibilityLabel={`Localidade: ${headerCityState}`}
-              activeOpacity={0.75}
-            >
-              <MaterialIcons name="place" size={14} color="#FEA937" style={{ marginRight: 4, flexShrink: 0 }} />
-              <Text
-                style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '600', marginRight: 6, flexShrink: 1 }}
-                numberOfLines={1}
-                ellipsizeMode="tail"
+            <View style={{ marginTop: 2, maxWidth: '100%' }}>
+              {/* Linha 1: endereço (toque para trocar o local) */}
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', maxWidth: '100%' }}
+                onPress={() => {
+                  setProfileEditCity(activeCity);
+                  setProfileEditState(activeState);
+                  setProfileEditDistrict(sessionDistrict);
+                  setProfileEditStreet(sessionStreet);
+                  setProfileEditAddressText(sessionAddressText);
+                  setProfileEditRadiusKm(searchRadiusKm);
+                  setShowProfileLocationModal(true);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={`Localidade: ${headerCityState}. Toque para trocar`}
+                activeOpacity={0.7}
               >
-                {headerCityState}
-              </Text>
-              <View style={{ backgroundColor: 'rgba(255, 255, 255, 0.25)', borderRadius: 10, padding: 2, flexShrink: 0 }}>
-                <MaterialIcons name="edit" size={11} color="#FFFFFF" />
-              </View>
-            </TouchableOpacity>
+                <MaterialIcons name="place" size={16} color="#FEA937" style={{ marginRight: 4, flexShrink: 0 }} />
+                <Text
+                  style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700', flexShrink: 1 }}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {headerCityState}
+                </Text>
+                <MaterialIcons name="edit" size={13} color="rgba(255, 255, 255, 0.75)" style={{ marginLeft: 6, flexShrink: 0 }} />
+              </TouchableOpacity>
+              {/* Linha 2: raio de busca (toque para ajustar) */}
+              {Boolean(locationFilter && locationFilter.trim().length > 0 && headerLocationSummary !== 'Todo o Brasil') ? (
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', marginTop: 1, marginLeft: 20, alignSelf: 'flex-start' }}
+                  onPress={() => { setSelectedQuickRadius(searchRadiusKm); setShowQuickRadiusModal(true); }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Mostrando até ${searchRadiusKm} quilômetros de você. Toque para ajustar`}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ color: 'rgba(255, 255, 255, 0.82)', fontSize: 12, fontWeight: '500' }}>
+                    Mostrando até <Text style={{ fontWeight: '800', color: '#FFFFFF' }}>{searchRadiusKm} km</Text>
+                  </Text>
+                  <MaterialIcons name="arrow-drop-down" size={18} color="rgba(255, 255, 255, 0.82)" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
           </View>
 
           {user ? (
@@ -2039,55 +2045,7 @@ const HomeScreen = ({ navigation, route }) => {
                   ? 'Escolha sua cidade e estado para personalizar o feed e seu perfil:'
                   : 'Escolha uma cidade e estado para visualizar publicações dessa região:'}
               </Text>
-              {/* Seletor Interativo de Raio de Busca (Apenas se houver cidade/estado selecionado) */}
-              {Boolean(profileEditCity || profileEditState || sessionCity || sessionState) && (
-                <View style={{
-                  backgroundColor: isDark ? colors.card : COLORS.primaryLight,
-                  padding: 12,
-                  borderRadius: 12,
-                  marginBottom: 14,
-                  borderWidth: 1,
-                  borderColor: isDark ? colors.cardBorder : COLORS.primaryBorder,
-                }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                    <MaterialIcons name="radar" size={18} color={colors.primary} style={{ marginRight: 6 }} />
-                    <Text style={{ color: isDark ? colors.primaryLight : colors.primaryDark, fontSize: 13, fontWeight: '700' }}>
-                      Raio de busca: <Text style={{ fontWeight: '900', color: colors.primary }}>{profileEditRadiusKm} km</Text>
-                    </Text>
-                  </View>
-                  <Text style={{ color: isDark ? colors.textSecondary : '#475569', fontSize: 11.5, marginBottom: 10 }}>
-                    Selecione a distância máxima para filtrar publicações ao redor de você:
-                  </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                    {SEARCH_RADIUS_OPTIONS_KM.map((r) => {
-                      const isSelected = profileEditRadiusKm === r;
-                      return (
-                        <TouchableOpacity
-                          key={r}
-                          onPress={() => setProfileEditRadiusKm(r)}
-                          activeOpacity={0.75}
-                          style={{
-                            paddingHorizontal: 10,
-                            paddingVertical: 6,
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            borderColor: isSelected ? colors.primary : colors.border,
-                            backgroundColor: isSelected ? colors.primary : (isDark ? colors.surface : '#FFFFFF'),
-                          }}
-                        >
-                          <Text style={{
-                            fontSize: 12,
-                            fontWeight: isSelected ? '800' : '600',
-                            color: isSelected ? '#FFFFFF' : colors.text,
-                          }}>
-                            {r} km
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              )}
+              {/* O raio de busca é ajustado pelo cabeçalho ("Mostrando até X km"), não aqui. */}
 
               <TouchableOpacity
                 onPress={() => {
@@ -2137,7 +2095,7 @@ const HomeScreen = ({ navigation, route }) => {
           mode="profile"
           initialLocation={profileEditCoords || userCoords}
           radiusKm={profileEditRadiusKm || searchRadiusKm}
-          showRadius={true}
+          showRadius={false}
           onRadiusChange={(r) => setProfileEditRadiusKm(r)}
           onClose={() => setProfileMapVisible(false)}
           onConfirm={({ address, addressDetails, addressText, street, houseNumber, district, neighborhood, city, state, coordinate, radiusKm }) => {
@@ -2463,6 +2421,8 @@ const HomeScreen = ({ navigation, route }) => {
           setShowProfileLocationModal(true);
         };
         return (
+          // Com localização definida, o raio fica no cabeçalho; aqui só aparece o "Definir local".
+          hasLocalFilter ? null : (
           <View style={styles.radiusRow}>
             <TouchableOpacity
               style={[styles.radiusPill, { backgroundColor: isDark ? 'rgba(82, 153, 96, 0.14)' : COLORS.primaryLight, borderColor: isDark ? '#274B30' : COLORS.primaryBorder }]}
@@ -2476,7 +2436,7 @@ const HomeScreen = ({ navigation, route }) => {
                 {hasLocalFilter ? (
                   <>
                     <Text style={{ fontWeight: '800', color: colors.primary }}>{searchRadiusKm} km</Text>
-                    {` de ${headerLocationSummary}`}
+                    {' da sua localização'}
                   </>
                 ) : (
                   <Text style={{ fontWeight: '800', color: colors.primary }}>Todo o Brasil</Text>
@@ -2485,10 +2445,8 @@ const HomeScreen = ({ navigation, route }) => {
               <Text style={[styles.radiusPillAction, { color: colors.primary }]}>{hasLocalFilter ? 'Ajustar' : 'Definir local'}</Text>
               <MaterialIcons name="chevron-right" size={16} color={colors.primary} />
             </TouchableOpacity>
-            {countLabel ? (
-              <Text style={[styles.radiusCount, { color: colors.textMuted }]} numberOfLines={1}>{countLabel}</Text>
-            ) : null}
           </View>
+          )
         );
       })()}
 
@@ -2614,7 +2572,7 @@ const HomeScreen = ({ navigation, route }) => {
             <MaterialIcons name="pets" size={46} color={isDark ? '#334155' : '#CBD5E1'} style={{ marginBottom: 10 }} />
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               {locationFilter && headerLocationSummary !== 'Todo o Brasil'
-                ? `Nenhum animal encontrado em um raio de ${searchRadiusKm} km de ${headerLocationSummary}.`
+                ? `Nenhum animal encontrado em um raio de ${searchRadiusKm} km da sua localização.`
                 : 'Nenhum animal cadastrado nesta categoria.'}
             </Text>
             {locationFilter && headerLocationSummary !== 'Todo o Brasil' ? (

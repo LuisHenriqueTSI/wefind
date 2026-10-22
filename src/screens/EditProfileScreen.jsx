@@ -23,7 +23,6 @@ import Input from '../components/Input';
 import MapLocationPicker from '../components/MapLocationPicker';
 import { states } from '../lib/br-locations';
 import COLORS from '../constants/theme';
-import SEARCH_RADIUS_OPTIONS_KM from '../constants/searchRadiusOptions';
 
 const normalizeRegionName = (value = '') =>
   String(value || '')
@@ -386,14 +385,17 @@ const EditProfileScreen = ({ navigation }) => {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
-      {/* Cabeçalho do Perfil com Avatar */}
-      <View style={[styles.headerCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+      {/* Foto e nome */}
+      <View style={styles.header}>
         <TouchableOpacity
           onPress={handlePickAvatar}
           disabled={uploadingAvatar || saving}
           activeOpacity={0.85}
           style={styles.avatarButton}
+          accessibilityRole="button"
+          accessibilityLabel="Alterar foto de perfil"
         >
           {avatar ? (
             <Image source={{ uri: avatar }} style={styles.avatarImage} />
@@ -404,219 +406,130 @@ const EditProfileScreen = ({ navigation }) => {
               <Text style={styles.avatarInitial}>{name?.charAt(0)?.toUpperCase() || 'U'}</Text>
             </View>
           )}
-          <View style={[styles.avatarBadge, { backgroundColor: colors.primary, borderColor: colors.surface }]}>
+          <View style={[styles.avatarBadge, { backgroundColor: colors.text, borderColor: colors.background }]}>
             {uploadingAvatar ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color={colors.background} />
             ) : (
-              <Feather name="camera" size={13} color="#FFFFFF" />
+              <Feather name="camera" size={14} color={colors.background} />
             )}
           </View>
         </TouchableOpacity>
 
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{name || 'Seu Nome'}</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-          Toque na foto para alterar sua imagem de perfil
+        <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
+          {name || 'Seu nome'}
         </Text>
+        <TouchableOpacity onPress={handlePickAvatar} disabled={uploadingAvatar || saving} hitSlop={8}>
+          <Text style={[styles.headerLink, { color: colors.primary }]}>Alterar foto</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Seção 1: Dados Pessoais */}
+      {/* Dados pessoais */}
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Dados pessoais</Text>
       <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Dados Pessoais</Text>
-
         <Input
           label="Nome completo"
           placeholder="Ex: Ana Silva"
           value={name}
           onChangeText={setName}
+          autoCapitalize="words"
           style={styles.input}
         />
-
         <Input
-          label="E-mail (vinculado à conta)"
+          label="E-mail"
           placeholder={user?.email || userProfile?.email}
           value={user?.email || userProfile?.email}
           editable={false}
-          style={styles.input}
+          inputStyle={{ color: colors.textMuted }}
+          style={styles.inputLast}
         />
       </View>
 
-      {/* Seção 2: Localização (Via Mapa Interativo) */}
-      <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Localização Padrão</Text>
-        <Text style={[styles.helperText, { color: colors.textSecondary }]}>
-          Defina sua cidade e estado no mapa para personalizar seu radar de busca e avisos próximos.
-        </Text>
-
-        {hasLocation ? (
-          <View
-            style={[
-              styles.locationDisplayBox,
-              {
-                backgroundColor: isDark ? colors.innerCard : COLORS.primaryLight,
-                borderColor: isDark ? colors.cardBorder : COLORS.primaryBorder,
-              },
-            ]}
-          >
-            <View style={styles.locationPinCircle}>
-              <MaterialIcons name="place" size={20} color={colors.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.locationLabel, { color: colors.textSecondary }]}>
-                Localização Selecionada:
-              </Text>
-              <Text style={[styles.locationValue, { color: colors.primary }]}>
-                {locationDisplayText}
-              </Text>
-            </View>
-          </View>
-        ) : (
-          <View
-            style={[
-              styles.noLocationBox,
-              { backgroundColor: isDark ? colors.innerCard : '#F8FAFC', borderColor: colors.border },
-            ]}
-          >
-            <MaterialIcons
-              name="location-off"
-              size={20}
-              color={colors.textMuted}
-              style={{ marginRight: 8 }}
-            />
-            <Text style={[styles.noLocationText, { color: colors.textMuted }]}>
-              Nenhuma localização selecionada
-            </Text>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={[
-            styles.mapLauncherBtn,
-            {
-              borderColor: colors.primary,
-              backgroundColor: isDark ? 'rgba(5, 150, 105, 0.12)' : COLORS.primaryLight,
-            },
-          ]}
-          onPress={() => setMapVisible(true)}
-          activeOpacity={0.8}
-        >
-          <MaterialIcons name="map" size={19} color={colors.primary} style={{ marginRight: 8 }} />
-          <Text style={[styles.mapLauncherBtnText, { color: colors.primary }]}>
-            {hasLocation ? 'Alterar localização no mapa' : 'Escolher no mapa'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Seletor de Raio Padrão */}
-        <View style={{
-          backgroundColor: isDark ? colors.innerCard : COLORS.primaryLight,
-          padding: 12,
-          borderRadius: 12,
-          marginTop: 14,
-          borderWidth: 1,
-          borderColor: isDark ? colors.cardBorder : COLORS.primaryBorder,
-        }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-            <MaterialIcons name="radar" size={18} color={colors.primary} style={{ marginRight: 6 }} />
-            <Text style={{ color: isDark ? colors.primaryLight : colors.primaryDark, fontSize: 13, fontWeight: '700' }}>
-              Raio de Busca: <Text style={{ fontWeight: '900', color: colors.primary }}>{searchRadiusKm} km</Text>
-            </Text>
-          </View>
-          <Text style={{ color: isDark ? colors.textSecondary : '#475569', fontSize: 11.5, marginBottom: 10 }}>
-            Distância máxima padrão para notificações e feed de animais próximos:
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-            {SEARCH_RADIUS_OPTIONS_KM.map((r) => {
-              const isSelected = searchRadiusKm === r;
-              return (
-                <TouchableOpacity
-                  key={r}
-                  onPress={() => setSearchRadiusKm(r)}
-                  activeOpacity={0.75}
-                  style={{
-                    paddingHorizontal: 10,
-                    paddingVertical: 6,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                    backgroundColor: isSelected ? colors.primary : (isDark ? colors.surface : '#FFFFFF'),
-                  }}
-                >
-                  <Text style={{
-                    fontSize: 12,
-                    fontWeight: isSelected ? '800' : '600',
-                    color: isSelected ? '#FFFFFF' : colors.text,
-                  }}>
-                    {r} km
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+      {/* Localização */}
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Localização</Text>
+      <TouchableOpacity
+        style={[styles.sectionCard, styles.rowCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
+        onPress={() => setMapVisible(true)}
+        activeOpacity={0.75}
+        accessibilityRole="button"
+        accessibilityLabel={hasLocation ? 'Alterar localização' : 'Definir localização'}
+      >
+        <View style={[styles.rowIcon, { backgroundColor: isDark ? colors.innerCard : '#F1F5F9' }]}>
+          <Feather name="map-pin" size={18} color={colors.text} />
         </View>
-      </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.rowTitle, { color: hasLocation ? colors.text : colors.textMuted }]} numberOfLines={2}>
+            {hasLocation ? locationDisplayText : 'Nenhuma localização definida'}
+          </Text>
+          <Text style={[styles.rowSubtitle, { color: colors.textSecondary }]}>
+            Usada para mostrar publicações e avisos perto de você
+          </Text>
+        </View>
+        <Text style={[styles.rowAction, { color: colors.primary }]}>
+          {hasLocation ? 'Alterar' : 'Definir'}
+        </Text>
+      </TouchableOpacity>
 
-      {/* Seção 3: Contatos e Redes Sociais */}
+      {/* Contatos */}
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Contatos</Text>
       <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Contatos</Text>
-
         <Input
-          label="WhatsApp (com DDD)"
+          label="WhatsApp"
           placeholder="(11) 99999-9999"
           value={formatBrazilianPhone(whatsapp)}
           onChangeText={(text) => setWhatsapp(text.replace(/\D/g, ''))}
           keyboardType="phone-pad"
-          style={styles.input}
+          style={{ marginBottom: 6 }}
         />
         <Text style={[styles.fieldHint, { color: colors.textMuted }]}>
-          💡 Ao alterar o número do WhatsApp, enviaremos um código de 6 dígitos para confirmação.
+          Se você trocar o número, enviaremos um código para confirmar.
         </Text>
 
         <Input
-          label="Instagram (opcional)"
-          placeholder="@seu_perfil"
+          label="Instagram"
+          placeholder="@seu_perfil (opcional)"
           value={instagram}
           onChangeText={setInstagram}
           style={styles.input}
         />
-
         <Input
-          label="Facebook (opcional)"
-          placeholder="seu_usuario"
+          label="Facebook"
+          placeholder="seu_usuario (opcional)"
           value={facebook}
           onChangeText={setFacebook}
-          style={styles.input}
+          style={styles.inputLast}
         />
       </View>
 
-      {/* Seção 4: Segurança */}
-      <View style={[styles.sectionCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Segurança</Text>
-        <TouchableOpacity
-          style={[
-            styles.securityButton,
-            {
-              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : '#F1F5F9',
-              borderColor: colors.border,
-            },
-          ]}
-          onPress={handleChangePassword}
-          activeOpacity={0.75}
-        >
-          <Feather name="lock" size={16} color={colors.primary} style={{ marginRight: 10 }} />
-          <Text style={[styles.securityButtonText, { color: colors.text }]}>
-            Redefinir senha de acesso via WhatsApp
-          </Text>
-          <Feather name="chevron-right" size={16} color={colors.textMuted} style={{ marginLeft: 'auto' }} />
+      {/* Conta */}
+      <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Conta</Text>
+      <View style={[styles.sectionCard, styles.listCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <TouchableOpacity style={styles.listRow} onPress={handleChangePassword} activeOpacity={0.7}>
+          <Feather name="lock" size={18} color={colors.text} style={styles.listIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.rowTitle, { color: colors.text }]}>Alterar senha</Text>
+            <Text style={[styles.rowSubtitle, { color: colors.textSecondary }]}>Com código enviado no WhatsApp</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color={colors.textMuted} />
+        </TouchableOpacity>
+        <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
+        <TouchableOpacity style={styles.listRow} onPress={handleDeleteAccount} activeOpacity={0.7}>
+          <Feather name="trash-2" size={18} color="#DC2626" style={styles.listIcon} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.rowTitle, { color: '#DC2626' }]}>Excluir conta</Text>
+            <Text style={[styles.rowSubtitle, { color: colors.textSecondary }]}>Remove seus dados de forma definitiva</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
 
       {errorMsg ? (
-        <View style={styles.errorBanner}>
-          <Feather name="alert-circle" size={16} color="#DC2626" style={{ marginRight: 6 }} />
+        <View style={[styles.errorBanner, { backgroundColor: isDark ? 'rgba(239, 68, 68, 0.12)' : '#FEF2F2' }]}>
+          <Feather name="alert-circle" size={16} color="#DC2626" style={{ marginRight: 8 }} />
           <Text style={styles.errorBannerText}>{errorMsg}</Text>
         </View>
       ) : null}
 
-      {/* Botões de Ação Inferiores */}
+      {/* Ações */}
       <View style={styles.footerRow}>
         <Button
           title="Cancelar"
@@ -631,37 +544,13 @@ const EditProfileScreen = ({ navigation }) => {
           style={styles.footerBtn}
         />
         <Button
-          title={saving ? 'Salvando...' : 'Salvar Alterações'}
+          title={saving ? 'Salvando...' : 'Salvar'}
           variant="primary"
           onPress={handleSave}
           disabled={saving}
           loading={saving}
           style={[styles.footerBtn, { flex: 1.5 }]}
         />
-      </View>
-
-      {/* Bloco de Excluir Conta */}
-      <View
-        style={[
-          styles.deleteCard,
-          {
-            backgroundColor: isDark ? 'rgba(239, 68, 68, 0.08)' : '#FEF2F2',
-            borderColor: isDark ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2',
-          },
-        ]}
-      >
-        <Text style={styles.deleteTitle}>Zona de Perigo</Text>
-        <Text style={[styles.deleteText, { color: colors.textSecondary }]}>
-          Se desejar encerrar sua conta e remover todos os seus dados definitivamente.
-        </Text>
-        <TouchableOpacity
-          style={styles.deleteBtn}
-          onPress={handleDeleteAccount}
-          activeOpacity={0.8}
-        >
-          <Feather name="trash-2" size={15} color="#DC2626" style={{ marginRight: 6 }} />
-          <Text style={styles.deleteBtnText}>Excluir minha conta</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Modal de Confirmação de Novo WhatsApp */}
@@ -742,14 +631,12 @@ const EditProfileScreen = ({ navigation }) => {
         </View>
       </Modal>
 
-      {/* Componente Modal de Mapa com Raio */}
+      {/* Mapa para escolher a localização */}
       <MapLocationPicker
         visible={mapVisible}
         mode="profile"
         initialLocation={profileCoords}
-        radiusKm={searchRadiusKm}
-        showRadius={true}
-        onRadiusChange={(r) => setSearchRadiusKm(r)}
+        showRadius={false}
         onClose={() => setMapVisible(false)}
         onConfirm={({ address, addressDetails, addressText, street, houseNumber, district, neighborhood, city, state, coordinate, radiusKm }) => {
           const region = String(addressDetails?.state || address?.region || state || '').trim();
@@ -766,7 +653,6 @@ const EditProfileScreen = ({ navigation }) => {
           setProfileDistrict(distValue);
           setProfileStreet(stValue);
           setProfileAddressText(addressText || '');
-          if (radiusKm) setSearchRadiusKm(radiusKm);
           if (coordinate && coordinate.latitude && coordinate.longitude) {
             setProfileCoords(coordinate);
           }
@@ -782,202 +668,146 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 16,
-    paddingBottom: 60,
-  },
-  headerCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    paddingVertical: 20,
     paddingHorizontal: 16,
-    marginBottom: 16,
+    paddingTop: 8,
+    paddingBottom: 48,
+  },
+  header: {
+    alignItems: 'center',
+    paddingTop: 16,
+    paddingBottom: 20,
   },
   avatarButton: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   avatarImage: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     backgroundColor: '#E2E8F0',
   },
   avatarFallback: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitial: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 36,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   avatarBadge: {
     position: 'absolute',
-    right: -2,
-    bottom: -2,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
+    right: 0,
+    bottom: 0,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 19,
-    fontWeight: '800',
+    fontSize: 21,
+    fontWeight: '700',
     textAlign: 'center',
+    maxWidth: '90%',
   },
-  headerSubtitle: {
-    fontSize: 12.5,
-    marginTop: 3,
-    textAlign: 'center',
+  headerLink: {
+    fontSize: 14.5,
+    fontWeight: '600',
+    marginTop: 6,
+  },
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 8,
+    marginLeft: 4,
   },
   sectionCard: {
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     padding: 16,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 12,
-  },
-  helperText: {
-    fontSize: 12.5,
-    lineHeight: 17,
-    marginBottom: 12,
-  },
-  fieldHint: {
-    fontSize: 12,
-    marginTop: -6,
-    marginBottom: 12,
-    lineHeight: 16,
+    marginBottom: 24,
   },
   input: {
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  locationDisplayBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 12,
+  inputLast: {
+    marginBottom: 0,
   },
-  locationPinCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  locationLabel: {
-    fontSize: 11.5,
-    fontWeight: '500',
-  },
-  locationValue: {
-    fontSize: 14.5,
-    fontWeight: '800',
-    marginTop: 1,
-  },
-  noLocationBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    marginBottom: 12,
-  },
-  noLocationText: {
+  fieldHint: {
     fontSize: 13,
-    fontWeight: '500',
+    lineHeight: 18,
+    marginBottom: 14,
   },
-  mapLauncherBtn: {
+  rowCard: {
     flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rowIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    marginRight: 12,
   },
-  mapLauncherBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
+  rowTitle: {
+    fontSize: 15.5,
+    fontWeight: '600',
   },
-  securityButton: {
+  rowSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 2,
+  },
+  rowAction: {
+    fontSize: 14.5,
+    fontWeight: '600',
+    marginLeft: 12,
+  },
+  listCard: {
+    paddingVertical: 4,
+    paddingHorizontal: 16,
+  },
+  listRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 1,
+    paddingVertical: 14,
   },
-  securityButtonText: {
-    fontSize: 13.5,
-    fontWeight: '600',
+  listIcon: {
+    marginRight: 14,
+  },
+  divider: {
+    height: 1,
+    marginLeft: 32,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 14,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
   },
   errorBannerText: {
     color: '#DC2626',
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     flex: 1,
   },
   footerRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   footerBtn: {
     flex: 1,
-  },
-  deleteCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 14,
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  deleteTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#DC2626',
-    marginBottom: 4,
-  },
-  deleteText: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 16,
-    marginBottom: 12,
-  },
-  deleteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    backgroundColor: '#FEE2E2',
-  },
-  deleteBtnText: {
-    color: '#DC2626',
-    fontSize: 13,
-    fontWeight: '700',
   },
   modalOverlay: {
     flex: 1,
