@@ -109,7 +109,7 @@ export const getRewardClaims = async (rewardId) => {
       .from('reward_claims')
       .select(`
         *,
-        profiles(id, name, avatar_url, email)
+        profiles(id, name, avatar_url)
       `)
       .eq('reward_id', rewardId)
       .order('created_at', { ascending: false });

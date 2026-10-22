@@ -214,7 +214,7 @@ export const listPendingVerifications = async () => {
   try {
     const { data, error } = await supabase
       .from('item_claims')
-      .select('*, items:item_id(id, title, species, address, street, house_number, neighborhood, city, state, extra_fields), profiles:claimant_id(id, name, avatar_url, email)')
+      .select('*, items:item_id(id, title, species, address, street, house_number, neighborhood, city, state, extra_fields), profiles:claimant_id(id, name, avatar_url)')
       .order('created_at', { ascending: false });
 
     if (error) {

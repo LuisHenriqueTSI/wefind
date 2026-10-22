@@ -163,7 +163,7 @@ export async function getUserGamificationData(userId, profileData = null) {
     const [profileRes, itemsRes, fosterRes] = await Promise.allSettled([
       profileData
         ? Promise.resolve({ data: profileData })
-        : supabase.from('profiles').select('extra_fields, created_at').eq('id', userId).maybeSingle(),
+        : supabase.rpc('get_public_gamification_profile', { p_user_id: String(userId) }),
       supabase.from('items').select('id, status, resolved').eq('owner_id', userId),
       supabase.from('foster_volunteers').select('id, is_active').eq('user_id', userId).maybeSingle(),
     ]);
@@ -262,11 +262,7 @@ export async function awardGamificationXp(userId, actionType, xpAmount = 25) {
   try {
     if (!userId) return null;
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('extra_fields')
-      .eq('id', userId)
-      .maybeSingle();
+    const { data: profile } = await supabase.rpc('get_my_profile');
 
     const extra = profile?.extra_fields || {};
     const currentBonus = extra.bonus_gamification_xp || 0;

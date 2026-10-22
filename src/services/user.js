@@ -21,11 +21,14 @@ const normalizeWhatsappForStorage = (whatsapp = '') => {
 export const getUser = async (userId) => {
   try {
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+    // O perfil completo (com e-mail, telefone e extra_fields) só é lido pelo próprio dono,
+    // pela função get_my_profile do banco.
+    const { data: sessionData } = await supabase.auth.getSession();
+    const authUserId = sessionData?.session?.user?.id;
+    if (!authUserId || String(authUserId) !== String(userId)) {
+      return await getUserById(userId);
+    }
+    const { data, error } = await supabase.rpc('get_my_profile');
 
     if (error) {
       console.log('[getUser] Error:', error.message);
@@ -70,9 +73,7 @@ export const createProfileIfMissing = async (userId, profileData = {}) => {
         phone: phoneToSet,
         points: 0,
         level: 1,
-      })
-      .select()
-      .single();
+      });
 
     if (error) {
       if (error.code === '23505') {
@@ -86,7 +87,7 @@ export const createProfileIfMissing = async (userId, profileData = {}) => {
       throw error;
     }
 
-    return data;
+    return await getUser(userId);
   } catch (error) {
     console.log('[createProfileIfMissing] Exception:', error.message);
     throw error;
@@ -134,8 +135,7 @@ export const updateProfile = async (userId, updates) => {
       'avatar_url',
       'points',
       'level',
-      'adm',
-      'role',
+      // 'adm' e 'role' não podem ser alterados pelo próprio usuário (ver admin_set_user_role).
     ];
 
     const sanitizedUpdates = {};
@@ -153,12 +153,10 @@ export const updateProfile = async (userId, updates) => {
       sanitizedUpdates.phone = normalizeWhatsappForStorage(sanitizedUpdates.phone);
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('profiles')
       .update(sanitizedUpdates)
-      .eq('id', userId)
-      .select()
-      .single();
+      .eq('id', userId);
 
     if (error) {
       console.log('[updateProfile] Error:', error.message);
@@ -166,7 +164,7 @@ export const updateProfile = async (userId, updates) => {
     }
 
     console.log('[updateProfile] Perfil atualizado com sucesso');
-    return data;
+    return await getUser(userId);
   } catch (error) {
     console.log('[updateProfile] Exception:', error.message);
     throw error;
@@ -240,18 +238,11 @@ export const uploadAvatar = async (userId, photoUri) => {
 
 export const listAllProfiles = async (searchTerm = '', limit = 50) => {
   try {
-    let query = supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (searchTerm && searchTerm.trim()) {
-      const term = searchTerm.trim();
-      query = query.or(`name.ilike.%${term}%,email.ilike.%${term}%,city.ilike.%${term}%`);
-    }
-
-    const { data, error } = await query;
+    // Só administradores recebem a lista completa (função admin_list_profiles no banco).
+    const { data, error } = await supabase.rpc('admin_list_profiles', {
+      p_search: searchTerm && searchTerm.trim() ? searchTerm.trim() : null,
+      p_limit: limit,
+    });
     if (error) {
       console.log('[listAllProfiles] Error:', error.message);
       return [];
@@ -265,16 +256,10 @@ export const listAllProfiles = async (searchTerm = '', limit = 50) => {
 
 export const updateUserRole = async (userId, role) => {
   try {
-    const isAdm = role === 'admin';
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({
-        role,
-        adm: isAdm,
-      })
-      .eq('id', userId)
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('admin_set_user_role', {
+      p_user_id: String(userId),
+      p_role: role === 'admin' ? 'admin' : 'user',
+    });
 
     if (error) throw error;
     return data;

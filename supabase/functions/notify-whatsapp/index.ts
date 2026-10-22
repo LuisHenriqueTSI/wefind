@@ -54,19 +54,29 @@ async function sendViaEvolutionApi(phone: string, text: string) {
   const rawDigits = phone.replace(/\D/g, '');
   const url = `${EVOLUTION_API_URL.replace(/\/$/, '')}/message/sendText/${EVOLUTION_INSTANCE}`;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: EVOLUTION_API_KEY,
-    },
-    body: JSON.stringify({
-      number: rawDigits,
-      text,
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: EVOLUTION_API_KEY,
+      },
+      body: JSON.stringify({
+        number: rawDigits,
+        text,
+      }),
+    });
+  } catch (error) {
+    console.warn(`[notify-whatsapp] Não foi possível chegar na Evolution API: ${error.message}`);
+    return { ok: false, reason: 'evolution-unreachable' };
+  }
 
-  await response.text();
+  const responseText = await response.text();
+  if (!response.ok) {
+    // Mostra no log o motivo da falha (ex.: instância desconectada, número inválido).
+    console.warn(`[notify-whatsapp] Evolution respondeu ${response.status}: ${responseText.slice(0, 300)}`);
+  }
   return { ok: response.ok, status: response.status };
 }
 

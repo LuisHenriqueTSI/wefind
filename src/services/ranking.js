@@ -39,7 +39,7 @@ export const getWeeklyRanking = async (currentUserId, city = null) => {
     safeQuery(
       supabase
         .from('profiles')
-        .select('id, name, email, city, state, avatar_url')
+        .select('id, name, city, state, avatar_url')
         .limit(1000)
     ),
     safeQuery(

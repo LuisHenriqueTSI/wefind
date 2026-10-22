@@ -40,7 +40,7 @@ export const listPendingReports = async () => {
     .select(`
       *,
       items!item_id(id, title, status, city, state),
-      reporter:profiles!reporter_id(name, email)
+      reporter:profiles!reporter_id(name)
     `)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });

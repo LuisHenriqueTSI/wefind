@@ -190,7 +190,7 @@ export const getPendingClaimsForItem = async (itemId) => {
   try {
     const { data, error } = await supabase
       .from('item_claims')
-      .select('*, profiles!claimant_id(name, email)')
+      .select('*, profiles!claimant_id(name)')
       .eq('item_id', itemId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
@@ -214,7 +214,7 @@ export const getClaimsForItem = async (itemId) => {
   try {
     const { data, error } = await supabase
       .from('item_claims')
-      .select('*, profiles!claimant_id(name, email)')
+      .select('*, profiles!claimant_id(name)')
       .eq('item_id', itemId)
       .order('created_at', { ascending: false });
 
@@ -343,7 +343,7 @@ export const getClaimById = async (claimId) => {
   try {
     const { data, error } = await supabase
       .from('item_claims')
-      .select('*, profiles!claimant_id(name, email), items!item_id(*)')
+      .select('*, profiles!claimant_id(name), items!item_id(*)')
       .eq('id', claimId)
       .single();
 

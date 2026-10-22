@@ -57,6 +57,7 @@ WEFIND - TCC/build/
 !/landing-page/downloads/WeFIND_v2.8.1.apk
 !/landing-page/downloads/WeFIND_v2.8.2.apk
 !/landing-page/downloads/WeFIND_v2.8.3.apk
+!/landing-page/downloads/WeFIND_v2.8.6.apk
 /landing-page/downloads/*.zip
 # LaTeX auxiliary files
 *.aux

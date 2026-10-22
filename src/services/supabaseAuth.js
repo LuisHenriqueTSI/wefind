@@ -488,42 +488,38 @@ export const updatePassword = async (newPassword) => {
 /**
  * Dispara código de verificação para validar a alteração de número de WhatsApp
  */
-export const sendPhoneChangeVerificationCode = async (newWhatsapp, email) => {
+const callPhoneChangeFunction = async (payload) => {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData?.session?.access_token;
+  if (!accessToken) {
+    throw new Error('Sua sessão expirou. Entre novamente e tente outra vez.');
+  }
+  const response = await fetch(getCreateUserFunctionUrl(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) {
+    throw new Error(data.message || 'Não foi possível concluir a verificação. Tente novamente.');
+  }
+  return data;
+};
+
+// O código de troca de WhatsApp é gerado, guardado e conferido no servidor (função create-user).
+// O app só manda o número novo e, depois, o código digitado.
+export const sendPhoneChangeVerificationCode = async (newWhatsapp, _email) => {
   try {
     const payloadWhatsapp = normalizeWhatsapp(newWhatsapp);
     if (!payloadWhatsapp || payloadWhatsapp.length < 10) {
       throw new Error('Informe um número de WhatsApp válido com DDD.');
     }
-
-    const randomValues = new Uint32Array(1);
-    crypto.getRandomValues(randomValues);
-    const code = String(100000 + (randomValues[0] % 900000));
-    const codeHash = await hashVerificationCode(code);
-    const normalizedPhone = payloadWhatsapp.startsWith('55') ? `+${payloadWhatsapp}` : `+55${payloadWhatsapp}`;
-    const verificationKey = `phone-change:${String(email || '').trim().toLowerCase()}`;
-
-    // Grava no banco signup_verifications
-    const { error: storeError } = await supabase.from('signup_verifications').upsert({
-      email: verificationKey,
-      code_hash: codeHash,
-      attempts: 0,
-      whatsapp: normalizedPhone,
-      created_at: new Date().toISOString(),
-      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-    }, { onConflict: 'email' });
-
-    if (storeError) {
-      console.warn('[sendPhoneChangeVerificationCode] Erro ao gravar verificação:', storeError.message);
-    }
-
-    // Dispara via Evolution API
-    const { sendWhatsAppVerificationCode } = require('./whatsappNotifications');
-    await sendWhatsAppVerificationCode({ phone: payloadWhatsapp, code });
-
-    return {
-      success: true,
-      phone: payloadWhatsapp,
-    };
+    await callPhoneChangeFunction({ action: 'send-phone-change-code', whatsapp: payloadWhatsapp });
+    return { success: true, phone: payloadWhatsapp };
   } catch (error) {
     console.warn('[sendPhoneChangeVerificationCode] Erro:', error.message);
     throw error;
@@ -533,51 +529,14 @@ export const sendPhoneChangeVerificationCode = async (newWhatsapp, email) => {
 /**
  * Valida o código de verificação para alteração de número de WhatsApp
  */
-export const verifyPhoneChangeCode = async (email, inputCode) => {
+export const verifyPhoneChangeCode = async (_email, inputCode) => {
   try {
-    console.log('[verifyPhoneChangeCode] Verificando código de alteração de número...');
-    const verificationKey = `phone-change:${String(email || '').trim().toLowerCase()}`;
     const cleanCode = String(inputCode || '').trim();
-
     if (!cleanCode || cleanCode.length !== 6) {
       throw new Error('Digite o código de 6 dígitos enviado ao seu WhatsApp.');
     }
-
-    const { data, error } = await supabase
-      .from('signup_verifications')
-      .select('*')
-      .eq('email', verificationKey)
-      .maybeSingle();
-
-    if (error || !data) {
-      throw new Error('Nenhum código recente encontrado. Solicite um novo código.');
-    }
-
-    if (Number(data.attempts) >= 5) {
-      await supabase.from('signup_verifications').delete().eq('email', verificationKey);
-      throw new Error('Limite de tentativas excedido. Solicite um novo código.');
-    }
-
-    const codeHash = await hashVerificationCode(cleanCode);
-    if (data.code_hash !== codeHash) {
-      await supabase
-        .from('signup_verifications')
-        .update({ attempts: Number(data.attempts || 0) + 1 })
-        .eq('email', verificationKey);
-      throw new Error('Código incorreto. Verifique a mensagem recebida no WhatsApp.');
-    }
-
-    if (data.expires_at && new Date() > new Date(data.expires_at)) {
-      throw new Error('Código expirado. Por favor, solicite um novo código.');
-    }
-
-    // Limpa o registro após validação com sucesso
-    await supabase.from('signup_verifications').delete().eq('email', verificationKey);
-
-    return {
-      valid: true,
-      whatsapp: data.whatsapp,
-    };
+    const data = await callPhoneChangeFunction({ action: 'verify-phone-change-code', verificationCode: cleanCode });
+    return { valid: true, whatsapp: data.whatsapp };
   } catch (error) {
     console.warn('[verifyPhoneChangeCode] Erro:', error.message);
     throw error;

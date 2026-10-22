@@ -18,7 +18,9 @@ const Button = ({
 }) => {
   const getStyles = () => {
     switch (variant) {
+      // Ações secundárias (Cancelar, Voltar, Ainda não) usam um cinza neutro.
       case 'secondary':
+        return styles.neutralButton;
       case 'orange':
         return styles.secondaryButton;
       case 'danger':
@@ -35,6 +37,7 @@ const Button = ({
   const getTextStyles = () => {
     switch (variant) {
       case 'secondary':
+        return styles.neutralText;
       case 'orange':
         return styles.secondaryText;
       case 'danger':

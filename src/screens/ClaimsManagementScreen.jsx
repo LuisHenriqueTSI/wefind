@@ -240,7 +240,7 @@ export default function ClaimsManagementScreen({ navigation }) {
                   {claim.status === 'pending' && <View style={styles.actions}>
                     <Button
                       title={processingClaimId === claim.id ? 'Processando...' : 'Rejeitar'}
-                      variant="secondary"
+                      variant="danger"
                       onPress={() => handleRejectClaim(claim)}
                       disabled={processingClaimId === claim.id}
                       style={{ flex: 1 }}

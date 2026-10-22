@@ -177,6 +177,62 @@ async function dispatchVerificationCode(phone: string, code: string) {
   return { ok: false, reason: 'failed-all-senders' };
 }
 
+// Envia um texto pela Evolution API. Para celulares brasileiros, tenta com e sem o nono dígito,
+// porque contas antigas do WhatsApp podem estar registradas sem ele.
+async function sendEvolutionText(phone: string, text: string) {
+  const EVOLUTION_API_URL = Deno.env.get('EVOLUTION_API_URL') ?? 'https://wefind-whatsapp-api.onrender.com';
+  const EVOLUTION_API_KEY = Deno.env.get('EVOLUTION_API_KEY') ?? '';
+  const EVOLUTION_INSTANCE = Deno.env.get('EVOLUTION_INSTANCE') ?? 'wefind';
+  if (!EVOLUTION_API_KEY) return { ok: false, reason: 'missing-evolution-api-key' };
+
+  const digits = (normalizeWhatsAppNumber(phone) ?? phone).replace(/\D/g, '');
+  const candidates = [digits];
+  if (digits.startsWith('55') && digits.length === 13 && digits[4] === '9') candidates.push(`${digits.slice(0, 4)}${digits.slice(5)}`);
+  if (digits.startsWith('55') && digits.length === 12) candidates.push(`${digits.slice(0, 4)}9${digits.slice(4)}`);
+
+  const url = `${EVOLUTION_API_URL.replace(/\/$/, '')}/message/sendText/${EVOLUTION_INSTANCE}`;
+  for (const number of candidates) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: EVOLUTION_API_KEY },
+        body: JSON.stringify({ number, text }),
+      });
+      const responseText = await response.text();
+      if (response.ok) return { ok: true, status: response.status };
+      console.warn(`[create-user] Evolution respondeu ${response.status} para ${number.slice(0, 4)}***: ${responseText.slice(0, 300)}`);
+    } catch (error) {
+      console.warn('[create-user] Não foi possível chegar na Evolution API:', error.message);
+      return { ok: false, reason: 'evolution-unreachable' };
+    }
+  }
+  return { ok: false, reason: 'evolution-rejected' };
+}
+
+// Roda uma tarefa depois de responder ao app (o envio do WhatsApp pode demorar
+// quando o Render está acordando). Sem suporte, roda normalmente.
+function runInBackground(task: Promise<unknown>) {
+  // deno-lint-ignore no-explicit-any
+  const runtime = (globalThis as any).EdgeRuntime;
+  if (runtime?.waitUntil) {
+    runtime.waitUntil(task);
+    return true;
+  }
+  return false;
+}
+
+async function getAuthenticatedUserId(req: Request, supabaseUrl: string) {
+  const authorization = req.headers.get('Authorization') ?? '';
+  if (!/^Bearer\s+\S+$/i.test(authorization)) return null;
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+  const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/auth/v1/user`, {
+    headers: { Authorization: authorization, apikey: anonKey },
+  });
+  if (!response.ok) return null;
+  const user = await response.json();
+  return typeof user?.id === 'string' ? user.id : null;
+}
+
 function jsonResponse(payload: unknown, status = 200, request?: Request) {
   const configuredOrigins = (Deno.env.get('ALLOWED_ORIGINS') ?? '').split(',').map((origin) => origin.trim()).filter(Boolean);
   const requestOrigin = request?.headers.get('origin') ?? '';
@@ -673,6 +729,91 @@ async function findUserProfilesByPhone(supabaseUrl: string, serviceRoleKey: stri
       success: true,
       message: 'Senha alterada com sucesso!',
     });
+  }
+
+  // Troca de WhatsApp no perfil: o código é gerado, guardado e conferido aqui no servidor.
+  if (action === 'send-phone-change-code' || action === 'verify-phone-change-code') {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? Deno.env.get('SERVICE_ROLE_KEY') ?? '';
+    if (!supabaseUrl || !serviceRoleKey) {
+      return jsonResponse({ ok: false, error: 'missing-service-role-key' }, 500);
+    }
+    const userId = await getAuthenticatedUserId(req, supabaseUrl);
+    if (!userId) {
+      return jsonResponse({ ok: false, error: 'unauthorized', message: 'Sua sessão expirou. Entre novamente.' }, 401);
+    }
+    const key = `phone-change:${userId}`;
+
+    if (action === 'send-phone-change-code') {
+      if (!whatsapp) {
+        return jsonResponse({ ok: false, error: 'invalid-phone', message: 'Informe um número de WhatsApp válido com DDD.' }, 400);
+      }
+      const previous = await fetchVerificationCode(supabaseUrl, serviceRoleKey, key);
+      const previousCreatedAt = previous.record?.created_at ? new Date(String(previous.record.created_at)).getTime() : 0;
+      if (previousCreatedAt && Date.now() - previousCreatedAt < 60_000) {
+        return jsonResponse({ ok: false, error: 'verification-rate-limited', message: 'Aguarde um minuto para pedir um novo código.' }, 429);
+      }
+
+      const code = createSixDigitCode();
+      const storeResult = await storeVerificationCode(supabaseUrl, serviceRoleKey, key, code, whatsapp);
+      if (!storeResult.ok) {
+        console.error('[create-user] Falha ao guardar código de troca:', storeResult.body);
+        return jsonResponse({ ok: false, error: 'failed-to-store-verification-code' }, 500);
+      }
+
+      const text = `*Código de confirmação WeFIND*\n\nSeu código para confirmar a alteração do seu WhatsApp é:\n\n*${code}*\n\nInforme este código no aplicativo para atualizar seu número com segurança.`;
+      const sending = sendEvolutionText(whatsapp, text).then((result) => {
+        if (!result.ok) console.warn('[create-user] Código de troca não enviado:', result.reason);
+        return result;
+      });
+      if (runInBackground(sending)) {
+        return jsonResponse({ ok: true, pendingVerification: true, sending: true });
+      }
+      const result = await sending;
+      return jsonResponse({ ok: true, pendingVerification: true, whatsappSent: result.ok });
+    }
+
+    // verify-phone-change-code
+    const record = (await fetchVerificationCode(supabaseUrl, serviceRoleKey, key)).record;
+    if (!record) {
+      return jsonResponse({ ok: false, error: 'code-not-found', message: 'Nenhum código recente encontrado. Solicite um novo código.' }, 400);
+    }
+    const attempts = Number(record.attempts ?? 0);
+    if (attempts >= 5) {
+      await deleteVerificationCode(supabaseUrl, serviceRoleKey, key);
+      return jsonResponse({ ok: false, error: 'too-many-attempts', message: 'Limite de tentativas excedido. Solicite um novo código.' }, 429);
+    }
+    if (record.expires_at && Date.now() > new Date(String(record.expires_at)).getTime()) {
+      await deleteVerificationCode(supabaseUrl, serviceRoleKey, key);
+      return jsonResponse({ ok: false, error: 'code-expired', message: 'Código expirado. Solicite um novo código.' }, 400);
+    }
+    const cleanCode = verificationCode.replace(/\D/g, '');
+    if (!/^\d{6}$/.test(cleanCode) || (await hashVerificationCode(cleanCode)) !== record.code_hash) {
+      await incrementVerificationAttempts(supabaseUrl, serviceRoleKey, key, attempts + 1);
+      return jsonResponse({ ok: false, error: 'invalid-code', message: 'Código incorreto. Confira a mensagem recebida no WhatsApp.' }, 400);
+    }
+
+    // Lê o número salvo junto com o código, para garantir que é o mesmo que foi confirmado.
+    const savedResponse = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/signup_verifications?select=whatsapp&email=eq.${encodeURIComponent(key)}&limit=1`, {
+      headers: getRestHeaders(serviceRoleKey),
+    });
+    const savedRows = savedResponse.ok ? await savedResponse.json() : [];
+    const confirmedPhone = normalizeWhatsAppNumber(String(savedRows?.[0]?.whatsapp ?? ''));
+    if (!confirmedPhone) {
+      return jsonResponse({ ok: false, error: 'missing-phone' }, 500);
+    }
+
+    const updateResponse = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}`, {
+      method: 'PATCH',
+      headers: { ...getRestHeaders(serviceRoleKey), Prefer: 'return=minimal' },
+      body: JSON.stringify({ whatsapp: confirmedPhone, phone: confirmedPhone }),
+    });
+    if (!updateResponse.ok) {
+      console.error('[create-user] Falha ao salvar novo WhatsApp:', await updateResponse.text());
+      return jsonResponse({ ok: false, error: 'failed-to-update-profile' }, 500);
+    }
+    await deleteVerificationCode(supabaseUrl, serviceRoleKey, key);
+    return jsonResponse({ ok: true, valid: true, whatsapp: confirmedPhone });
   }
 
   return jsonResponse({ ok: false, error: 'unknown-action' }, 400);

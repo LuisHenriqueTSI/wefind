@@ -19,11 +19,7 @@ export async function getMyPets(userId) {
     }
 
     // 1. Tenta buscar no perfil do Supabase (extra_fields.my_pets)
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('extra_fields')
-      .eq('id', userId)
-      .maybeSingle();
+    const { data: profile, error } = await supabase.rpc('get_my_profile');
 
     if (!error && profile?.extra_fields?.my_pets) {
       const pets = profile.extra_fields.my_pets;
@@ -76,11 +72,7 @@ export async function savePet(userId, petData) {
 
     // Salva no perfil do Supabase
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('extra_fields')
-        .eq('id', userId)
-        .maybeSingle();
+      const { data: profile } = await supabase.rpc('get_my_profile');
 
       const existingExtra = profile?.extra_fields || {};
       await supabase
@@ -116,11 +108,7 @@ export async function deletePet(userId, petId) {
     await AsyncStorage.setItem(`${MY_PETS_STORAGE_KEY}_${userId}`, JSON.stringify(updatedPets));
 
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('extra_fields')
-        .eq('id', userId)
-        .maybeSingle();
+      const { data: profile } = await supabase.rpc('get_my_profile');
 
       const existingExtra = profile?.extra_fields || {};
       await supabase

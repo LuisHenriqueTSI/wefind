@@ -104,11 +104,7 @@ export async function registerForPushNotificationsAsync(userId = null) {
       if (userId) {
         try {
           // Mescla com os extra_fields atuais para não apagar outras preferências do perfil
-          const { data: currentProfile } = await supabase
-            .from('profiles')
-            .select('extra_fields')
-            .eq('id', userId)
-            .maybeSingle();
+          const { data: currentProfile } = await supabase.rpc('get_my_profile');
           await supabase
             .from('profiles')
             .update({
@@ -178,21 +174,11 @@ export async function sendExpoPushNotification({ to, title, body, data = {} }) {
 export async function sendPushNotification(targetUserId, title, body, data = {}) {
   try {
     if (!targetUserId) return false;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('expo_push_token, extra_fields')
-      .eq('id', targetUserId)
-      .maybeSingle();
-
-    const pushToken = profile?.expo_push_token || profile?.extra_fields?.expo_push_token;
-    if (pushToken) {
-      await sendExpoPushNotification({
-        to: pushToken,
-        title,
-        body,
-        data,
-      });
-    }
+    // O token de push do outro usuário fica protegido no banco: quem envia é a função no servidor.
+    const { error } = await supabase.functions.invoke('send-push', {
+      body: { targetUserId, title, body, data },
+    });
+    if (error) console.warn('[sendPushNotification] Falha na função send-push:', error.message);
 
     // Dispara notificação local para testes e feedback visual
     triggerLocalNotification({
@@ -201,7 +187,7 @@ export async function sendPushNotification(targetUserId, title, body, data = {})
       data,
     }).catch(() => {});
 
-    return true;
+    return !error;
   } catch (err) {
     console.warn('[sendPushNotification] Erro ao enviar push:', err.message);
     return false;
@@ -258,129 +244,21 @@ export async function triggerLocalNotification({ title, body, data = {}, delaySe
  * Notifica todos os usuários e voluntários situados no raio de busca daquele epicentro.
  */
 export async function broadcastLostPetAlertToNearbyUsers(petItem, currentUserId = null) {
-  if (!petItem) return { notifiedCount: 0 };
+  if (!petItem?.id) return { notifiedCount: 0 };
 
-  console.log('[broadcastLostPetAlert] 🚨 Iniciando alerta de proximidade para pet:', petItem.title, petItem.id);
+  console.log('[broadcastLostPetAlert] 🚨 Pedindo ao servidor o alerta de proximidade para:', petItem.title, petItem.id);
 
   try {
-    const petLat = petItem.latitude ?? petItem.extra_fields?.location_details?.latitude;
-    const petLng = petItem.longitude ?? petItem.extra_fields?.location_details?.longitude;
-    const petCity = petItem.city || petItem.extra_fields?.location_details?.city || '';
-    const petDistrict = petItem.neighborhood || petItem.extra_fields?.location_details?.district || '';
-    const petTitle = petItem.title || 'Animal de Estimação';
-
-    // 1. Busca todos os perfis de usuários cadastrados no sistema
-    const { data: profiles, error: profilesErr } = await supabase
-      .from('profiles')
-      .select('id, name, city, state, neighborhood, extra_fields, expo_push_token')
-      .neq('id', currentUserId || '00000000-0000-0000-0000-000000000000');
-
-    if (profilesErr || !profiles || profiles.length === 0) {
-      console.log('[broadcastLostPetAlert] Nenhum outro usuário encontrado para alertar.');
+    // O cálculo de quem está perto acontece no servidor (função notify-nearby-lost-pet),
+    // para que a localização dos outros usuários nunca chegue a este aparelho.
+    const { data, error } = await supabase.functions.invoke('notify-nearby-lost-pet', {
+      body: { itemId: petItem.id },
+    });
+    if (error) {
+      console.warn('[broadcastLostPetAlert] Falha na função de proximidade:', error.message);
       return { notifiedCount: 0 };
     }
-
-    const maxAlertRadiusKm = 15; // Raio máximo de alerta comunitário de 15 km
-    const targetUsers = [];
-    const pushTokensToNotify = [];
-
-    for (const profile of profiles) {
-      let isNearby = false;
-      let calculatedDist = null;
-
-      const profileLat = profile.extra_fields?.coords?.latitude || profile.extra_fields?.latitude;
-      const profileLng = profile.extra_fields?.coords?.longitude || profile.extra_fields?.longitude;
-
-      if (petLat != null && petLng != null && profileLat != null && profileLng != null) {
-        calculatedDist = calculateDistanceKm(petLat, petLng, profileLat, profileLng);
-        if (calculatedDist != null && calculatedDist <= maxAlertRadiusKm) {
-          isNearby = true;
-        }
-      } else if (petCity && profile.city && petCity.trim().toLowerCase() === profile.city.trim().toLowerCase()) {
-        // Fallback por cidade se o usuário não tiver coordenadas exatas
-        isNearby = true;
-      }
-
-      if (isNearby) {
-        targetUsers.push(profile);
-        const token = profile.expo_push_token || profile.extra_fields?.expo_push_token;
-        if (token) {
-          pushTokensToNotify.push(token);
-        }
-      }
-    }
-
-    console.log(`[broadcastLostPetAlert] 📍 ${targetUsers.length} usuários situados na proximidade do epicentro.`);
-
-    const speciesLabel = petItem.species === 'dog' || petItem.species === 'cachorro' || petItem.species === 'cão'
-      ? 'Cão'
-      : (petItem.species === 'cat' || petItem.species === 'gato' ? 'Gato' : (petItem.species || 'Pet'));
-    const breedText = petItem.breed || petItem.extra_fields?.breed || '';
-    const nameText = petItem.title || '';
-    const petIdentification = [nameText ? `"${nameText}"` : '', breedText ? `(${breedText})` : ''].filter(Boolean).join(' ') || speciesLabel;
-    const locationHint = petDistrict ? `no Bairro ${petDistrict}` : (petCity ? `em ${petCity}` : 'na sua região');
-
-    const alertTitle = `${speciesLabel} perdido perto de você`;
-    const alertMessage = `${speciesLabel} ${petIdentification} perdido ${locationHint}. Abra o WeFIND para ver as fotos e os detalhes.`;
-
-    // 2. Cria notificações in-app persistentes no Supabase para cada usuário próximo
-    const inAppNotifications = targetUsers.map((target) => ({
-      user_id: target.id,
-      title: alertTitle,
-      message: alertMessage,
-      type: 'nearby_lost_pet',
-      read: false,
-      item_id: petItem.id,
-      created_at: new Date().toISOString(),
-    }));
-
-    if (inAppNotifications.length > 0) {
-      try {
-        await supabase.from('notifications').insert(inAppNotifications);
-      } catch (insertErr) {
-        console.warn('[broadcastLostPetAlert] Aviso ao inserir notificações in-app:', insertErr.message);
-      }
-    }
-
-    // 3. Dispara Push Notifications do Expo em lote
-    if (pushTokensToNotify.length > 0) {
-      await sendExpoPushNotification({
-        to: pushTokensToNotify,
-        title: alertTitle,
-        body: alertMessage,
-        data: {
-          itemId: petItem.id,
-          type: 'nearby_lost_pet',
-          screen: 'ItemDetail',
-        },
-      });
-    }
-
-    // 4. Dispara alerta no WhatsApp. A função de borda consulta o número e
-    //    respeita a opção whatsapp_notifications_enabled de cada usuário.
-    for (const target of targetUsers) {
-      try {
-        await dispatchSystemNotificationToWhatsApp({
-          userId: target.id,
-          title: alertTitle,
-          message: alertMessage,
-          type: 'nearby_lost_pet',
-        });
-      } catch (_) {}
-    }
-
-    // 5. Dispara notificação local instantânea no aparelho (para demonstração no Expo Go e testes locais)
-    triggerLocalNotification({
-      title: alertTitle,
-      body: alertMessage,
-      data: {
-        itemId: petItem.id,
-        type: 'nearby_lost_pet',
-        screen: 'ItemDetail',
-      },
-    }).catch(() => {});
-
-    return { notifiedCount: targetUsers.length };
+    return { notifiedCount: Number(data?.notifiedCount) || 0 };
   } catch (error) {
     console.warn('[broadcastLostPetAlert] Erro ao disparar alerta comunitário:', error.message);
     return { notifiedCount: 0 };
