@@ -1,0 +1,72 @@
+\thispagestyle{empty}
+
+\begin{center}
+    \textbf{\large LISTA DE ILUSTRAÇÕES}
+\end{center}
+
+\vspace{0.8cm}
+
+\noindent \hyperref[fig:curva_recuperacao_tempo]{Figura \ref*{fig:curva_recuperacao_tempo} -- Recuperação de gatos perdidos ao longo do tempo \dotfill \pageref{fig:curva_recuperacao_tempo}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_identificacao]{Figura \ref*{fig:pesquisa_identificacao} -- Formas de identificação utilizadas nos animais dos participantes \dotfill \pageref{fig:pesquisa_identificacao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_animais_perdidos]{Figura \ref*{fig:pesquisa_animais_perdidos} -- Experiência com o desaparecimento de animal \dotfill \pageref{fig:pesquisa_animais_perdidos}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_tempo_reencontro]{Figura \ref*{fig:pesquisa_tempo_reencontro} -- Tempo até o reencontro do animal perdido \dotfill \pageref{fig:pesquisa_tempo_reencontro}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_meio_reencontro]{Figura \ref*{fig:pesquisa_meio_reencontro} -- Formas de busca e resultado para animais perdidos \dotfill \pageref{fig:pesquisa_meio_reencontro}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_necessidades_iniciais]{Figura \ref*{fig:pesquisa_necessidades_iniciais} -- Necessidades após o desaparecimento de um animal \dotfill \pageref{fig:pesquisa_necessidades_iniciais}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_animais_encontrados]{Figura \ref*{fig:pesquisa_animais_encontrados} -- Experiência dos participantes ao encontrar ou acolher um animal \dotfill \pageref{fig:pesquisa_animais_encontrados}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_canais_divulgacao]{Figura \ref*{fig:pesquisa_canais_divulgacao} -- Canais usados para divulgar animais perdidos \dotfill \pageref{fig:pesquisa_canais_divulgacao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_dificuldades]{Figura \ref*{fig:pesquisa_dificuldades} -- Dificuldades na divulgação de animais perdidos \dotfill \pageref{fig:pesquisa_dificuldades}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_utilidade_mapa]{Figura \ref*{fig:pesquisa_utilidade_mapa} -- Utilidade percebida da visualização de animais em mapa \dotfill \pageref{fig:pesquisa_utilidade_mapa}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_prioridade_proximidade]{Figura \ref*{fig:pesquisa_prioridade_proximidade} -- Prioridade de visualização dos casos mais próximos \dotfill \pageref{fig:pesquisa_prioridade_proximidade}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_privacidade_telefone]{Figura \ref*{fig:pesquisa_privacidade_telefone} -- Incômodo com a exposição pública do telefone pessoal \dotfill \pageref{fig:pesquisa_privacidade_telefone}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_privacidade_local]{Figura \ref*{fig:pesquisa_privacidade_local} -- Preferência de privacidade do local de acolhimento \dotfill \pageref{fig:pesquisa_privacidade_local}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:viumeupet]{Figura \ref*{fig:viumeupet} -- Interface da plataforma Viu Meu Pet \dotfill \pageref{fig:viumeupet}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pawboost]{Figura \ref*{fig:pawboost} -- Interface da plataforma PawBoost \dotfill \pageref{fig:pawboost}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:alertpet]{Figura \ref*{fig:alertpet} -- Interface da plataforma AlertPet \dotfill \pageref{fig:alertpet}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:facebook]{Figura \ref*{fig:facebook} -- Página do grupo SOS Animais no Facebook \dotfill \pageref{fig:facebook}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:ciclo_incremental_wefind]{Figura \ref*{fig:ciclo_incremental_wefind} -- Modelo incremental de desenvolvimento \dotfill \pageref{fig:ciclo_incremental_wefind}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:quadro_kanban_trello]{Figura \ref*{fig:quadro_kanban_trello} -- Organização das atividades do projeto no quadro Trello \dotfill \pageref{fig:quadro_kanban_trello}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_prioridade_recursos]{Figura \ref*{fig:pesquisa_prioridade_recursos} -- Avaliação da utilidade dos recursos do aplicativo \dotfill \pageref{fig:pesquisa_prioridade_recursos}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:diagrama_casos_de_uso]{Figura \ref*{fig:diagrama_casos_de_uso} -- Diagrama de Casos de Uso Geral da Plataforma WeFIND \dotfill \pageref{fig:diagrama_casos_de_uso}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:diagrama_classes]{Figura \ref*{fig:diagrama_classes} -- Diagrama de Classes de Domínio do Sistema Proposto \dotfill \pageref{fig:diagrama_classes}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:pesquisa_instalacao_aplicativo]{Figura \ref*{fig:pesquisa_instalacao_aplicativo} -- Intenção de instalar o aplicativo WeFIND \dotfill \pageref{fig:pesquisa_instalacao_aplicativo}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:arquitetura_wefind]{Figura \ref*{fig:arquitetura_wefind} -- Arquitetura da plataforma WeFIND \dotfill \pageref{fig:arquitetura_wefind}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:principais_tecnologias]{Figura \ref*{fig:principais_tecnologias} -- Principais tecnologias que compõem a plataforma WeFIND \dotfill \pageref{fig:principais_tecnologias}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:ferramentas_auxiliares]{Figura \ref*{fig:ferramentas_auxiliares} -- Ferramentas de apoio ao desenvolvimento \dotfill \pageref{fig:ferramentas_auxiliares}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:modelo_logico_banco]{Figura \ref*{fig:modelo_logico_banco} -- Modelo relacional do banco PostgreSQL \dotfill \pageref{fig:modelo_logico_banco}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tipografia]{Figura \ref*{fig:tipografia} -- Tipografia e hierarquia visual do WeFIND \dotfill \pageref{fig:tipografia}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:logotipo]{Figura \ref*{fig:logotipo} -- Logotipo Oficial e Ícone do Aplicativo WeFIND \dotfill \pageref{fig:logotipo}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:paleta_cores]{Figura \ref*{fig:paleta_cores} -- Identidade Visual e Paleta Cromática Oficial do WeFIND \dotfill \pageref{fig:paleta_cores}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:telas_autenticacao]{Figura \ref*{fig:telas_autenticacao} -- Telas de Login e Apresentação do Aplicativo WeFIND \dotfill \pageref{fig:telas_autenticacao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_filtros_avancados]{Figura \ref*{fig:tela_filtros_avancados} -- Filtros avançados das publicações \dotfill \pageref{fig:tela_filtros_avancados}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_cadastro_recuperacao]{Figura \ref*{fig:tela_cadastro_recuperacao} -- Cadastro, verificação e recuperação de conta \dotfill \pageref{fig:tela_cadastro_recuperacao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_mapa]{Figura \ref*{fig:tela_mapa} -- Mapa, marcadores e rota até a pista \dotfill \pageref{fig:tela_mapa}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_rota_pistas]{Figura \ref*{fig:tela_rota_pistas} -- Avistamento, pistas, histórico e rota \dotfill \pageref{fig:tela_rota_pistas}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_registro_perdi_encontrei]{Figura \ref*{fig:tela_registro_perdi_encontrei} -- Formulários de registro de animal perdido e encontrado \dotfill \pageref{fig:tela_registro_perdi_encontrei}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_registro_adocao]{Figura \ref*{fig:tela_registro_adocao} -- Formulário de cadastro de animais para adoção \dotfill \pageref{fig:tela_registro_adocao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_publicacao_anonima]{Figura \ref*{fig:tela_publicacao_anonima} -- Publicação anônima no mural \dotfill \pageref{fig:tela_publicacao_anonima}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_detalhes]{Figura \ref*{fig:tela_detalhes} -- Detalhes das publicações conforme a situação do animal \dotfill \pageref{fig:tela_detalhes}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_localizacao]{Figura \ref*{fig:tela_localizacao} -- Localização conforme a situação do animal \dotfill \pageref{fig:tela_localizacao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_correspondencias]{Figura \ref*{fig:tela_correspondencias} -- Correspondências entre publicações \dotfill \pageref{fig:tela_correspondencias}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_cartaz_mensagens]{Figura \ref*{fig:tela_cartaz_mensagens} -- Cartaz de divulgação em diferentes formatos e mensagens privadas \dotfill \pageref{fig:tela_cartaz_mensagens}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_notificacoes]{Figura \ref*{fig:tela_notificacoes} -- Notificações e possíveis correspondências \dotfill \pageref{fig:tela_notificacoes}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_notificacoes_whatsapp]{Figura \ref*{fig:tela_notificacoes_whatsapp} -- Avisos do WeFIND Recebidos pelo WhatsApp \dotfill \pageref{fig:tela_notificacoes_whatsapp}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_comprovacao_tutela]{Figura \ref*{fig:tela_comprovacao_tutela} -- Ficha do animal encontrado e formulário de comprovação de tutela \dotfill \pageref{fig:tela_comprovacao_tutela}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_encontro_devolucao]{Figura \ref*{fig:tela_encontro_devolucao} -- Agendamento da devolução pelo chat \dotfill \pageref{fig:tela_encontro_devolucao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_adocao]{Figura \ref*{fig:tela_adocao} -- Publicação para Adoção no Mural \dotfill \pageref{fig:tela_adocao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_adocao_grupo]{Figura \ref*{fig:tela_adocao_grupo} -- Ficha de anúncio coletivo para adoção \dotfill \pageref{fig:tela_adocao_grupo}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_perfil]{Figura \ref*{fig:tela_perfil} -- Perfil do Usuário e Perfil Público do Membro \dotfill \pageref{fig:tela_perfil}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:tela_meus_pets]{Figura \ref*{fig:tela_meus_pets} -- Meus Pets e Carteirinha Digital \dotfill \pageref{fig:tela_meus_pets}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:mobsf_visao_geral]{Figura \ref*{fig:mobsf_visao_geral} -- Visão geral do relatório estático do WeFIND no MobSF \dotfill \pageref{fig:mobsf_visao_geral}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:mobsf_manifesto]{Figura \ref*{fig:mobsf_manifesto} -- Alertas da análise do manifesto Android pelo MobSF \dotfill \pageref{fig:mobsf_manifesto}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:mobsf_codigo]{Figura \ref*{fig:mobsf_codigo} -- Alertas identificados na análise estática de código pelo MobSF \dotfill \pageref{fig:mobsf_codigo}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:landing_page_wefind]{Figura \ref*{fig:landing_page_wefind} -- Página do WeFIND para divulgação e download \dotfill \pageref{fig:landing_page_wefind}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:manual_login_cadastro]{Figura \ref*{fig:manual_login_cadastro} -- Telas de Autenticação e Cadastro de Usuário \dotfill \pageref{fig:manual_login_cadastro}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:manual_mapa_rotas]{Figura \ref*{fig:manual_mapa_rotas} -- Mapa e rota até a pista \dotfill \pageref{fig:manual_mapa_rotas}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:manual_cadastro_publicacao]{Figura \ref*{fig:manual_cadastro_publicacao} -- Cadastro do animal e localização \dotfill \pageref{fig:manual_cadastro_publicacao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:manual_detalhes_cartaz]{Figura \ref*{fig:manual_detalhes_cartaz} -- Detalhes do animal e cartaz de busca \dotfill \pageref{fig:manual_detalhes_cartaz}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:manual_mensagens_chat]{Figura \ref*{fig:manual_mensagens_chat} -- Mensagens e bate-papo privado \dotfill \pageref{fig:manual_mensagens_chat}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:acesso_administracao]{Figura \ref*{fig:acesso_administracao} -- Acesso ao Painel Administrativo \dotfill \pageref{fig:acesso_administracao}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:painel_denuncias]{Figura \ref*{fig:painel_denuncias} -- Painel Administrativo com as Denúncias Pendentes \dotfill \pageref{fig:painel_denuncias}}\par\vspace{0.12cm}
+\noindent \hyperref[fig:administracao_usuarios]{Figura \ref*{fig:administracao_usuarios} -- Aba de Gerenciamento de Usuários \dotfill \pageref{fig:administracao_usuarios}}\par\vspace{0.12cm}
+
+\clearpage

@@ -54,7 +54,8 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
   };
 
   const handleSend = () => {
-    if (!description.trim() || !animalPlace) return;
+    // Local no mapa é obrigatório (UC04: Selecionar Localização no Mapa é <<include>>)
+    if (!description.trim() || !animalPlace || !(coordinate?.latitude && coordinate?.longitude)) return;
     onSubmit({
       description: description.trim(),
       location: removeHouseNumberFromAddress(location.trim()),
@@ -124,7 +125,8 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
     }
   };
 
-  const canSend = Boolean(description.trim() && animalPlace) && !loading;
+  const hasCoordinate = Boolean(coordinate?.latitude && coordinate?.longitude);
+  const canSend = Boolean(description.trim() && animalPlace && hasCoordinate) && !loading;
   const fieldBg = isDark ? '#0F172A' : '#F8FAFC';
   const cardStyle = { backgroundColor: colors.surface, borderColor: colors.border };
   const inputStyle = [styles.input, { backgroundColor: fieldBg, borderColor: colors.border, color: colors.text }];
@@ -256,11 +258,11 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
 
               {/* 3. Local */}
               <View style={[styles.card, cardStyle]} onLayout={rememberOffset('location')}>
-                <SectionHeader number="3" title="Onde foi visto?" optional />
+                <SectionHeader number="3" title="Onde foi visto?" />
                 <TouchableOpacity
                   style={[
                     styles.mapPickBox,
-                    { borderColor: location ? colors.primary : colors.border, backgroundColor: location ? colors.primaryLight : fieldBg },
+                    { borderColor: hasCoordinate ? colors.primary : colors.border, backgroundColor: hasCoordinate ? colors.primaryLight : fieldBg },
                   ]}
                   onPress={() => setMapPickerVisible(true)}
                   activeOpacity={0.85}
@@ -270,17 +272,17 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.mapPickTitle, { color: colors.text }]}>
-                      {location ? 'Local marcado' : 'Marcar no mapa'}
+                      {hasCoordinate ? 'Local marcado' : 'Marcar no mapa'}
                     </Text>
                     <Text style={[styles.mapPickText, { color: colors.textSecondary }]} numberOfLines={2}>
-                      {location || 'Toque para escolher o ponto onde o animal foi visto'}
+                      {hasCoordinate ? (location || 'Ponto marcado no mapa') : 'Toque para escolher o ponto onde o animal foi visto'}
                     </Text>
                   </View>
-                  <Text style={[styles.mapPickAction, { color: colors.primary }]}>{location ? 'Alterar' : 'Abrir'}</Text>
+                  <Text style={[styles.mapPickAction, { color: colors.primary }]}>{hasCoordinate ? 'Alterar' : 'Abrir'}</Text>
                 </TouchableOpacity>
                 <TextInput
                   style={[inputStyle, { marginTop: 10 }]}
-                  placeholder="Ou descreva o local (ex.: perto da Padaria Central)"
+                  placeholder="Ponto de referência (ex.: perto da Padaria Central)"
                   placeholderTextColor={colors.textMuted}
                   value={location}
                   onChangeText={setLocation}
@@ -363,7 +365,7 @@ const SightingModal = ({ visible, onClose, onSubmit, loading }) => {
             <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
               {!canSend && !loading ? (
                 <Text style={[styles.footerHint, { color: colors.textMuted }]}>
-                  Preencha o que você viu e onde o animal está para enviar.
+                  Preencha o que você viu, onde ele está e marque no mapa.
                 </Text>
               ) : null}
               <View style={styles.footerRow}>

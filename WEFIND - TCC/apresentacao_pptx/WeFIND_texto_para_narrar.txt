@@ -1,0 +1,61 @@
+﻿Slide 1. Boa tarde. Sou o Luis Henrique, e vou apresentar o WeFIND, um aplicativo móvel colaborativo para divulgação de animais perdidos e encontrados. Agradeço à banca, à minha orientadora, professora Marla, e à coorientadora, professora Adriane.
+
+Slide 2. A apresentação está dividida em seis partes: introdução, metodologia, modelagem, desenvolvimento, avaliação e conclusão.
+
+Slide 3. Começo pela motivação.
+
+Slide 4. Esse trabalho nasceu de uma situação real. Uma pessoa próxima perdeu o animal dela, e a busca foi toda pelas redes sociais. Acompanhei de perto e vi três problemas: montar o anúncio com foto e contato levava tempo, a informação ficava espalhada em vários grupos, e não dava para corrigir o que já tinha sido compartilhado.
+
+Slide 5. E isso não é um caso isolado. Quase metade dos lares brasileiros tem cachorro, segundo o IBGE. Não existe um dado nacional sobre quantos desses animais se perdem; a referência mais usada é um estudo dos Estados Unidos, que mostra que quinze por cento dos tutores já perderam um cão ou gato. Por isso fui ouvir os tutores daqui. Na pesquisa de campo, que vou detalhar mais adiante, quarenta e oito por cento não usam coleira, plaquinha ou microchip, e trinta e dois por cento de quem perdeu um animal nunca o reencontrou.
+
+Slide 6. O objetivo geral foi desenvolver uma aplicação móvel colaborativa que apoie tutores e a comunidade na divulgação e na busca por animais perdidos e encontrados, e na adoção responsável. Os objetivos específicos são: identificar as dificuldades, analisar sistemas similares, definir e modelar os requisitos, projetar a interface, implementar o aplicativo, testar a correspondência e avaliar a usabilidade. Os cinco primeiros estão concluídos; testar e avaliar são a etapa após a qualificação.
+
+Slide 7. Agora, a metodologia.
+
+Slide 8. O trabalho foi feito em três passos. Primeiro, investiguei o problema: um questionário com quarenta e oito pessoas e a análise de quatro plataformas parecidas. Depois, construí o aplicativo. E por último vêm os testes com tutores, depois desta qualificação. A construção foi feita aos poucos, em seis partes: acesso, mapa, publicações, comunicação, divulgação e reencontro seguro. Cada parte foi planejada, desenvolvida, testada no celular e entregue antes da próxima. Organizei as tarefas no Trello. E é uma pesquisa aplicada, exploratória e descritiva.
+
+Slide 9. Na pesquisa de campo, quarenta e oito pessoas responderam, a maioria daqui de Pelotas. Sessenta e cinco por cento já encontraram ou acolheram um animal, ou seja, também são quem acha. E cinquenta e dois por cento já perderam um. O que mais fez falta nas primeiras horas da busca foram avisos de quem viu o animal, para oitenta e quatro por cento; alcançar as pessoas do bairro, setenta e dois por cento; e alerta de animal parecido, quarenta e oito por cento. E oitenta e três por cento publicariam se levasse até três minutos. É uma amostra por conveniência, então descreve apenas esse grupo.
+
+Slide 10. Analisei quatro soluções existentes: Viu Meu Pet, PawBoost, AlertPet e os grupos do Facebook, que é o que as pessoas mais usam hoje.
+
+Slide 11. As funções básicas os concorrentes já têm. O diferencial do WeFIND está no mapa interativo, nos relatos de avistamento com localização, na rota até o local e na sugestão automática de correspondências. São justamente as necessidades que os participantes apontaram.
+
+Slide 12. Com isso, parti para a modelagem.
+
+Slide 13. A partir da pesquisa, defini vinte e um requisitos funcionais. A primeira coluna é a base do aplicativo: conta, publicações e mapa. A segunda é a busca colaborativa: rota, avistamentos, mensagens e moderação. E a terceira são os diferenciais: cartaz com QR, ciclo de vida da publicação, correspondências, tutela, meus pets, adoção e classificação de membros.
+
+Slide 14. Para o mural não ficar cheio de anúncios abandonados, toda publicação tem prazo. Fica ativa trinta dias. Três dias antes de vencer, o responsável é avisado para renovar. Se não renovar, entra em carência de trinta dias, oculta. Depois, uma limpeza automática no servidor, todo dia às três da manhã, remove a publicação e as fotos. Os tipos de publicação são: perdido, encontrado, para adoção e reencontrado, que encerra a busca.
+
+Slide 15. Os requisitos não funcionais seguem a ISO 25010: autenticação com regras de acesso no banco, para ninguém alterar dados de outra conta; localização aproximada nas telas públicas; conexão segura em toda comunicação; e fotos comprimidas no aparelho antes do envio. Foram verificados por inspeção do código, ainda sem medições independentes.
+
+Slide 16. Quatro regras protegem o tutor e o animal: comprovação de tutela, com relato e fotos, e devolução em local público; privacidade por padrão, sem o número da casa; cadastro preventivo dos pets com carteirinha; e adoção de um animal encontrado só depois de sete dias de busca.
+
+Slide 17. São três atores, e cada um herda do anterior. O visitante consulta. O usuário autenticado publica, registra avistamentos, conversa e combina a devolução. E o administrador modera as denúncias.
+
+Slide 18. No centro do modelo está a publicação. Em volta dela: o usuário com seus animais, os avistamentos, as conversas e mensagens, o fluxo de devolução, e a moderação com denúncia e classificação.
+
+Slide 19. Agora, o desenvolvimento.
+
+Slide 20. A arquitetura tem três partes. O aplicativo, em React Native com Expo, usando GPS, câmera e notificações. O backend no Supabase: autenticação, banco PostgreSQL com regras de acesso, armazenamento de fotos, tempo real para o chat, e as Edge Functions, pequenos programas no servidor que guardam as chaves secretas. E a mensageria: a Evolution API liga um número de WhatsApp ao sistema e fica hospedada no Render. Quando o app precisa avisar alguém, uma função do servidor pede o envio, e a pessoa recebe o código ou o aviso no WhatsApp.
+
+Slide 21. Escrevo em JavaScript, monto com React Native e testo e gero com Expo. JavaScript é a língua do código, a mesma que eu usava no curso. React Native é um framework que usa JavaScript para montar o app: um código só gera Android e iOS, e já traz a estilização das telas. Expo é a oficina: testo no celular e gero o APK. Google Maps por ser gratuito e conhecido, e a API do Google para o login. Usei ChatGPT e Copilot como apoio, sempre revisando o que era gerado.
+
+Slide 22. WeFIND junta We, nós, e Find, encontrar: a ideia de busca coletiva. O logo é um cão e um gato em volta de um pin. Verde floresta para confiança, marrom caramelo como cor da marca, e cores próprias para perdido, encontrado e adoção.
+
+Slide 23. A fonte do app é a Roboto, a fonte padrão do Android e do Material Design. É gratuita e cobre os acentos do português. Uso três pesos: negrito para títulos, médio para botões, e regular para textos.
+
+Slide 24. Esse é o principal diferencial: o app sugere quando um animal perdido pode ser um encontrado. Cada par recebe uma pontuação de zero a cem, por espécie, sexo, porte, raça, pelagem, idade e distância. Com cinquenta e cinco pontos entra na lista, e com sessenta gera um aviso. Não é probabilidade, é um índice; quem confirma é o usuário. Os pesos ainda serão calibrados nos testes.
+
+Slide 25. Agora mostro o aplicativo funcionando.
+
+Slide 26. Agora, como o app será avaliado.
+
+Slide 27. Após a qualificação, o app passa por quatro avaliações: verificação funcional de cada requisito no celular; segurança, com análise do APK no MobSF; usabilidade, com tarefas reais no Quant UX e o questionário SUS; e o teste da correspondência, com pares do mesmo animal e de animais diferentes.
+
+Slide 28. Para fechar.
+
+Slide 29. O aplicativo está funcional e entrega o que a pesquisa apontou como falta: mapa e rota, avistamentos, chat, cartaz com QR, devolução segura, correspondências e a limpeza automática diária. Como limites, a usabilidade ainda não foi testada, os pesos não foram calibrados, e parte da privacidade ainda depende da interface. Os próximos passos são os testes, restringir no banco os dados de perfil, e avaliar inteligência artificial para comparar fotos.
+
+Slide 30. Aqui estão as referências utilizadas.
+
+Slide 31. Obrigado. O aplicativo pode ser baixado pelo link na tela, e fico à disposição para perguntas.

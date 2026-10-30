@@ -138,12 +138,12 @@ Identificador & UC04 \\ \hline
 Nome do Caso de Uso & Registrar Avistamento \\ \hline
 Ator Principal & Usuário (Autenticado) \\ \hline
 Atores Secundários & Banco de Dados (PostgreSQL) e Serviço de Notificações \\ \hline
-Resumo & Permite a um membro da comunidade informar o local, a foto e a situação de um animal perdido que viu, acrescentando uma pista ao histórico da busca. \\ \hline
-Pré-Condições & O animal deve estar publicado com status ``Perdido''. \\ \hline
+Resumo & Permite a um membro da comunidade informar o local, a foto e a situação de um animal perdido ou visto solto na rua, acrescentando uma pista ao histórico da busca. \\ \hline
+Pré-Condições & O animal deve estar publicado como ``Perdido'' ou como ``Encontrado'', apenas avistado na rua. \\ \hline
 \multicolumn{2}{|l|}{Fluxo Principal:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
-1. Ao visualizar os detalhes de um animal perdido, o usuário aciona a opção ``Vi o Pet''.\par
-2. O sistema abre o modal de avistamento solicitando foto do local e relato.\par
+1. Na ficha da publicação ou no card do mapa, o usuário aciona a opção ``Vi o pet''.\par
+2. O sistema abre o formulário de avistamento solicitando o relato e onde o animal está (solto na rua ou em casa ou quintal).\par
 3. Opcionalmente, o usuário captura ou anexa uma fotografia do animal avistado.\par
 4. O sistema inclui obrigatoriamente (\textit{<<include>>}) o caso de uso Selecionar Localização no Mapa, capturando o ponto GPS do avistamento.\par
 5. O usuário confirma o envio do avistamento.\par
@@ -156,6 +156,7 @@ Pré-Condições & O animal deve estar publicado com status ``Perdido''. \\ \hli
 } \\ \hline
 \multicolumn{2}{|l|}{Fluxos de Exceção:} \\
 \multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1a. Animal sob cuidados: se o animal encontrado já está com quem publicou, o sistema não abre o formulário e orienta o contato pelo chat.\par
 4b. Coordenadas geográficas ausentes: o sistema impede a gravação do avistamento enquanto o ponto no mapa não for confirmado.\par
 5a. Falha temporária de rede: o sistema retém os dados digitados e sugere nova tentativa de envio.
 } \\ \hline
@@ -691,7 +692,7 @@ Visando resguardar a privacidade e a segurança dos participantes, o sistema nã
 
 \subsection*{Passo 1: Autenticação e Criação de Conta}
 \noindent
-Ao iniciar o aplicativo WeFIND pela primeira vez, o cidadão visualiza a tela de autenticação, onde pode se identificar caso já possua conta ativa ou optar por ingressar na comunidade. Para novos participantes, o acesso inicia-se tocando na opção ``Criar nova conta'', que conduz ao formulário unificado de criação de conta. As interfaces correspondentes são apresentadas na Figura~\ref{fig:manual_login_cadastro}.
+Ao iniciar o aplicativo WeFIND pela primeira vez, o cidadão visualiza a tela de autenticação, onde pode se identificar caso já possua conta ativa ou optar por ingressar na comunidade. Para novos participantes, o acesso inicia-se tocando na opção ``Criar conta'', que conduz ao formulário unificado de criação de conta. As interfaces correspondentes são apresentadas na Figura~\ref{fig:manual_login_cadastro}.
 
 \begin{figure}[H]
     \centering
@@ -715,7 +716,7 @@ Ao iniciar o aplicativo WeFIND pela primeira vez, o cidadão visualiza a tela de
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Para acessar a plataforma, o usuário informa seu e-mail e senha cadastrados na tela de autenticação (Figura~C1.a), com a opção de alternar a visibilidade da senha ou solicitar código de recuperação via WhatsApp caso tenha esquecido suas credenciais. Para novos membros, o formulário de cadastro (Figura~C1.b) orienta o preenchimento de nome completo, e-mail, telefone de contato e senha. Ao confirmar o cadastro, o usuário recebe um código de verificação pelo WhatsApp e, após informá-lo, é direcionado ao painel principal de publicações.
+Para acessar a plataforma, o usuário informa seu e-mail e senha cadastrados na tela de autenticação (Figura~C1.a), com a opção de alternar a visibilidade da senha ou solicitar código de recuperação via WhatsApp caso tenha esquecido suas credenciais. Para novos membros, o formulário de cadastro (Figura~C1.b) orienta o preenchimento de nome completo, e-mail, número de WhatsApp e senha, além da opção de receber pelo WhatsApp avisos de animais perdidos nas proximidades. Ao confirmar o cadastro, o usuário recebe um código de verificação pelo WhatsApp e, após informá-lo, é direcionado ao painel principal de publicações.
 
 \clearpage
 

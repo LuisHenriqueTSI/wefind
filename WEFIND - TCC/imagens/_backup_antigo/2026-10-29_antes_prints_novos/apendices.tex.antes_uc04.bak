@@ -1,0 +1,983 @@
+% ============================================================
+% APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO
+% ============================================================
+\section*{APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO}
+\phantomsection
+\addcontentsline{toc}{section}{APÊNDICE A: ESPECIFICAÇÃO DOS CASOS DE USO}
+
+Esta seção apresenta a especificação textual de casos de uso selecionados do escopo funcional central da plataforma WeFIND. Os casos agrupam operações relacionadas e descrevem atores, pré-condições, fluxos principais, alternativas e exceções; por isso, não correspondem individualmente a cada requisito funcional.
+
+\vspace{0.5cm}
+
+\subsection*{Caso de Uso UC01: Efetuar Login}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC01 \\ \hline
+Nome do Caso de Uso & Efetuar Login \\ \hline
+Ator Principal & Usuário Visitante \\ \hline
+Atores Secundários & Serviço de Autenticação (Supabase Auth) e Gateway de Mensageria (Evolution API / WhatsApp) \\ \hline
+Resumo & Permite ao usuário autenticar-se na plataforma mediante e-mail e senha ou por meio da conta Google, gerando token JWT de sessão persistente. \\ \hline
+Pré-Condições & Possuir cadastro ativo no WeFIND. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário aciona a opção ``Entrar'' na tela inicial.\par
+2. O sistema exibe o formulário solicitando e-mail e senha.\par
+3. O usuário preenche as credenciais e toca em ``Entrar na Conta''.\par
+4. O sistema valida o formato sintático do e-mail e o comprimento da senha.\par
+5. O sistema submete a requisição ao Supabase Auth.\par
+6. O serviço valida as credenciais e retorna a sessão autenticada.\par
+7. O sistema armazena a sessão localmente (\textit{AsyncStorage}) e redireciona ao mural principal autenticado.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Esquecimento de credenciais (\textit{<<extend>>}): o usuário aciona a opção Redefinir Senha, recebendo código OTP de 6 dígitos via Evolution API no WhatsApp para cadastro de nova senha.\par
+3b. Login com Google: o usuário aciona a opção de entrar com o Google, conclui a autenticação no navegador do dispositivo e retorna ao aplicativo com a sessão gerenciada pelo Supabase Auth.\par
+1a. Exploração sem cadastro: o usuário opta por ``Continuar explorando como visitante'', acessando a visualização de publicações e do mapa em modo somente leitura.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4a. Campos obrigatórios vazios: o sistema impede o envio e exibe avisos de preenchimento obrigatório nos campos destacados.\par
+6a. Credenciais incorretas: o sistema emite alerta visual de erro e retém o usuário no formulário para nova tentativa.
+} \\ \hline
+Pós-Condições & Sessão iniciada com permissões de publicação e comunicação ativas. \\ \hline
+\end{tabular}
+\end{table}
+
+\vspace{0.8cm}
+
+\subsection*{Caso de Uso UC02: Realizar Cadastro}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC02 \\ \hline
+Nome do Caso de Uso & Realizar Cadastro \\ \hline
+Ator Principal & Usuário Visitante \\ \hline
+Atores Secundários & Supabase Auth e Gateway de Mensageria (Evolution API / WhatsApp) \\ \hline
+Resumo & Permite a novos membros criarem uma conta informando dados cadastrais e realizando a verificação por código de segurança no WhatsApp. \\ \hline
+Pré-Condições & Dispositivo conectado à internet. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário toca na opção ``Criar nova conta'' na tela de autenticação.\par
+2. O sistema abre o formulário de registro solicitando nome completo, e-mail, telefone WhatsApp e senha.\par
+3. O usuário preenche as informações e confirma o cadastro.\par
+4. O sistema valida os campos, cria o registro no Supabase Auth e aciona por inclusão (\textit{«include»}) o caso de uso Verificar Código, disparando um código OTP de 6 dígitos via Evolution API para o WhatsApp informado.\par
+5. O sistema exibe a tela de confirmação de telefone com 6 campos numéricos.\par
+6. O usuário digita o código recebido no WhatsApp.\par
+7. O caso de uso Verificar Código valida a sequência numérica e ativa a conta de usuário permanentemente.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+6a. Reenvio de código de segurança: caso não receba o código, o usuário aciona o botão de reenvio após o término da contagem regressiva do temporizador de segurança.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4a. E-mail ou telefone já cadastrados: o sistema emite alerta indicando a duplicidade cadastral e impede o registro repetido.\par
+4b. Senha fora dos parâmetros: o sistema sinaliza que a senha deve possuir no mínimo 6 caracteres.\par
+6b. Código incorreto ou expirado: o sistema sinaliza a inconsistência e solicita nova inserção.
+} \\ \hline
+Pós-Condições & Conta criada, com telefone confirmado por código e pronta para autenticação. \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection*{Caso de Uso UC03: Manter Publicação}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC03 \\ \hline
+Nome do Caso de Uso & Manter Publicação \\ \hline
+Ator Principal & Usuário (Autenticado) \\ \hline
+Atores Secundários & Banco de Dados (PostgreSQL) e Supabase Storage \\ \hline
+Resumo & Permite cadastrar, editar, encerrar como reencontrado ou excluir publicações de animais perdidos e encontrados, além de cadastrar publicações diretas para adoção. \\ \hline
+Pré-Condições & Usuário autenticado e com permissão de localização ativa. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário aciona o botão de nova publicação (``+'') na barra de navegação.\par
+2. O sistema apresenta o formulário com as categorias ``Perdido'', ``Encontrado'' e ``Para Adoção''.\par
+3. O usuário seleciona a categoria correspondente à situação do animal.\par
+4. O usuário adiciona fotografias (com recorte integrado) e informa os atributos do animal, como espécie, raça, porte, cor e idade.\par
+5. Para a categoria ``Para Adoção'', o usuário informa a origem e a quantidade anunciada, limitada a 50 animais, e registra sexo ou gênero, uma ou mais cores, idade e raça opcionalmente para cada animal.\par
+6. O sistema executa obrigatoriamente por inclusão (\textit{<<include>>}) o caso de uso Selecionar Localização no Mapa, capturando as coordenadas geográficas.\par
+7. O usuário confirma a publicação.\par
+8. O sistema envia as fotos ao Storage e grava os dados na tabela \textit{items}.\par
+9. A publicação passa a ser exibida no mural e, conforme as regras de privacidade (Seção~\ref{sec:privacidade}), no mapa.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4a. Edição de publicação existente: o autor atualiza fotos ou descrições do anúncio já publicado.\par
+4b. Encerramento com sucesso: o autor altera o status para ``Reencontrado'', encerrando a busca.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4c. Imagem inválida ou tamanho excessivo: o sistema impede o envio e solicita a seleção de uma foto válida.\par
+5a. Ponto no mapa não demarcado: o sistema bloqueia a submissão e exige a marcação das coordenadas geográficas.
+} \\ \hline
+Pós-Condições & Publicação persistida e disponível para a comunidade no mural e, quando permitido pelas regras de privacidade, no mapa. \\ \hline
+\end{tabular}
+\end{table}
+
+\vspace{0.8cm}
+
+\subsection*{Caso de Uso UC04: Registrar Avistamento}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC04 \\ \hline
+Nome do Caso de Uso & Registrar Avistamento \\ \hline
+Ator Principal & Usuário (Autenticado) \\ \hline
+Atores Secundários & Banco de Dados (PostgreSQL) e Serviço de Notificações \\ \hline
+Resumo & Permite a um membro da comunidade informar o local, a foto e a situação de um animal perdido que viu, acrescentando uma pista ao histórico da busca. \\ \hline
+Pré-Condições & O animal deve estar publicado com status ``Perdido''. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. Ao visualizar os detalhes de um animal perdido, o usuário aciona a opção ``Vi o Pet''.\par
+2. O sistema abre o modal de avistamento solicitando foto do local e relato.\par
+3. Opcionalmente, o usuário captura ou anexa uma fotografia do animal avistado.\par
+4. O sistema inclui obrigatoriamente (\textit{<<include>>}) o caso de uso Selecionar Localização no Mapa, capturando o ponto GPS do avistamento.\par
+5. O usuário confirma o envio do avistamento.\par
+6. O sistema grava o avistamento em \textit{sightings}, com a indicação de que o animal estava na rua ou em uma casa ou quintal; neste último caso, o ponto é guardado de forma aproximada.\par
+7. O sistema registra uma notificação para o autor da publicação informando o novo avistamento e, quando houver permissão do dispositivo, envia um aviso ao celular.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4a. Ajuste manual de localização: caso o sinal de GPS esteja impreciso, o usuário arrasta manualmente o pino até o local visualizado na rua.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4b. Coordenadas geográficas ausentes: o sistema impede a gravação do avistamento enquanto o ponto no mapa não for confirmado.\par
+5a. Falha temporária de rede: o sistema retém os dados digitados e sugere nova tentativa de envio.
+} \\ \hline
+Pós-Condições & Avistamento incluído no histórico do animal, tutor alertado e, se o animal estava na rua, rota disponível até a área do avistamento. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+
+\subsection*{Caso de Uso UC05: Enviar Mensagem}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC05 \\ \hline
+Nome do Caso de Uso & Enviar Mensagem \\ \hline
+Ator Principal & Usuário (Autenticado) \\ \hline
+Atores Secundários & Serviço de Mensagens em Tempo Real (Supabase Realtime) \\ \hline
+Resumo & Viabiliza canal direto e privativo de troca de mensagens e imagens entre o tutor do animal e voluntários da comunidade sem expor contatos telefônicos. \\ \hline
+Pré-Condições & Ambos os usuários devem possuir cadastro ativo. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. Na tela de detalhes da publicação, o usuário aciona o botão ``Conversar com responsável''.\par
+2. O sistema cria ou recupera a sala de conversa existente entre os dois usuários para aquele animal.\par
+3. O sistema abre a interface de chat em tempo real.\par
+4. O usuário digita a mensagem ou anexa uma foto e confirma o envio.\par
+5. O sistema transmite a mensagem em tempo real e notifica o destinatário pela central de notificações e, quando houver permissão, no celular.\par
+6. A mensagem é persistida na tabela \textit{messages} e exibida na conversa.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+5a. Destinatário desconectado: a mensagem é gravada de modo permanente no banco de dados e sincronizada assim que o destinatário abrir o aplicativo.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1a. Tentativa de contato consigo mesmo: o sistema oculta a opção de chat quando o visualizador é o próprio autor do anúncio.\par
+4a. Mensagem vazia: o sistema desabilita o botão de envio enquanto não houver conteúdo textual ou anexo de mídia.
+} \\ \hline
+Pós-Condições & Canal de comunicação estabelecido com histórico mantido na caixa de entrada. \\ \hline
+\end{tabular}
+\end{table}
+
+\vspace{0.8cm}
+
+\subsection*{Caso de Uso UC06: Compartilhar Publicação}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC06 \\ \hline
+Nome do Caso de Uso & Compartilhar Publicação \\ \hline
+Ator Principal & Usuário / Usuário Visitante \\ \hline
+Atores Secundários & Módulo Gerador de Código QR e API Nativa de Compartilhamento \\ \hline
+Resumo & Permite a qualquer usuário gerar automaticamente artes gráficas em múltiplos formatos (A4, com código QR, e formatos vertical e quadrado para redes sociais) para divulgação rápida. \\ \hline
+Pré-Condições & O animal deve possuir ao menos uma fotografia cadastrada. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. Na tela de detalhes da publicação, o usuário clica em ``Compartilhar Cartaz''.\par
+2. O sistema abre o modal com pré-visualização ao vivo da arte gerada.\par
+3. No formato A4, o sistema gera o código QR que direciona à página pública da publicação.\par
+4. O usuário seleciona o formato desejado (A4 para impressão, proporção vertical 9:16 ou proporção quadrada 1:1).\par
+5. O usuário escolhe entre salvar a imagem na galeria ou acionar o compartilhamento direto via WhatsApp ou redes sociais.\par
+6. O sistema exporta o cartaz como arquivo de imagem.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4a. Cópia de texto rápido: o sistema oferece botão auxiliar para copiar texto formatado contendo os dados essenciais e o link web do animal para colar em conversas.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1a. Ausência de fotografias: o sistema informa que é obrigatório dispor de pelo menos uma foto para diagramar o cartaz de busca.
+} \\ \hline
+Pós-Condições & Cartaz digital gerado para impressão física ou compartilhamento em redes sociais. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+
+\subsection*{Fluxo de Denúncia pela Comunidade}
+\noindent
+O usuário autenticado pode iniciar uma denúncia na ficha da publicação, selecionar o motivo (conteúdo falso ou enganoso, conteúdo inadequado, informações de contato suspeitas ou outro), acrescentar detalhes opcionais e enviar o relato para análise. A denúncia permanece pendente até a avaliação administrativa. Enquanto houver uma denúncia pendente para a mesma publicação, o mesmo usuário não pode enviar outra.
+
+\begin{figure}[H]
+    \centering
+    \caption{Envio de Denúncia de uma Publicação}
+    \label{fig:denuncia_usuario}
+    \capturaTela{imagens/04_telas_aplicativo/tela-denuncia-publicacao.png}
+    \par\vspace{0.12cm}
+    {\small Figura~\thefigure.a) Ficha da Publicação com a Ação de Denunciar}
+    \par\vspace{0.2cm}
+    \capturaTela{imagens/04_telas_aplicativo/tela-formulario-denuncia.png}
+    \par\vspace{0.12cm}
+    {\small Figura~\thefigure.b) Seleção do Motivo e Envio da Denúncia}
+    \par\vspace{0.12cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\clearpage
+
+\subsection*{Caso de Uso UC07: Manter Moderação e Denúncias}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC07 \\ \hline
+Nome do Caso de Uso & Manter Moderação e Denúncias \\ \hline
+Ator Principal & Administrador \\ \hline
+Atores Secundários & Banco de Dados (PostgreSQL) \\ \hline
+Resumo & Permite ao administrador analisar denúncias enviadas pela comunidade e decidir entre manter ou excluir a publicação reportada. \\ \hline
+Pré-Condições & Conta autenticada com perfil de administrador (\textit{isAdmin = true}). \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O administrador acessa o painel pelo menu do perfil.\par
+2. O sistema lista as denúncias pendentes com a publicação, o autor da denúncia e o motivo informado.\par
+3. O administrador abre a publicação para examinar seu conteúdo.\par
+4. O administrador escolhe manter a publicação ou excluí-la.\par
+5. O sistema encerra a denúncia; se a opção de exclusão for escolhida, remove também a publicação.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4a. Manter publicação: o administrador constata que não é necessária a remoção, encerra a denúncia e mantém o anúncio visível.\par
+4b. Excluir publicação: o administrador considera necessária a remoção e o sistema exclui o anúncio ao encerrar a denúncia.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+5a. Falha ao atualizar a denúncia: o sistema informa que não foi possível concluir a operação.
+} \\ \hline
+Pós-Condições & Denúncia encerrada e publicação mantida ou removida conforme a decisão do administrador. \\ \hline
+\end{tabular}
+\end{table}
+
+As telas do painel administrativo relacionadas a este caso de uso são apresentadas separadamente no \hyperref[apendice:painel-administrativo]{Apêndice F}.
+
+\clearpage
+
+\subsection*{Caso de Uso UC08: Solicitar Comprovação de Tutela}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+\multicolumn{2}{|c|}{Especificação} \\ \hline
+\endfirsthead
+\hline
+\multicolumn{2}{|c|}{Caso de Uso UC08: Solicitar Comprovação de Tutela (Continuação)} \\ \hline
+\endhead
+\hline
+\endfoot
+\endlastfoot
+Identificador & UC08 \\ \hline
+Nome do Caso de Uso & Solicitar Comprovação de Tutela \\ \hline
+Ator Principal & Usuário Autenticado (solicitante) \\ \hline
+Atores Secundários & Autor da publicação (quem acolheu o animal) \\ \hline
+Resumo & Permite ao usuário que se identifica como tutor de um animal anunciado como encontrado comprovar a tutela e combinar com quem o acolheu um encontro de devolução em local público. \\ \hline
+Pré-Condições & Usuário autenticado; publicação do tipo ``Encontrado'' ativa, com endereço exato protegido. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. Na ficha do animal encontrado, o usuário aciona a opção de comprovação de tutela.\par
+2. O sistema solicita a forma de comprovação (fotos do animal, carteira de vacinação ou marcas ocultas).\par
+3. O usuário anexa as imagens pela galeria ou pela câmera e escreve uma mensagem ao autor da publicação.\par
+4. O usuário confirma o envio.\par
+5. O sistema registra a solicitação como pendente e avisa o autor da publicação por notificação e por uma mensagem automática no chat.\par
+6. O autor analisa o relato e as imagens no chat e, se conferirem, aciona ``Liberar local'', que abre a proposta de um ponto de encontro público sem revelar o endereço.\par
+7. O autor escolhe no mapa um ponto público de encontro, o dia, o horário e uma observação opcional, e envia a proposta (\textit{<<extend>>} Combinar Encontro de Devolução).\par
+8. O sistema aprova a solicitação, fixa a proposta no alto da conversa e notifica o solicitante.\par
+9. O solicitante confirma o encontro.\par
+10. O sistema marca o encontro como confirmado, registra a resposta no chat e notifica o autor.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+6a. Recusa da solicitação: o autor recusa o pedido e pode registrar o motivo; o sistema notifica o solicitante.\par
+9a. Outro horário: o solicitante sugere outro dia, horário ou ponto; a proposta anterior é substituída e o autor passa a responder à nova.\par
+9b. Não posso: o solicitante recusa o horário proposto e pode deixar um motivo; as partes combinam uma nova proposta pelo chat.\par
+10a. Remarcação ou cancelamento: depois de confirmado, qualquer uma das partes pode remarcar ou cancelar o encontro, e a outra é notificada.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Mensagem vazia: o sistema exige a descrição de como o usuário comprova ser o tutor antes de permitir o envio.
+} \\ \hline
+Pós-Condições & Solicitação registrada e analisada; em caso de aprovação, encontro de devolução combinado em local público, sem liberação do endereço residencial. \\ \hline
+\end{longtable}
+
+
+\clearpage
+\subsection*{Caso de Uso UC09: Manter Meus Pets}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC09 \\ \hline
+Nome do Caso de Uso & Manter Meus Pets \\ \hline
+Ator Principal & Usuário Autenticado (tutor) \\ \hline
+Atores Secundários & Usuários próximos, que recebem o alerta quando o animal é declarado perdido \\ \hline
+Resumo & Permite ao tutor cadastrar seus animais de estimação de forma preventiva, gerar a carteirinha digital de cada um e, se o animal desaparecer, transformar o cadastro em uma publicação de animal perdido. \\ \hline
+Pré-Condições & Usuário autenticado. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. No perfil, o usuário abre a área ``Meus pets e carteirinhas''.\par
+2. O usuário toca em adicionar e informa foto, nome, espécie, raça, porte, cor, sexo, idade ou data de nascimento, microchip, castração, vacinação e observações médicas.\par
+3. O sistema salva o animal na lista do tutor.\par
+4. O usuário toca em ``Ver carteirinha''.\par
+5. O sistema gera a carteirinha digital com os dados do animal, o nome e o contato do tutor e um código QR, que pode ser salva ou compartilhada.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4a. Animal desaparecido: o usuário aciona ``Meu pet fugiu'' e confirma; o sistema cria uma publicação de animal perdido com as características já preenchidas, avisa os usuários próximos e compara a publicação com os anúncios de animais encontrados.\par
+4b. Edição ou exclusão: o usuário altera os dados do animal ou o remove da lista.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Falha ao salvar: o sistema informa que não foi possível salvar os dados e mantém o usuário no formulário.
+} \\ \hline
+Pós-Condições & Animal cadastrado na lista do tutor; no fluxo 4a, publicação de animal perdido ativa no mapa e no mural. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC10: Disponibilizar para Adoção}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC10 \\ \hline
+Nome do Caso de Uso & Disponibilizar para Adoção \\ \hline
+Ator Principal & Usuário Autenticado (autor da publicação) \\ \hline
+Atores Secundários & Usuários interessados na adoção \\ \hline
+Resumo & Permite criar uma publicação direta para adoção responsável ou disponibilizar para adoção um animal encontrado que já passou pelo período mínimo de busca pelo tutor. \\ \hline
+Pré-Condições & Usuário autenticado; para a conversão de um animal encontrado, publicação ativa com o animal sob os cuidados do autor. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. Na ficha da própria publicação de um animal encontrado, o autor aciona ``Disponibilizar para Adoção''.\par
+2. O sistema verifica se a publicação completou o período mínimo de sete dias de busca pelo tutor.\par
+3. O sistema pede confirmação ao autor.\par
+4. O autor confirma.\par
+5. O sistema marca a publicação como disponível para adoção, e ela passa a aparecer como ``Para Adoção'' no mural.\par
+6. Os interessados entram em contato com o autor pelo chat da publicação.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1a. Cadastro direto: ao criar uma publicação, o usuário escolhe ``Para Adoção'', informa a origem (resgatados ou encontrados, ninhada do próprio animal, abrigo ou protetor, ou outra origem), define a quantidade anunciada (até 50) e registra sexo ou gênero, uma ou mais cores, idade e raça opcional para cada animal. O sistema cria a publicação como disponível para adoção.\par
+5a. Atualização individual: na ficha da publicação, o autor marca cada animal como adotado ou disponível; o sistema atualiza a quantidade ainda disponível no anúncio.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Período de busca não concluído: o sistema informa quantos dias faltam e mantém a publicação ativa como animal encontrado.
+} \\ \hline
+Pós-Condições & Publicação disponível para adoção no mural, com a quantidade disponível atualizada e contato pelo chat. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC11: Consultar e Pesquisar Publicações}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC11 \\ \hline
+Nome do Caso de Uso & Consultar e Pesquisar Publicações \\ \hline
+Ator Principal & Usuário Visitante ou Usuário Autenticado \\ \hline
+Atores Secundários & Serviço de Localização e Serviço de Mapas \\ \hline
+Resumo & Permite consultar publicações de animais, pesquisar e filtrar anúncios e visualizar sua localização aproximada no mapa. \\ \hline
+Pré-Condições & Aplicativo conectado à internet. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário abre o mural de publicações.\par
+2. O sistema apresenta os anúncios ativos de animais perdidos, encontrados ou disponíveis para adoção, ordenados por proximidade quando há localização disponível.\par
+3. O usuário pesquisa ou filtra os anúncios por espécie, situação, características, distância ou oferta de recompensa, podendo alterar a ordenação.\par
+4. O usuário seleciona uma publicação.\par
+5. O sistema apresenta os detalhes do anúncio, incluindo imagens, características e local informado.\par
+6. Se desejar, o usuário visualiza as publicações no mapa, que apresenta apenas as localizações permitidas pelas regras de privacidade.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Consulta do mapa: o usuário escolhe a visualização em mapa e consulta as publicações disponíveis nessa visualização.\par
+5a. Traçar rota: quando há uma pista pública recente elegível, o usuário solicita uma rota até a área aproximada dessa pista.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Nenhuma publicação corresponde à pesquisa: o sistema informa que não encontrou anúncios com os critérios selecionados.\par
+5b. Localização não disponível: o sistema mantém a consulta aos anúncios, sem aplicar ordenação por proximidade.
+} \\ \hline
+Pós-Condições & Publicações consultadas conforme os critérios escolhidos, sem alteração dos anúncios. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC12: Manter Avistamentos Próprios}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC12 \\ \hline
+Nome do Caso de Uso & Manter Avistamentos Próprios \\ \hline
+Ator Principal & Usuário Autenticado (autor do avistamento) \\ \hline
+Atores Secundários & Banco de Dados (PostgreSQL) e Serviço de Mapas \\ \hline
+Resumo & Permite consultar os avistamentos associados a uma publicação e editar ou remover os relatos enviados pelo próprio usuário. \\ \hline
+Pré-Condições & Usuário autenticado e com ao menos um avistamento associado à publicação. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário abre uma publicação com avistamentos registrados.\par
+2. O sistema apresenta os avistamentos associados à publicação em lista e no mapa, do mais recente para o mais antigo, com as localizações representadas de forma aproximada.\par
+3. O usuário seleciona um avistamento de sua autoria.\par
+4. O usuário escolhe editar o relato, atualiza as informações e confirma a alteração.\par
+5. O sistema salva e apresenta os dados atualizados.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+4a. Remover avistamento: o usuário solicita a remoção do próprio relato e confirma a ação; o sistema o exclui da publicação.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Avistamento de outro autor: o sistema não permite que o usuário edite ou remova o relato de outra pessoa.
+} \\ \hline
+Pós-Condições & Avistamentos consultados; quando editado ou removido, o relato próprio fica atualizado ou deixa de ser exibido. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC13: Consultar Notificações}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC13 \\ \hline
+Nome do Caso de Uso & Consultar Notificações \\ \hline
+Ator Principal & Usuário Autenticado \\ \hline
+Atores Secundários & Serviço de Notificações e, quando disponível e autorizado, serviço de notificações do dispositivo ou WhatsApp \\ \hline
+Resumo & Permite consultar avisos relacionados à atividade do usuário e às buscas por animais. \\ \hline
+Pré-Condições & Usuário autenticado. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário abre a central de notificações.\par
+2. O sistema apresenta os avisos disponíveis, como novos avistamentos, mensagens, possíveis correspondências, publicações próximas e lembretes de renovação.\par
+3. O usuário seleciona uma notificação para consultar o evento relacionado.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Aviso externo: quando há suporte do dispositivo e a permissão necessária, o sistema também pode enviar notificações locais ou push; usuários que autorizarem podem receber avisos pelo WhatsApp.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2b. Nenhuma notificação disponível: o sistema informa que não há avisos para consultar.
+} \\ \hline
+Pós-Condições & O usuário consulta os avisos registrados para sua conta. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC14: Consultar Sugestões de Correspondência}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC14 \\ \hline
+Nome do Caso de Uso & Consultar Sugestões de Correspondência \\ \hline
+Ator Principal & Usuário Autenticado \\ \hline
+Atores Secundários & Serviço de Correspondência entre Publicações \\ \hline
+Resumo & Permite consultar sugestões de possíveis correspondências entre anúncios ativos de animais perdidos e encontrados. \\ \hline
+Pré-Condições & Usuário autenticado e com publicação ativa de animal perdido ou encontrado. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário abre a área de sugestões de correspondência.\par
+2. O sistema compara publicações ativas de animais perdidos e encontrados considerando espécie, características físicas e distância geográfica.\par
+3. O sistema apresenta as publicações que podem corresponder ao anúncio do usuário.\par
+4. O usuário seleciona uma sugestão e consulta os detalhes da publicação relacionada.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Sugestão recebida por notificação: o usuário abre a notificação de possível correspondência e consulta os detalhes do anúncio sugerido.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Nenhuma correspondência sugerida: o sistema informa que não há sugestões disponíveis no momento.
+} \\ \hline
+Pós-Condições & Sugestões consultadas; a identificação de uma correspondência permanece sob responsabilidade dos usuários. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC15: Classificar Membro}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC15 \\ \hline
+Nome do Caso de Uso & Classificar Membro \\ \hline
+Ator Principal & Usuário Autenticado (avaliador) \\ \hline
+Atores Secundários & Serviço de Mensagens e Banco de Dados (PostgreSQL) \\ \hline
+Resumo & Permite classificar outro membro com quem o usuário trocou mensagens, após 24 horas sem novas mensagens entre ambos. \\ \hline
+Pré-Condições & Usuário autenticado, não pode ser o próprio perfil avaliado, e deve ter trocado mensagens com o outro membro; a última mensagem entre eles deve ter sido enviada há pelo menos 24 horas. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário acessa o perfil público de outro membro elegível.\par
+2. O sistema apresenta a opção de classificar e informa que a classificação está disponível.\par
+3. O usuário escolhe de uma a cinco estrelas e, opcionalmente, seleciona etiquetas de elogio e escreve um comentário.\par
+4. O usuário confirma o envio da classificação.\par
+5. O sistema registra a classificação e atualiza a média, o total e a distribuição das notas exibidas no perfil público.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Classificação disponível: ao completar 24 horas sem novas mensagens, o sistema envia o aviso ``Classificação disponível'' e apresenta a opção no perfil público.\par
+3a. Sem comentário ou etiquetas: o usuário envia a classificação somente com a nota em estrelas.\par
+5a. Excluir classificação própria: o avaliador solicita a exclusão de uma classificação que já enviou.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1a. Conversa recente ou inexistente: o sistema não libera a classificação antes de 24 horas sem novas mensagens.\par
+1b. Perfil próprio: o sistema não permite que o usuário classifique a si mesmo.\par
+4a. Classificação já enviada: o sistema impede o envio de outra classificação pelo mesmo avaliador para aquele membro.
+} \\ \hline
+Pós-Condições & Classificação registrada e refletida no perfil público; se excluída pelo avaliador, deixa de compor as notas exibidas. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+\subsection*{Caso de Uso UC16: Manter Perfil}
+\noindent
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{11.8cm}|}
+\hline
+Identificador & UC16 \\ \hline
+Nome do Caso de Uso & Manter Perfil \\ \hline
+Ator Principal & Usuário Autenticado \\ \hline
+Atores Secundários & Banco de Dados (PostgreSQL) \\ \hline
+Resumo & Permite ao usuário consultar e atualizar os dados básicos de seu perfil e contato. \\ \hline
+Pré-Condições & Usuário autenticado. \\ \hline
+\multicolumn{2}{|l|}{Fluxo Principal:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+1. O usuário acessa a área de seu perfil.\par
+2. O sistema apresenta os dados básicos cadastrados.\par
+3. O usuário altera os dados que deseja atualizar e confirma a operação.\par
+4. O sistema valida e salva as alterações, apresentando o perfil atualizado.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos Alternativos:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+2a. Consulta sem alterações: o usuário visualiza os dados do perfil e encerra a consulta.
+} \\ \hline
+\multicolumn{2}{|l|}{Fluxos de Exceção:} \\
+\multicolumn{2}{|>{\raggedright\arraybackslash}p{15.4cm}|}{
+3a. Dados inválidos: o sistema informa os campos que precisam ser corrigidos e não salva as alterações.
+} \\ \hline
+Pós-Condições & Dados do perfil consultados ou atualizados. \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+
+% ============================================================
+% APÊNDICE B: RESULTADOS DA PESQUISA DE CAMPO E INSTRUMENTO DE AVALIAÇÃO SUS
+% ============================================================
+\section*{APÊNDICE B: RESULTADOS DA PESQUISA DE CAMPO E INSTRUMENTO DE AVALIAÇÃO SUS}
+\phantomsection
+\addcontentsline{toc}{section}{APÊNDICE B: RESULTADOS DA PESQUISA DE CAMPO E INSTRUMENTO DE AVALIAÇÃO SUS}
+
+Este apêndice reúne a distribuição das respostas da pesquisa de campo e o instrumento da Escala de Usabilidade do Sistema (SUS) aplicado na avaliação descrita no Capítulo 8.
+
+\input{pos-textuais/pesquisa_campo_resultados}
+
+\subsection*{B.2 Escala de Usabilidade do Sistema (SUS)}
+
+Escala de avaliação de usabilidade aplicada aos 12 participantes do teste do WeFIND apresentado no Capítulo 8. O formulário adotou a redação em português das dez afirmações da \textit{System Usability Scale} (SUS) conforme apresentada por Teixeira (2015), reproduzida a seguir. A fonte é uma publicação de divulgação sobre a escala e não é citada como estudo de validação psicométrica da tradução.
+
+O formulário de avaliação foi organizado em quatro seções: (1) confirmação do perfil do respondente como tutor de animal de estimação; (2) pergunta única sobre a conclusão das cinco tarefas do roteiro, com as alternativas ``concluí todas as tarefas com facilidade'', ``concluí todas, mas tive dúvida em alguma etapa'', ``concluí apenas algumas tarefas'' e ``não consegui concluir as tarefas''; (3) as dez afirmações da SUS reproduzidas a seguir; e (4) três perguntas abertas, de resposta opcional, sobre os pontos positivos, as dificuldades encontradas e as sugestões de melhoria.
+
+\vspace{0.3cm}
+\noindent
+Instruções ao participante: Para cada uma das afirmações a seguir, assinale com um ``X'' o nível de concordância que melhor representa sua experiência prática com o aplicativo WeFIND, em uma escala de 1 (Discordo Totalmente) a 5 (Concordo Totalmente):
+
+\vspace{0.5cm}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{|c|>{\raggedright\arraybackslash}p{8.8cm}|c|c|c|c|c|}
+\hline
+Nº & Afirmação Avaliada & 1 & 2 & 3 & 4 & 5 \\ \hline
+1 & Eu acho que gostaria de usar esse sistema com frequência. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+2 & Eu acho o sistema desnecessariamente complexo. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+3 & Eu achei o sistema fácil de usar. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+4 & Eu acho que precisaria de ajuda de uma pessoa com conhecimentos técnicos para usar o sistema. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+5 & Eu acho que as várias funções do sistema estão muito bem integradas. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+6 & Eu acho que o sistema apresenta muita inconsistência. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+7 & Eu imagino que as pessoas aprenderão como usar esse sistema rapidamente. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+8 & Eu achei o sistema atrapalhado de usar. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+9 & Eu me senti confiante ao usar o sistema. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+10 & Eu precisei aprender várias coisas novas antes de conseguir usar o sistema. & [ ] & [ ] & [ ] & [ ] & [ ] \\ \hline
+\end{tabular}
+\end{table}
+
+\clearpage
+
+% ============================================================
+% APÊNDICE C: GUIA DE UTILIZAÇÃO DO SISTEMA WeFIND (MANUAL DO USUÁRIO)
+% ============================================================
+\section*{APÊNDICE C: GUIA DE UTILIZAÇÃO DO SISTEMA WeFIND (MANUAL DO USUÁRIO)}
+\phantomsection
+\addcontentsline{toc}{section}{APÊNDICE C: GUIA DE UTILIZAÇÃO DO SISTEMA WeFIND (MANUAL DO USUÁRIO)}
+
+Este guia prático foi elaborado para orientar tutores de animais domésticos, protetores independentes e membros da comunidade na utilização do aplicativo WeFIND. Organizado em formato de manual de instruções passo a passo, o documento apresenta capturas das telas do sistema e explica os principais fluxos de busca e divulgação de animais perdidos e encontrados.
+
+Para utilizar a ferramenta, o usuário necessita de um smartphone com sistema operacional Android, plataforma para a qual a versão de testes foi distribuída, e conexão com a internet, seja por rede móvel celular ou Wi-Fi. Durante o uso, o aplicativo pode solicitar autorização para acessar a localização geográfica e a câmera ou galeria de fotos. Esses recursos apoiam a consulta de publicações próximas e o registro de fotografias.
+
+O roteiro está estruturado em torno de cinco procedimentos da aplicação: a criação e gestão da conta; a consulta do mapa e das rotas; o cadastro de animais perdidos ou encontrados; a geração e o compartilhamento de cartazes; e a comunicação privada entre usuários.
+
+Ao longo das páginas seguintes, cada procedimento é ilustrado com imagens das interfaces correspondentes, acompanhadas de orientações sobre os campos a preencher e as ações disponíveis.
+
+Visando resguardar a privacidade e a segurança dos participantes, o sistema não exibe o endereço residencial exato nem o número de telefone particular em páginas públicas, mantendo o diálogo restrito ao canal de mensagens privativo do aplicativo. Caso surjam dúvidas adicionais durante a navegação prática, o usuário pode recorrer à seção de ajuda e suporte presente no menu de configurações da aplicação, que disponibiliza orientações complementares sobre guarda responsável e políticas comunitárias de uso.
+
+\clearpage
+
+% Configuração da numeração de figuras e âncoras do Apêndice C (Figura C1, C2, ...)
+\renewcommand{\thefigure}{C\arabic{figure}}
+\renewcommand{\theHfigure}{C\arabic{figure}}
+\setcounter{figure}{0}
+
+\subsection*{Passo 1: Autenticação e Criação de Conta}
+\noindent
+Ao iniciar o aplicativo WeFIND pela primeira vez, o cidadão visualiza a tela de autenticação, onde pode se identificar caso já possua conta ativa ou optar por ingressar na comunidade. Para novos participantes, o acesso inicia-se tocando na opção ``Criar conta'', que conduz ao formulário unificado de criação de conta. As interfaces correspondentes são apresentadas na Figura~\ref{fig:manual_login_cadastro}.
+
+\begin{figure}[H]
+    \centering
+    \caption{Telas de Autenticação e Cadastro de Usuário}
+    \label{fig:manual_login_cadastro}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-login-v2.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C1.a) Formulário de Autenticação}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-criar-conta-v2.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C1.b) Criação de Nova Conta}
+    \end{minipage}
+    \par\vspace{0.1cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+Para acessar a plataforma, o usuário informa seu e-mail e senha cadastrados na tela de autenticação (Figura~C1.a), com a opção de alternar a visibilidade da senha ou solicitar código de recuperação via WhatsApp caso tenha esquecido suas credenciais. Para novos membros, o formulário de cadastro (Figura~C1.b) orienta o preenchimento de nome completo, e-mail, número de WhatsApp e senha, além da opção de receber pelo WhatsApp avisos de animais perdidos nas proximidades. Ao confirmar o cadastro, o usuário recebe um código de verificação pelo WhatsApp e, após informá-lo, é direcionado ao painel principal de publicações.
+
+\clearpage
+
+\subsection*{Passo 2: Navegação no Mapa Interativo e Traçado de Rotas}
+\noindent
+Após o ingresso no aplicativo, o usuário pode consultar no mapa as publicações de animais perdidos e encontrados. A Figura~\ref{fig:manual_mapa_rotas} apresenta o mapa principal com marcadores e uma rota até a área aproximada da pista mais recente do animal selecionado.
+
+\begin{figure}[H]
+    \centering
+    \caption{Telas de Mapa Interativo e Rota até a Área da Pista}
+    \label{fig:manual_mapa_rotas}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-mapa-principal.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C2.a) Mapa com Marcadores}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-mapa-rota-animal.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C2.b) Rota até a Área da Pista}
+    \end{minipage}
+    \par\vspace{0.1cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+A visualização da Figura~C2 evidencia a convergência entre geolocalização e mobilidade urbana. Na Figura~C2.a, cada animal aparece no mapa com a sua foto em um círculo, contornado pela cor da situação da publicação. Ao tocar em um marcador, o sistema exibe um cartão com foto, nome e distância. Quando há uma pista recente na rua, o botão de rota mostra o caminho até a área onde o animal foi visto (Figura~C2.b), com tempo e distância estimados, a escolha entre ir a pé, de bicicleta, de carro ou de ônibus e a opção de abrir o trajeto no Google Maps.
+
+\clearpage
+
+\subsection*{Passo 3: Registro de Publicação de Animal Encontrado na Rua}
+\noindent
+Ao avistar ou resgatar um animal desorientado em vias públicas, o cidadão inicia o fluxo de cadastro comunitário acionando o botão central ``+'' na barra inferior de navegação. O assistente orienta o preenchimento por etapas sequenciais, associando características físicas, fotografias e a localização marcada no mapa. A Figura~\ref{fig:manual_cadastro_publicacao} detalha a etapa de caracterização do animal e o georreferenciamento no mapa interativo.
+
+\begin{figure}[H]
+    \centering
+    \caption{Registro de Publicação e Fixação de Ponto no Mapa}
+    \label{fig:manual_cadastro_publicacao}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-cadastrar-encontrado-1.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C3.a) Características Físicas e Fotos}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-cadastrar-encontrado-3.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C3.b) Fixação no Mapa}
+    \end{minipage}
+    \par\vspace{0.1cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+O procedimento de registro documentado na Figura~C3 busca organizar as informações disponibilizadas à comunidade. Na Figura~C3.a, o usuário define a categoria da publicação (animal encontrado na rua), anexa fotografias capturadas na hora pela câmera ou selecionadas da galeria, e seleciona espécie, sexo, porte e cores predominantes da pelagem. Na etapa seguinte, exibida na Figura~C3.b, o sistema captura a posição atual do aparelho via GPS ou permite ao colaborador ajustar manualmente o pino sobre o local onde o animal foi visto e preenche automaticamente a rua, o bairro e a cidade, sem o número da casa, antes da publicação no mural geral.
+
+\clearpage
+
+\subsection*{Passo 4: Consulta de Detalhes e Geração de Cartazes com Código QR}
+\noindent
+Para permitir a identificação precisa de um animal anunciado, o sistema disponibiliza uma tela completa de detalhes com fotografias, características físicas e opções de compartilhamento. A partir dessa tela, o usuário pode gerar cartazes digitais de busca. A Figura~\ref{fig:manual_detalhes_cartaz} apresenta a visualização detalhada da publicação e a peça gráfica de divulgação gerada automaticamente.
+
+\begin{figure}[H]
+    \centering
+    \caption{Tela de Detalhes do Animal e Cartaz Digital de Busca}
+    \label{fig:manual_detalhes_cartaz}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-do-animal.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C4.a) Ficha da Publicação}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/figura21_tela_cartaz.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C4.b) Cartaz com Código QR}
+    \end{minipage}
+    \par\vspace{0.1cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+A articulação entre a ficha descritiva e a divulgação externa visualiza-se na Figura~C4. Na Figura~C4.a, a tela de detalhes mostra a foto do animal, com o botão de compartilhamento, o tipo da publicação e as características em cartões; mais abaixo ficam a região do desaparecimento, a situação da pista e os botões de ação, como ``Vi o Pet''. Ao tocar na opção de compartilhamento, o componente nativo renderiza a tela exibida na Figura~C4.b, diagramando automaticamente o cartaz de busca com fotografia destacada, dados essenciais e, no formato A4, código QR que direciona à página pública da publicação; também há versões nos formatos 9:16 e 1:1 para redes sociais. O telefone do autor só aparece no cartaz quando ele autoriza.
+
+\clearpage
+
+\subsection*{Passo 5: Comunicação Privada via Chat Interno}
+\noindent
+O contato entre quem perdeu e quem encontrou um animal exige um canal direto que não obrigue os participantes a expor seus telefones. Para isso, o WeFIND disponibiliza mensagens privadas em tempo real. A Figura~\ref{fig:manual_mensagens_chat} apresenta a central de mensagens ativas e a conversa privativa em tempo real.
+
+\begin{figure}[H]
+    \centering
+    \caption{Central de Mensagens e Bate-papo Privativo em Tempo Real}
+    \label{fig:manual_mensagens_chat}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-mensagens.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C5.a) Caixa de Mensagens}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-conversa.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura C5.b) Chat em Tempo Real}
+    \end{minipage}
+    \par\vspace{0.1cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+O sistema de mensageria (Figura~C5) permite o contato privado entre os membros da comunidade. Na central de mensagens (Figura~C5.a), o usuário acompanha todas as conversas em andamento agrupadas por publicação, com identificação visual do pet e contador de mensagens pendentes. Ao selecionar uma conversa (Figura~C5.b), o usuário troca mensagens e fotos com a outra pessoa em tempo real, sem precisar informar o telefone.
+
+\clearpage
+
+\clearpage
+
+% ============================================================
+% APÊNDICE D: MATRIZ DE RASTREABILIDADE DE REQUISITOS E VERIFICAÇÕES
+% ============================================================
+\section*{APÊNDICE D: MATRIZ DE RASTREABILIDADE DE REQUISITOS E VERIFICAÇÕES}
+\phantomsection
+\addcontentsline{toc}{section}{APÊNDICE D: MATRIZ DE RASTREABILIDADE DE REQUISITOS E VERIFICAÇÕES}
+
+Este apêndice apresenta a rastreabilidade entre as necessidades identificadas no Capítulo~3, os requisitos funcionais centrais do Capítulo~4 e as funcionalidades correspondentes no aplicativo.
+
+O Quadro~D1 também registra a verificação funcional manual relatada pelo autor. As verificações foram realizadas sem roteiro formal previamente documentado; por isso, a matriz não as apresenta como casos de teste padronizados nem como validação independente. O procedimento e suas limitações são descritos no Capítulo~8.
+
+\vspace{0.3cm}
+{
+\phantomsection\hypertarget{quadro:rastreabilidade}{}\label{quadro:rastreabilidade}
+\small
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{2.5pt}
+\begin{longtable}{|>{\raggedright\arraybackslash}p{4.1cm}|>{\centering\arraybackslash}p{1.8cm}|>{\raggedright\arraybackslash}p{5.4cm}|>{\raggedright\arraybackslash}p{2.7cm}|}
+\hline
+\multicolumn{4}{|c|}{Quadro D1 -- Matriz de Rastreabilidade do Sistema WeFIND} \\
+\multicolumn{4}{|c|}{(Necessidades $\rightarrow$ Requisitos $\rightarrow$ Funcionalidades $\rightarrow$ Verificação)} \\ \hline
+Necessidade identificada (pesquisa ou diagnóstico) & Requisito & Funcionalidade Implementada & Verificação manual \\ \hline
+\endfirsthead
+
+\hline
+\multicolumn{4}{|c|}{Quadro D1 -- Matriz de Rastreabilidade do Sistema WeFIND (Continuação)} \\
+\multicolumn{4}{|c|}{(Necessidades $\rightarrow$ Requisitos $\rightarrow$ Funcionalidades $\rightarrow$ Verificação)} \\ \hline
+Necessidade identificada (pesquisa ou diagnóstico) & Requisito & Funcionalidade Implementada & Verificação manual \\ \hline
+\endhead
+
+\hline
+\multicolumn{4}{|r|}{\textit{Continua na próxima página}} \\ \hline
+\endfoot
+
+\hline
+\multicolumn{4}{|c|}{Fonte: Autoria própria (2026)} \\ \hline
+\endlastfoot
+Pesquisa de campo indicou uso recorrente de redes sociais e necessidade de participação vinculada a uma conta. & RF01 & Cadastro, autenticação, recuperação de senha e encerramento de sessão com Supabase Auth. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Pesquisa apontou preocupação com exposição de telefones pessoais; dados básicos de contato precisam ser atualizáveis. & RF02 & Edição dos dados básicos e de contato do perfil do usuário. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Os meios atuais foram considerados insuficientes para reunir as informações necessárias sobre o animal. & RF03 & Consulta de publicações em lista e acesso a detalhes, imagens, características e local registrado. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Participantes relataram recorrer a redes sociais para divulgar animais perdidos. & RF04 & Cadastro de publicação de animal perdido ou encontrado com descrição, características, imagens, localização e, para animais perdidos, recompensa opcional. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Uma publicação precisa poder ser corrigida e encerrada quando a busca termina. & RF05 & Edição, encerramento e exclusão da própria publicação pelo autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+A ausência de mapa foi assinalada por 21 dos 48 respondentes (43,8\%); todos atribuíram nota 4 ou 5 à utilidade do mapa. & RF06 & Mapa interativo com marcadores das publicações de animais perdidos (em posição aproximada) e de animais encontrados soltos na rua. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+A busca em canais generalistas não oferece filtros próprios por características e distância. & RF07 & Pesquisa e filtros por espécie, situação, características, oferta de recompensa e raio de proximidade. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+A localização associada à publicação deve orientar a procura em campo. & RF08 & Rota a pé, de bicicleta, de carro ou de ônibus até a área da pista pública mais recente, com indicação de pista quente, morna ou fria. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Relatos comunitários podem fornecer pistas sobre onde e quando o animal foi visto. & RF09 & Registro de avistamento vinculado à publicação, com local, data/horário, descrição e imagem opcional. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Relatos incorretos ou desatualizados precisam ser consultáveis e corrigíveis pelo autor. & RF10 & Linha do tempo de avistamentos e edição ou remoção do relato pelo seu autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+42 dos 48 respondentes (87,5\%) deram nota 4 ou 5 ao incômodo de expor o telefone; 23 preferem o chat privado do aplicativo. & RF11 & Conversa privada entre usuários associada à publicação, com envio e recebimento de mensagens. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+31 dos 48 respondentes (64,6\%) apontaram que as publicações desaparecem entre outras; todos manifestaram interesse em receber alertas de proximidade. & RF12 & Central de notificações para novos avistamentos, mensagens, correspondências, publicações próximas e lembretes relacionados às publicações do usuário. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+A comunidade precisa poder sinalizar conteúdo suspeito para análise. & RF13 & Envio de denúncia vinculada à publicação ou ao conteúdo reportado. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Denúncias exigem análise e ação administrativa para apoiar a integridade das informações. & RF14 & Consulta de denúncias e moderação do conteúdo pelo administrador. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+31 dos 48 respondentes (64,6\%) deram nota 4 ou 5 ao cartaz com código QR; 17 (35,4\%) deram nota 3. & RF15 & Geração de cartaz digital com informações da publicação e código QR para exportação ou compartilhamento. & Incluído na tarefa 3 da avaliação com participantes; resultado individual não registrado. \\ \hline
+Publicações sem atualização podem permanecer visíveis após o fim da busca. & RF16 & Vigência de 30 dias, aviso três dias antes do vencimento, ocultação após expirar, renovação durante 30 dias de carência e remoção definitiva, após esse prazo, pela rotina local para publicações do usuário autenticado. & Verificação individual não registrada. \\ \hline
+A comparação entre anúncios perdidos e encontrados pode apoiar a identificação de possíveis correspondências. & RF17 & Comparação automática de publicações por espécie, características físicas e distância, com apresentação de sugestões de correspondência e confirmação final pelos usuários. & Teste com 20 pares fictícios (Seção 8.3): 8 de 10 pares do mesmo animal sugeridos e 6 de 10 pares diferentes sugeridos por engano. \\ \hline
+Todos os 48 respondentes pediriam prova de tutela antes da devolução: 32 sempre e 16 se desconfiassem da pessoa. & RF18 & Solicitação de devolução com relato e fotos, análise pelo autor da publicação, aprovação ou recusa e encontro de devolução em local público combinado pelo chat, com confirmação, remarcação ou cancelamento e notificação a cada etapa. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+Observação do autor em grupos do \textit{Facebook}: quem anuncia ter encontrado um animal recebe julgamentos nos comentários (sem estudo formal). & RF04 & Opção de publicar o relato de animal encontrado anonimamente, com ``Relato anônimo da comunidade'' no lugar do nome e da foto do autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+23 dos 48 respondentes (47,9\%) marcaram que seus animais não usam nenhuma forma de identificação da lista; um marcou microchip. & RF19 & Cadastro preventivo dos animais de estimação, carteirinha digital com código QR e contato do tutor, e conversão do cadastro em publicação de animal perdido. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+21 dos 48 respondentes (43,8\%) atribuíram nota 4 ou 5 à utilidade da seção de adoção; 19 (39,6\%) deram nota 2. & RF20 & Publicação direta para adoção, inclusive de grupos de animais com disponibilidade atualizada individualmente, e conversão de animal encontrado para adoção após sete dias de busca pelo tutor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
+21 dos 48 respondentes (43,8\%) aceitariam avaliar com estrelas e comentário uma pessoa que ajudou; 27 (56,3\%) responderam talvez. & RF21 & Classificação entre membros após uma conversa, com estrelas, etiquetas e comentário, e média exibida no perfil público. & Verificado pelo autor em outubro de 2026, após a avaliação com participantes (Seção 8.1). \\ \hline
+\end{longtable}
+}
+\clearpage
+
+% ============================================================
+% APÊNDICE E: REGISTRO TÉCNICO DA ANÁLISE DE SEGURANÇA
+% ============================================================
+\section*{APÊNDICE E: REGISTRO TÉCNICO DA ANÁLISE DE SEGURANÇA}
+\phantomsection
+\label{apendice:analise-mobsf}
+\addcontentsline{toc}{section}{APÊNDICE E: REGISTRO TÉCNICO DA ANÁLISE DE SEGURANÇA}
+
+Este apêndice registra os dados necessários para identificar o pacote analisado e documenta as evidências produzidas pelo MobSF. O resumo SHA-256 identifica o arquivo específico submetido à análise; sua inclusão permite distinguir essa versão de outros pacotes com o mesmo nome.
+
+\vspace{0.3cm}
+\begin{table}[H]
+\centering
+\phantomsection\hypertarget{quadro:mobsf_pacote}{}\label{quadro:mobsf_pacote}
+\small
+\begin{tabular}{|>{\raggedright\arraybackslash}p{4.2cm}|>{\raggedright\arraybackslash}p{10.8cm}|}
+\hline
+\multicolumn{2}{|c|}{Quadro E1 -- Identificação do pacote submetido à análise estática} \\ \hline
+Dado & Valor \\ \hline
+Data da análise & 14 de outubro de 2026 \\ \hline
+Ferramenta & Mobile Security Framework (MobSF), versão 4.5.4 \\ \hline
+Tipo de análise & Estática; o aplicativo não foi executado \\ \hline
+Arquivo analisado & \textit{WeFIND\_v2.0.apk} \\ \hline
+Aplicativo e versão & WeFIND, versão 2.0 \\ \hline
+Identificador do pacote & \textit{com.wefind.app} \\ \hline
+Resumo SHA-256 & \parbox[t]{10.5cm}{\itshape\small f383cd85\allowbreak36142706\allowbreak d14d6e9d\allowbreak44bebdb2\allowbreak23ee7d78\allowbreak77bc9446\allowbreak a4fb21ff\allowbreak685b90f9} \\ \hline
+\end{tabular}
+\fonte{Relatório do MobSF (2026)}
+\end{table}
+
+\subsection*{Inspeção estática do código e das migrações}
+
+Além da análise automatizada do APK, o código e as migrações do projeto foram inspecionados manualmente. Nessa inspeção, foi observado o uso de HTTPS na comunicação, com o tratamento de senhas delegado ao Supabase Auth e o uso de PKCE no fluxo OAuth. Também foram observadas políticas de segurança em nível de linha (RLS) nas tabelas que possuem regras definidas, além de validações de entrada. Os códigos temporários são gerados por fonte criptograficamente segura, apenas o resumo SHA-256 deles é armazenado e cada código aceita no máximo cinco tentativas. Por fim, a função de mensageria exige autenticação, e os dados sensíveis são removidos dos registros de log.
+
+Essa inspeção estática não verificou de forma independente a infraestrutura hospedada, as configurações de backup e restauração, a expiração global de sessões ou a disponibilidade dos provedores utilizados. Também não foram realizados testes de invasão nem avaliação dinâmica do aplicativo.
+
+\clearpage
+
+% ============================================================
+% APÊNDICE F: TELAS DO PAINEL ADMINISTRATIVO
+% ============================================================
+\section*{APÊNDICE F: TELAS DO PAINEL ADMINISTRATIVO}
+\phantomsection
+\label{apendice:painel-administrativo}
+\addcontentsline{toc}{section}{APÊNDICE F: TELAS DO PAINEL ADMINISTRATIVO}
+
+Este apêndice reúne as capturas de tela do painel administrativo, separadas das especificações textuais dos casos de uso. O administrador acessa o painel pelo menu do perfil (Figura~\ref{fig:acesso_administracao}). Na aba ``Denúncias'', consulta o conteúdo reportado e pode escolher ``Manter'' ou ``Excluir'' a publicação (Figura~\ref{fig:painel_denuncias}). A aba ``Usuários'' permite consultar perfis e as ações administrativas disponíveis para as contas (Figura~\ref{fig:administracao_usuarios}).
+
+\renewcommand{\thefigure}{F\arabic{figure}}
+\renewcommand{\theHfigure}{F\arabic{figure}}
+\setcounter{figure}{0}
+
+\begin{figure}[H]
+    \centering
+    \caption{Acesso ao Painel Administrativo}
+    \label{fig:acesso_administracao}
+    \capturaTela{imagens/04_telas_aplicativo/tela-acesso-administracao.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Painel Administrativo com as Denúncias Pendentes}
+    \label{fig:painel_denuncias}
+    \capturaTela{imagens/04_telas_aplicativo/tela-painel-denuncias-administrador.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Aba de Gerenciamento de Usuários}
+    \label{fig:administracao_usuarios}
+    \capturaTela{imagens/04_telas_aplicativo/tela-administracao-usuarios.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\clearpage

@@ -105,7 +105,7 @@ O fluxo de entrada foi planejado para atender tanto usuários que já possuem ca
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-A tela de login reúne os campos de e-mail e senha, a recuperação de credenciais, o acesso com a conta Google e a possibilidade de conhecer o aplicativo antes do cadastro. A Figura~\ref{fig:telas_autenticacao}.b apresenta essa opção de apresentação, que permite ao visitante compreender a finalidade do WeFIND e consultar suas principais funções antes de criar uma conta. Assim, as duas telas formam um fluxo inicial simples. O usuário pode entrar com uma conta existente ou conhecer a proposta do aplicativo antes de prosseguir para o cadastro. Essa organização reduz o número de decisões iniciais e orienta o usuário para as ações essenciais.
+A tela de login reúne os campos de e-mail e senha, a recuperação de credenciais, o acesso com a conta Google e a possibilidade de conhecer o aplicativo antes do cadastro. A Figura~\ref{fig:telas_autenticacao}.b apresenta essa opção de apresentação, que permite ao visitante compreender a finalidade do WeFIND e consultar suas principais funções antes de criar uma conta. No alto da tela, a seção ``Encontrados hoje'' lista as publicações de animais achados por outras pessoas e cadastrados no mesmo dia na cidade do usuário, ou seja, animais que ainda aguardam o tutor. Não se trata de reencontros já concluídos: o objetivo é que quem perdeu um animal verifique rapidamente se ele foi achado. Quando não há registros no dia, como na captura, a seção informa que nenhum animal foi encontrado hoje na cidade. Em seguida, o passo a passo ``Do sumiço ao reencontro'' mostra como uma busca avança dentro do aplicativo. Assim, as duas telas formam um fluxo inicial simples. O usuário pode entrar com uma conta existente ou conhecer a proposta do aplicativo antes de prosseguir para o cadastro. Essa organização reduz o número de decisões iniciais e orienta o usuário para as ações essenciais.
 
 Mesmo sem autenticação, o visitante pode consultar publicações no feed e visualizar no mapa animais perdidos e avistamentos, como mostra a Figura~\ref{fig:modo_visitante}. Na captura do mapa, a permissão de localização já havia sido concedida; por isso, a solicitação do sistema não aparece. Quando ainda não há autorização, o aplicativo a solicita ao acessar o mapa, como mostra a Figura~\ref{fig:tela_mapa}.a. A navegação permite conhecer informações básicas dos animais antes de criar uma conta; ações como publicar, comentar ou enviar mensagens dependem de autenticação.
 
@@ -131,7 +131,7 @@ Mesmo sem autenticação, o visitante pode consultar publicações no feed e vis
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Para refinar a consulta no mural, o usuário pode abrir os filtros avançados. A tela reúne critérios de espécie, porte, sexo, idade e cor, além de permitir destacar anúncios com recompensa e escolher a ordenação dos resultados. A Figura~\ref{fig:tela_filtros_avancados} apresenta esse painel.
+Para refinar a consulta no mural, o usuário pode abrir os filtros avançados. A tela reúne critérios de espécie, porte, sexo, idade e cor, além de permitir destacar animais vistos na rua ou anúncios com recompensa e escolher a ordenação dos resultados, por proximidade ou data. A Figura~\ref{fig:tela_filtros_avancados} apresenta esse painel.
 
 \begin{figure}[H]
     \centering
@@ -207,7 +207,7 @@ A localização é um recurso central do sistema, pois permite relacionar public
 
 A Figura~\ref{fig:tela_mapa}.a mostra a solicitação de acesso à localização. A Figura~\ref{fig:tela_mapa}.b apresenta o mapa com os marcadores das publicações, em que cada animal aparece com a sua foto em um círculo, contornado por uma cor que indica a situação. A cor laranja representa animais perdidos e a verde, animais encontrados na rua. Animais acolhidos em casa e disponíveis para adoção não aparecem no mapa, conforme a Seção~\ref{sec:privacidade}, e os marcadores de animais perdidos ficam em posição aproximada. Ao selecionar um animal, o cartão prioriza seus dados principais e mantém informações complementares recolhidas até que o usuário solicite sua exibição. O botão ``Histórico'', disponível no cartão, abre os avistamentos sob demanda; eles não são exibidos automaticamente ao selecionar a publicação. A Figura~\ref{fig:tela_mapa}.c demonstra uma rota a pé até a área de busca, com o traçado pontilhado. As opções de transporte são apresentadas após o usuário tocar em ``Traçar rota'', conforme as regras da Seção~\ref{sec:rota}.
 
-Quem vê um animal anunciado registra a pista pelo botão ``Vi o Pet'', na ficha ou no mapa. A partir desse relato, outras pessoas podem tocar no animal no mapa e, quando há uma pista pública recente, solicitar uma rota. Ao tocar em ``Traçar rota'', escolhem a modalidade de deslocamento. A Figura~\ref{fig:tela_rota_pistas} mostra esse caminho, do registro do avistamento ao acompanhamento da rota.
+Quem vê um animal anunciado registra a pista pelo botão ``Vi o pet'', na ficha ou no mapa. A partir desse relato, outras pessoas podem tocar no animal no mapa e, quando há uma pista pública recente, solicitar uma rota. Ao tocar em ``Traçar rota'', escolhem a modalidade de deslocamento. A Figura~\ref{fig:tela_rota_pistas} mostra esse caminho, do registro do avistamento ao acompanhamento da rota.
 
 \begin{figure}[H]
     \centering
@@ -245,7 +245,7 @@ Quem vê um animal anunciado registra a pista pelo botão ``Vi o Pet'', na ficha
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-Na Figura~\ref{fig:tela_rota_pistas}.a, quem viu o animal responde onde ele está, solto na rua ou em uma casa ou quintal, e marca o local no mapa, podendo acrescentar uma descrição e uma foto. A Figura~\ref{fig:tela_rota_pistas}.b mostra o cartão do animal com as informações principais, a distância, o botão ``Histórico'' e a ação ``Traçar rota''. A situação da pista e as modalidades de transporte não aparecem inicialmente no cartão: quando há uma pista pública recente, o usuário toca em ``Traçar rota'' e, em seguida, escolhe entre a pé, de bicicleta, de carro e de ônibus. A Figura~\ref{fig:tela_rota_pistas}.c apresenta o histórico de avistamentos, aberto pelo botão no cartão. No alto, a faixa informa o número de registros; no mapa, os avistamentos com até sete dias e coordenadas disponíveis aparecem como círculos numerados, do mais recente ao mais antigo. Na parte inferior, cada registro aparece com o tempo decorrido e o nome de quem o registrou, incluindo os arquivados, que permanecem na lista sem revelar um ponto no mapa. Para avistamentos públicos de até 48 horas, é possível escolher aquele registro como destino da rota; os mais antigos permanecem consultáveis no histórico, mas sem essa opção. Se a rota escolhida não for a desejada, o usuário pode voltar ao histórico pela ação ``Trocar'' e selecionar outro avistamento. A Figura~\ref{fig:tela_rota_pistas}.d mostra a rota em andamento. O mapa acompanha o deslocamento do usuário até a área de busca, e o trajeto é atualizado conforme ele se move.
+Na Figura~\ref{fig:tela_rota_pistas}.a, quem viu o animal descreve o que observou, informa onde ele está, solto na rua ou em uma casa ou quintal, e marca no mapa o ponto do avistamento; essas três informações são obrigatórias para enviar a pista. Também é possível indicar um ponto de referência, acrescentar uma foto e deixar contatos para o tutor. A Figura~\ref{fig:tela_rota_pistas}.b mostra o cartão do animal com as informações principais, a distância, o botão ``Histórico'' e a ação ``Traçar rota''. A situação da pista e as modalidades de transporte não aparecem inicialmente no cartão: quando há uma pista pública recente, o usuário toca em ``Traçar rota'' e, em seguida, escolhe entre a pé, de bicicleta, de carro e de ônibus. A Figura~\ref{fig:tela_rota_pistas}.c apresenta o histórico de avistamentos, aberto pelo botão no cartão. No alto, a faixa informa o número de registros; no mapa, os avistamentos com até sete dias e coordenadas disponíveis aparecem como círculos numerados, do mais recente ao mais antigo. Na parte inferior, cada registro aparece com o tempo decorrido e o nome de quem o registrou, incluindo os arquivados, que permanecem na lista sem revelar um ponto no mapa. Para avistamentos públicos de até 48 horas, é possível escolher aquele registro como destino da rota; os mais antigos permanecem consultáveis no histórico, mas sem essa opção. Se a rota escolhida não for a desejada, o usuário pode voltar ao histórico pela ação ``Trocar'' e selecionar outro avistamento. A Figura~\ref{fig:tela_rota_pistas}.d mostra a rota em andamento. O mapa acompanha o deslocamento do usuário até a área de busca, e o trajeto é atualizado conforme ele se move.
 
 O formulário unificado de registro contempla a perda de um animal pelo tutor, o encontro de um animal e a oferta de animais para adoção. A separação inicial das modalidades ajuda o usuário a escolher o caminho correspondente ao seu caso. A Figura~\ref{fig:tela_registro_perdi_encontrei} apresenta os formulários de animais perdidos e encontrados, e a Figura~\ref{fig:tela_registro_adocao} detalha o cadastro para adoção.
 
@@ -450,7 +450,7 @@ Para divulgar o caso fora do aplicativo e conversar com outros usuários, o WeFI
     \fonte{Autoria própria (2026)}
 \end{figure}
 
-As Figuras~\ref{fig:tela_cartaz_mensagens}.a--c mostram a seleção e a prévia do cartaz com QR Code, do formato vertical para \textit{Stories/Status} e do formato quadrado para o \textit{Feed}. A arte adapta as informações ao tipo da publicação; no exemplo, apresenta quatro animais disponíveis para adoção e sua origem. Por padrão, o telefone não é exibido, e o contato é feito pelo chat do aplicativo. O QR Code leva a uma página pública do WeFIND que não mostra endereço nem telefone e orienta quem recebeu o cartaz a abrir ou instalar o aplicativo. A Figura~\ref{fig:tela_cartaz_mensagens}.d mostra a central de mensagens, com as conversas agrupadas por publicação, e a Figura~\ref{fig:tela_cartaz_mensagens}.e, uma conversa privada entre o tutor e uma pessoa que viu o animal, que exibe uma dica de segurança para combinar a entrega apenas após a comprovação de tutela.
+As Figuras~\ref{fig:tela_cartaz_mensagens}.a--c mostram a seleção e a prévia do cartaz com QR Code, do formato vertical para \textit{Stories/Status} e do formato quadrado para o \textit{Feed}. A arte adapta as informações ao tipo da publicação; no exemplo, apresenta quatro animais disponíveis para adoção e sua origem. Por padrão, o telefone não é exibido, e o contato é feito pelo chat do aplicativo, como no cartaz da Figura~\ref{fig:tela_cartaz_mensagens}.a. Se o autor ativar a opção ``Mostrar meu WhatsApp nos cartazes'', o número passa a aparecer também nas artes geradas, como nos formatos das Figuras~\ref{fig:tela_cartaz_mensagens}.b e~\ref{fig:tela_cartaz_mensagens}.c. O QR Code leva a uma página pública do WeFIND que não mostra endereço nem telefone e orienta quem recebeu o cartaz a abrir ou instalar o aplicativo. A Figura~\ref{fig:tela_cartaz_mensagens}.d mostra a central de mensagens, com as conversas agrupadas por publicação, e a Figura~\ref{fig:tela_cartaz_mensagens}.e, uma conversa privada entre o tutor e uma pessoa que viu o animal, que exibe uma dica de segurança para combinar a entrega apenas após a comprovação de tutela.
 
 Os avisos do sistema ficam reunidos na central de notificações, apresentada na Figura~\ref{fig:tela_notificacoes}. Nela, o usuário acompanha lembretes de renovação, novos avistamentos, mensagens e as possíveis correspondências encontradas pelo mecanismo heurístico. Quando uma correspondência é encontrada, o aviso também chega como notificação no celular.
 
@@ -569,6 +569,58 @@ Nos anúncios coletivos, a ficha informa quantos animais ainda estão disponíve
     \fonte{Autoria própria (2026)}
 \end{figure}
 
+Pelo cabeçalho do mural, o usuário também define a área considerada na consulta. Ao tocar em ``Mostrando até'', escolhe o raio de busca, e ao tocar na cidade exibida, atualiza a localidade usada como referência. A Figura~\ref{fig:tela_raio_localidade} apresenta essas duas janelas.
+
+\begin{figure}[H]
+    \centering
+    \caption{Ajuste do Raio de Busca e da Localidade do Mural}
+    \label{fig:tela_raio_localidade}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-ajuste-raio-busca.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.a) Raio de Busca}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-atualizar-localidade.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.b) Atualização da Localidade}
+    \end{minipage}
+    \par\vspace{0.12cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+Na Figura~\ref{fig:tela_raio_localidade}.a, o alcance atual aparece no alto da janela, e o usuário escolhe um novo raio entre 1 e 80~km, aplicado ao tocar em ``Aplicar raio''. Sem essa escolha, vale o raio padrão de 25~km, conforme a Seção~\ref{sec:busca_proximidade}. Na Figura~\ref{fig:tela_raio_localidade}.b, a localidade é escolhida no mapa, e o endereço selecionado é exibido antes de ser salvo no perfil, passando a servir de referência para as distâncias apresentadas no mural.
+
+Os cards do mural resumem cada publicação e, quando o tutor oferece recompensa, o valor aparece no próprio card. Para quem ainda não cadastrou um número de WhatsApp, o mural também exibe um convite para receber avisos por esse canal. A Figura~\ref{fig:tela_mural_recompensa_whatsapp} mostra os dois casos.
+
+\begin{figure}[H]
+    \centering
+    \caption{Card com Recompensa e Convite para Alertas pelo WhatsApp no Mural}
+    \label{fig:tela_mural_recompensa_whatsapp}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-feed-perdido-recompensa.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.a) Card com Recompensa}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-feed-convite-whatsapp.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.b) Convite para Alertas pelo WhatsApp}
+    \end{minipage}
+    \par\vspace{0.12cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+Na Figura~\ref{fig:tela_mural_recompensa_whatsapp}.a, o card de um animal perdido mostra, além da foto, das características e da distância, a recompensa oferecida pelo tutor. Na Figura~\ref{fig:tela_mural_recompensa_whatsapp}.b, o convite explica que o cadastro do número é opcional e serve para receber avisos de animais perdidos próximos e de possíveis correspondências. O usuário pode dispensá-lo em ``Agora não'' ou tocar em ``Cadastrar WhatsApp'', que abre a edição do perfil.
+
 O perfil reúne as áreas pessoais do usuário, e cada membro também tem um perfil público, que outras pessoas podem consultar. A Figura~\ref{fig:tela_perfil} apresenta as duas telas.
 
 \begin{figure}[H]
@@ -594,6 +646,39 @@ O perfil reúne as áreas pessoais do usuário, e cada membro também tem um per
 \end{figure}
 
 Na Figura~\ref{fig:tela_perfil}.a, o perfil do usuário dá acesso a Meus pets e carteirinhas, aos próprios anúncios, às solicitações de devolução, às configurações e à ajuda. A Figura~\ref{fig:tela_perfil}.b mostra o perfil público de um membro, com o número de publicações e de reencontros, a média das classificações recebidas, que aparece como ``Sem classificações'' enquanto ninguém avaliou o membro, e a atividade na comunidade, como avistamentos compartilhados e animais procurados. A aba ``Classificações'' reúne as avaliações recebidas, descritas na Seção~\ref{sec:classificacao}, e o perfil público não exibe e-mail nem telefone.
+
+A partir do perfil, o usuário também edita seus dados e ajusta as preferências do aplicativo. A Figura~\ref{fig:tela_editar_perfil_config} apresenta a edição do perfil e a tela de configurações.
+
+\begin{figure}[H]
+    \centering
+    \caption{Edição do Perfil e Configurações}
+    \label{fig:tela_editar_perfil_config}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-editar-perfil-dados.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.a) Dados Pessoais e Localização}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-editar-perfil-contatos.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.b) Contatos e Conta}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.31\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-configuracoes-v2.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.c) Configurações}
+    \end{minipage}
+    \par\vspace{0.12cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+Na Figura~\ref{fig:tela_editar_perfil_config}.a, a edição reúne a foto, o nome, o e-mail e a localização usada para mostrar publicações e avisos próximos. Na Figura~\ref{fig:tela_editar_perfil_config}.b, aparecem os contatos: o WhatsApp e, opcionalmente, Instagram e Facebook. A troca do número de WhatsApp exige a confirmação por um código enviado ao novo número. A mesma tela permite alterar a senha, também com código enviado pelo WhatsApp, e excluir a conta. A Figura~\ref{fig:tela_editar_perfil_config}.c apresenta as configurações, que reúnem a escolha entre tema claro e escuro, a ativação das notificações no aplicativo, dos avisos pelo WhatsApp e dos lembretes de renovação, além de atalhos para editar o perfil, alterar a senha e sincronizar os dados com o servidor.
 
 A área ``Meus pets'', descrita na Seção~\ref{sec:meus_pets}, é acessada pelo perfil do usuário. A Figura~\ref{fig:tela_meus_pets} apresenta a lista de animais cadastrados, o formulário de cadastro e a carteirinha digital.
 
