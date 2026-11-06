@@ -1,0 +1,166 @@
+\section*{REFERÊNCIAS}
+\phantomsection
+\addcontentsline{toc}{section}{REFERÊNCIAS}
+
+% ABNT NBR 6023: Referências com alinhamento à esquerda e espaçamento simples
+\begin{flushleft}
+\singlespacing
+
+\vspace{12pt}
+\noindent ABNT -- ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. \textbf{ABNT NBR ISO 9241-11}: Ergonomia da interação humano-sistema: Parte 11: Usabilidade: Definições e conceitos. Rio de Janeiro: ABNT, 2021.
+
+\vspace{12pt}
+\noindent ALERTPET. \textbf{Aplicativo e rede de alerta para localização de animais perdidos e encontrados}. 2026. Disponível em: \url{https://app.alertpet.com.br/}. Acesso em: 31 ago. 2026.
+
+\vspace{12pt}
+\noindent ASTAH. \textbf{Astah UML}: diagramming and modeling software for system design. Change Vision, 2026. Disponível em: \url{https://astah.net/products/astah-uml/}. Acesso em: 31 ago. 2026.
+
+\vspace{12pt}
+\noindent BEZERRA, Eduardo. \textbf{Princípios de análise e projeto de sistemas com UML}. 3. ed. Rio de Janeiro: Elsevier, 2015.
+
+\vspace{12pt}
+\noindent BRASIL. Lei nº 13.709, de 14 de agosto de 2018. Lei Geral de Proteção de Dados Pessoais (LGPD). Brasília, DF: Presidência da República, 2018. Disponível em: \url{https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709compilado.htm}. Acesso em: 31 ago. 2026.
+
+\vspace{12pt}
+\noindent BRASIL. Conselho Nacional de Saúde. Resolução nº 510, de 7 de abril de 2016. Dispõe sobre as normas aplicáveis a pesquisas em Ciências Humanas e Sociais. \textbf{Diário Oficial da União}: seção 1, Brasília, DF, p. 44--46, 24 maio 2016.
+
+\vspace{12pt}
+\noindent BROOKE, John. SUS: a 'quick and dirty' usability scale. In: JORDAN, Patrick W. et al. (ed.). \textbf{Usability evaluation in industry}. London: Taylor \& Francis, 1996. p. 189--194.
+
+\vspace{12pt}
+\noindent CAVOUKIAN, Ann. \textbf{Privacy by Design}: the 7 foundational principles. Toronto: Information and Privacy Commissioner of Ontario, 2009. Disponível em: \url{https://student.cs.uwaterloo.ca/~cs492/papers/7foundationalprinciples_longer.pdf}. Acesso em: 16 out. 2026.
+
+\vspace{12pt}
+\noindent DUCKHAM, Matt; KULIK, Lars. A formal model of obfuscation and negotiation for location privacy. In: INTERNATIONAL CONFERENCE ON PERVASIVE COMPUTING, 3., 2005, Munich. \textbf{Proceedings} [...]. Berlin: Springer, 2005. p. 152--170. (Lecture Notes in Computer Science, v. 3468).
+
+\vspace{12pt}
+\noindent EVOLUTION API. \textbf{Evolution API Documentation}: the open source API for WhatsApp. 2026. Disponível em: \url{https://evolution-api.com/}. Acesso em: 10 set. 2026.
+
+\vspace{12pt}
+\noindent EXPO. \textbf{Expo SDK 54}: SDK reference. 2026. Disponível em: \url{https://docs.expo.dev/versions/v54.0.0/}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent FIGMA. \textbf{Figma}: the collaborative interface design tool. 2026. Disponível em: \url{https://www.figma.com/}. Acesso em: 31 ago. 2026.
+
+\vspace{12pt}
+\noindent FUKS, Hugo; RAPOSO, Adriana; GEROSA, Marco A.; PIMENTEL, Mariano; FILIPPO, Daniela; LUCENA, Carlos J. P. Teorias e modelos de colaboração. In: PIMENTEL, Mariano; FUKS, Hugo (org.). \textbf{Sistemas colaborativos}. Rio de Janeiro: Elsevier, 2011. cap. 2, p. 16--33.
+
+\vspace{12pt}
+\noindent GIL, Antonio Carlos. \textbf{Como elaborar projetos de pesquisa}. 7. ed. São Paulo: Atlas, 2022.
+
+\vspace{12pt}
+\noindent GITHUB. \textbf{About GitHub Copilot}. 2026. Disponível em: \url{https://docs.github.com/en/copilot/get-started/about-github-copilot}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent GOOGLE. \textbf{Material Design 3}: type scale tokens. 2026. Disponível em: \url{https://m3.material.io/styles/typography/type-scale-tokens}. Acesso em: 15 out. 2026.
+
+\vspace{12pt}
+\noindent GOOGLE FONTS. \textbf{Roboto typeface family}: modern neo-grotesque sans-serif. 2024. Disponível em: \url{https://fonts.google.com/specimen/Roboto}. Acesso em: 10 out. 2026.
+
+\vspace{12pt}
+\noindent GOOGLE MAPS PLATFORM. \textbf{Google Maps Platform Documentation}: Maps SDK for Android. 2026. Disponível em: \url{https://developers.google.com/maps/documentation/android-sdk/overview}. Acesso em: 08 out. 2026.
+
+\vspace{12pt}
+\noindent HELLER, Eva. \textbf{A psicologia das cores}: como as cores afetam a emoção e a razão. São Paulo: Olhares, 2021.
+
+\vspace{12pt}
+\noindent HUANG, Liyan; CORADINI, Marcia; RAND, Jacquie; MORTON, John; ALBRECHT, Kat; WASSON, Brigid; ROBERTSON, Danielle. Search methods used to locate missing cats and locations where missing cats are found. \textbf{Animals}, Basel, v. 8, n. 1, art. 5, p. 1--20, 2018. DOI: \url{https://doi.org/10.3390/ani8010005}. Disponível em: \url{https://www.mdpi.com/2076-2615/8/1/5}. Acesso em: 15 out. 2026.
+
+\vspace{12pt}
+\noindent IBGE -- INSTITUTO BRASILEIRO DE GEOGRAFIA E ESTATÍSTICA. \textbf{Pesquisa Nacional de Saúde 2019}: informações sobre domicílios, acesso e utilização dos serviços de saúde: Brasil, grandes regiões e unidades da federação. Rio de Janeiro: IBGE, Coordenação de Trabalho e Rendimento, 2020. 85 p. ISBN 978-65-872-0118-4. Disponível em: \url{https://biblioteca.ibge.gov.br/visualizacao/livros/liv101748.pdf}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent ISO -- INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. \textbf{ISO/IEC 25010:2023}: Systems and software engineering: Systems and software Quality Requirements and Evaluation (SQuaRE): Product quality model. Geneva: ISO, 2023.
+
+\vspace{12pt}
+\noindent ISO -- INTERNATIONAL ORGANIZATION FOR STANDARDIZATION. \textbf{ISO/IEC/IEEE 42010:2022}: Software, systems and enterprise: Architecture description. Geneva: ISO, 2022. Disponível em: \url{https://www.iso.org/standard/74393.html}. Acesso em: 14 out. 2026.
+
+\vspace{12pt}
+\noindent KOLB, Juliana. \textbf{O modelo incremental}. [S. l.], 7 nov. 2013. Disponível em: \url{https://julianakolb.wordpress.com/2013/11/07/o-modelo-incremental/}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent MARCONI, Marina de Andrade; LAKATOS, Eva Maria. \textbf{Metodologia científica}. 8. ed. São Paulo: Atlas, 2022.
+
+\vspace{12pt}
+\noindent MOBSF. \textbf{Mobile Security Framework (MobSF)}: automated mobile application security assessment. 2026. Disponível em: \url{https://github.com/MobSF/Mobile-Security-Framework-MobSF}. Acesso em: 14 out. 2026.
+
+\vspace{12pt}
+\noindent NATIVEWIND. \textbf{NativeWind v4}: Tailwind CSS for React Native. 2026. Disponível em: \url{https://www.nativewind.dev/v4/overview}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent NIELSEN, Jakob. \textbf{Usability engineering}. San Francisco: Morgan Kaufmann, 1994.
+
+\vspace{12pt}
+\noindent OPENAI. \textbf{ChatGPT}: assistente de inteligência artificial generativa. 2026. Disponível em: \url{https://chatgpt.com/}. Acesso em: 14 out. 2026.
+
+\vspace{12pt}
+\noindent OSRM. \textbf{Open Source Routing Machine}: API documentation. 2026. Disponível em: \url{https://project-osrm.org/docs/v5.24.0/api/}. Acesso em: 17 out. 2026.
+
+\vspace{12pt}
+\noindent PAWBOOST. \textbf{The power of the PawBoost community}: find lost and found pets. 2026. Disponível em: \url{https://www.pawboost.com/}. Acesso em: 31 ago. 2026.
+
+\vspace{12pt}
+\noindent PRESSMAN, Roger S.; MAXIM, Bruce R. \textbf{Engenharia de software}: uma abordagem profissional. 9. ed. Porto Alegre: AMGH, 2021.
+
+\vspace{12pt}
+\noindent REACT. \textbf{React 19}: documentação oficial. 2026. Disponível em: \url{https://react.dev/}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent REACT NATIVE. \textbf{React Native 0.81}: documentação oficial. 2026. Disponível em: \url{https://reactnative.dev/docs/0.81/getting-started}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent REACT NATIVE MAPS. \textbf{React Native Maps}: componentes de mapas para React Native, versão 1.20.1. 2026. Disponível em: \url{https://github.com/react-native-maps/react-native-maps}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent REACT NATIVE VIEW SHOT. \textbf{React Native View Shot}: captura de visualizações como imagens, versão 4.0.3. 2026. Disponível em: \url{https://github.com/gre/react-native-view-shot}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent REACT NAVIGATION. \textbf{React Navigation}: navegação para aplicações React Native. 2026. Disponível em: \url{https://reactnavigation.org/}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent RENDER. \textbf{Cloud Application Hosting for Developers}: unified cloud platform. 2026. Disponível em: \url{https://render.com/}. Acesso em: 10 set. 2026.
+
+\vspace{12pt}
+\noindent ROGERS, Yvonne; SHARP, Helen; PREECE, Jennifer. \textbf{Design de interação}: além da interação humano-computador. 5. ed. Porto Alegre: Bookman, 2023.
+
+\vspace{12pt}
+\noindent SAURO, Jeff; LEWIS, James R. \textbf{Quantifying the user experience}: practical statistics for user research. 2. ed. Cambridge: Morgan Kaufmann, 2016.
+
+\vspace{12pt}
+\noindent SINNOTT, Roger W. Virtues of the Haversine. \textbf{Sky and Telescope}, Cambridge, v. 68, n. 2, p. 159, 1984.
+
+\vspace{12pt}
+\noindent SOMMERVILLE, Ian. \textbf{Engenharia de software}. 10. ed. São Paulo: Pearson Education do Brasil, 2019.
+
+\vspace{12pt}
+\noindent SOUZA, Francisco Carlos M.; COSTA, Elio M.; MATINELLI, Alexandre T.; COSTA, Lincoln M.; SOUZA, Alinne C. C. \textbf{FugaPet-Rotas}: um algoritmo inteligente para recomendação de rotas visando buscar animais desaparecidos. In: ESCOLA REGIONAL DE ENGENHARIA DE SOFTWARE, 6., 2022, Blumenau. \textbf{Anais da VI Escola Regional de Engenharia de Software}. Porto Alegre: Sociedade Brasileira de Computação, 2022. p. 199--208. DOI: \url{https://doi.org/10.5753/eres.2022.227993}. Disponível em: \url{https://sol.sbc.org.br/index.php/eres/article/view/22387}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent SUPABASE. \textbf{Supabase JavaScript Client}, versão 2.87.3: documentação de referência. 2026. Disponível em: \url{https://supabase.com/docs/reference/javascript/introduction}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent TAILWIND CSS. \textbf{Tailwind CSS v3.4}: documentação. 2026. Disponível em: \url{https://v3.tailwindcss.com/docs}. Acesso em: 07 out. 2026.
+
+\vspace{12pt}
+\noindent TEIXEIRA, Fabricio. \textbf{O que é o SUS (System Usability Scale) e como usá-lo em seu site}. UX Collective Brasil, 4 ago. 2015. Disponível em: \url{https://brasil.uxdesign.cc/o-que-%C3%A9-o-sus-system-usability-scale-e-como-us%C3%A1-lo-em-seu-site-6d63224481c8}. Acesso em: 14 out. 2026.
+
+\vspace{12pt}
+\noindent TRANSITOUS. \textbf{Transitous}: free and open public transport routing. 2026. Disponível em: \url{https://transitous.org/}. Acesso em: 17 out. 2026.
+
+\vspace{12pt}
+\noindent TRELLO. \textbf{Gerenciamento de projetos com quadros Kanban e listas visuais}. Atlassian, 2026. Disponível em: \url{https://trello.com/}. Acesso em: 31 ago. 2026.
+
+\vspace{12pt}
+\noindent VALENTE, Marco Tulio. \textbf{Engenharia de software moderna}: princípios e práticas para desenvolvimento de software com produtividade. Belo Horizonte: Edição do Autor, 2023. Disponível em: \url{https://engsoftmoderna.info/}. Acesso em: 07 set. 2026.
+
+\vspace{12pt}
+\noindent VIU MEU PET. \textbf{Plataforma nacional de busca, divulgação e localização de animais perdidos}. 2026. Disponível em: \url{https://www.viumeupet.com.br/}. Acesso em: 31 ago. 2026.
+
+\vspace{12pt}
+\noindent W3C. \textbf{Web Content Accessibility Guidelines (WCAG) 2.2}: W3C Recommendation. World Wide Web Consortium, 2023. Disponível em: \url{https://www.w3.org/TR/WCAG22/}. Acesso em: 10 set. 2026.
+
+\vspace{12pt}
+\noindent WEISS, Emily; SLATER, Margaret; LORD, Linda. Frequency of lost dogs and cats in the United States and the methods used to locate them. \textbf{Animals}, Basel, v. 2, n. 2, p. 301--315, 2012. DOI: \url{https://doi.org/10.3390/ani2020301}. Disponível em: \url{https://www.mdpi.com/2076-2615/2/2/301}. Acesso em: 15 out. 2026.
+
+\end{flushleft}
+\clearpage

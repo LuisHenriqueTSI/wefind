@@ -1,7 +1,7 @@
 \section{TESTES E AVALIAÇÃO}
 \setcounter{quadro}{4}
 
-Um aplicativo que funciona no aparelho do desenvolvedor ainda precisa ser examinado por outros ângulos. É preciso verificar se cumpre os fluxos previstos, se as sugestões automáticas acertam, se pessoas que nunca o usaram conseguem operá-lo e se apresenta pontos frágeis de segurança. No WeFIND, essas perspectivas correspondem às verificações funcionais manuais, à análise estática do APK com o MobSF, ao teste do mecanismo de correspondência e à avaliação de usabilidade com tutores de animais. Os testes ajudam a revelar falhas antes que o produto chegue aos usuários (Pressman; Maxim, 2021), mas não demonstram a ausência de defeitos. Por isso, cada atividade é apresentada com seus procedimentos, resultados e limites.
+Um aplicativo que funciona no aparelho do desenvolvedor ainda precisa ser examinado por outros ângulos. É preciso verificar se cumpre os fluxos previstos, se as sugestões automáticas acertam, se pessoas que nunca o usaram conseguem operá-lo e se apresenta pontos frágeis de segurança. No WeFIND, essas perspectivas correspondem às verificações funcionais manuais, à análise estática do APK com o MobSF, ao teste do mecanismo de correspondência e à avaliação de usabilidade com um protótipo navegável. Os testes ajudam a revelar falhas antes que o produto chegue aos usuários (Pressman; Maxim, 2021), mas não demonstram a ausência de defeitos. Por isso, cada atividade é apresentada com seus procedimentos, resultados e limites.
 
 \subsection{Verificação Funcional Manual}
 
@@ -9,7 +9,17 @@ Antes da avaliação com participantes, o autor realizou verificações manuais 
 
 Ao longo do desenvolvimento, o histórico de versões registra correções em diferentes fluxos. Entre elas, estão a navegação para o mapa a partir do modo visitante, a abertura e a persistência das conversas e o tratamento das mensagens de erro no cadastro com verificação. Essas correções ocorreram durante a evolução do aplicativo e não correspondem a falhas observadas na verificação funcional de setembro, na qual não houve erros que impedissem a conclusão dos fluxos percorridos. Revisões posteriores também levaram a ajustes no histórico de avistamentos e na denúncia de publicações.
 
-A avaliação com participantes, descrita na Seção~8.4, foi realizada em setembro de 2026 e corresponde à versão do aplicativo disponível naquele período. As funcionalidades incorporadas ou alteradas posteriormente não fizeram parte das tarefas avaliadas pelos participantes e, portanto, não estão abrangidas pelos resultados de usabilidade; foram verificadas apenas pelo autor. Entre elas estão recursos de gestão dos animais do tutor, adoção, privacidade, notificações, histórico de avistamentos, publicação anônima, classificação de membros e combinação do encontro de devolução pelo chat.
+A avaliação com participantes, descrita na Seção~8.4, foi realizada em outubro de 2026 com um protótipo navegável do aplicativo. Recursos que não fizeram parte das tarefas, como Meus Pets, a classificação de membros e a combinação do encontro de devolução pelo chat, foram verificados apenas pelo autor.
+
+Para permitir a instalação do aplicativo fora do ambiente de desenvolvimento, o APK do WeFIND foi disponibilizado em uma página de apresentação (\textit{landing page}) criada para o projeto e hospedada no GitHub Pages, como mostra a Figura~\ref{fig:landing_page_wefind}.
+
+\begin{figure}[H]
+    \centering
+    \caption{Página de apresentação e disponibilização do aplicativo WeFIND}
+    \label{fig:landing_page_wefind}
+    \capturaTela{imagens/06_seguranca/landing_page_disponibilizacao.png}
+    \fonte{Captura de tela da página do WeFIND, hospedada no GitHub Pages (2026).}
+\end{figure}
 
 Além das verificações funcionais, foi realizada uma inspeção estática manual do código e das migrações, na qual foram identificadas práticas relacionadas à proteção da comunicação e dos dados, à autenticação e ao controle de acesso. O detalhamento dos controles observados está no Apêndice E.
 
@@ -105,63 +115,55 @@ As duas correspondências perdidas (V4 e V8) aconteceram porque o algoritmo trat
 
 \subsection{Avaliação de Usabilidade}
 
-Para avaliar a experiência de uso do WeFIND, foi realizado um estudo com 12 tutores de animais, que percorreram cinco tarefas no aplicativo e, em seguida, responderam a um questionário com questões abertas e itens baseados na Escala de Usabilidade do Sistema (SUS). A seguir, são descritos os critérios considerados, o instrumento, os procedimentos adotados e os resultados obtidos.
+Para avaliar a experiência de uso do WeFIND, dez voluntários realizaram cinco tarefas em um protótipo navegável do aplicativo e, em seguida, responderam a um questionário com a Escala de Usabilidade do Sistema (SUS) e perguntas abertas. O teste foi aplicado no Quant UX, ferramenta de prototipação e teste de usabilidade que registra as telas visitadas, os toques e o tempo de cada participante, o que permite medir a conclusão das tarefas sem depender apenas da resposta do usuário (Quant UX, 2026).
 
-Os testes de usabilidade avaliam como as pessoas utilizam um produto para alcançar objetivos determinados. Conforme estabelece a norma técnica ABNT NBR ISO 9241-11 (2021), a usabilidade é definida como a medida na qual um sistema, produto ou serviço pode ser usado por usuários específicos para alcançar objetivos definidos com eficácia, eficiência e satisfação em um contexto de uso especificado.
-
-No projeto de interfaces para dispositivos móveis, a usabilidade ajuda a reduzir a carga cognitiva do usuário, prevenir erros e facilitar a execução das ações essenciais (Rogers; Sharp; Preece, 2023). Em momentos de aflição provocados pela perda de um animal de estimação, telas sobrecarregadas, terminologias ambíguas ou formulários confusos podem levar o usuário à desistência ou ao preenchimento incorreto de dados importantes. Por isso, a facilidade de aprendizado e de uso dos fluxos principais foi um dos aspectos examinados na avaliação.
-
-Para mensurar esses fatores de forma padronizada, adotou-se o modelo conceitual da Escala de Usabilidade do Sistema (SUS), desenvolvido originalmente por Brooke (1996) e amplamente utilizado na literatura de Interação Humano-Computador (IHC) (Sauro; Lewis, 2016). A SUS é um instrumento curto, que mede a percepção global de usabilidade por meio de dez afirmações que alternam enunciados positivos e negativos, recurso que busca reduzir a concordância automática dos respondentes e produz um escore único de 0 a 100.
+A SUS, desenvolvida por Brooke (1996) e amplamente usada em Interação Humano-Computador (Sauro; Lewis, 2016), mede a percepção global de usabilidade por meio de dez afirmações que alternam enunciados positivos e negativos, e produz um escore único de 0 a 100.
 
 \subsubsection{Procedimentos da Avaliação}
 
-A estratégia de avaliação estruturou-se na execução prática de um roteiro guiado por tarefas em dispositivos móveis, seguida pelo preenchimento de um formulário eletrônico de retorno disponibilizado via Google Forms, denominado ``WeFIND -- Teste de Usabilidade e Avaliação da Aplicação''. Em setembro de 2026, o convite para participar foi divulgado no grupo público do Facebook ``Desenvolvimento de Softwares (Linguagens de Programação)'' e enviado também a amigos próximos. O APK do WeFIND foi disponibilizado para download em uma página de apresentação (landing page) criada para o projeto e hospedada no GitHub Pages, serviço de hospedagem de páginas do GitHub. Assim, as pessoas interessadas puderam obter o aplicativo, realizar as tarefas propostas e, ao final, responder ao formulário, que incluía a escala SUS e perguntas abertas sobre a experiência de uso. A amostra foi composta por 12 participantes voluntários, todos declarados tutores de animais de estimação. Assim como na pesquisa de campo, o formulário não solicitou dados de identificação, e o envio das respostas foi considerado manifestação de consentimento (Brasil, 2016).
+O protótipo foi montado no Quant UX com capturas de tela do WeFIND, ligadas por áreas de toque que reproduzem a navegação do aplicativo. Para que os participantes não precisassem digitar, os campos dos formulários eram preenchidos automaticamente ao serem tocados. Em outubro de 2026, o link do protótipo foi divulgado em um grupo do Facebook de desenvolvedores de software, e dez pessoas realizaram o teste. O teste não solicitou dados de identificação, e o envio das respostas foi considerado manifestação de consentimento (Brasil, 2016).
 
-A Figura~\ref{fig:landing_page_wefind} apresenta a página utilizada para disponibilizar o aplicativo, com o acesso ao download do APK.
+Cada tarefa era apresentada em uma tela de instrução antes de começar. Na primeira, o participante criava uma conta. Na segunda, filtrava o mural para encontrar um cachorro disponível para adoção e abria sua ficha. Na terceira, registrava o avistamento de um cachorro anunciado, marcando no mapa onde o viu. Na quarta, traçava uma rota a pé até a área onde o animal foi visto. Na quinta, publicava um anúncio de animal perdido e gerava o cartaz para compartilhar.
 
-\begin{figure}[H]
-    \centering
-    \caption{Página de apresentação e disponibilização do aplicativo WeFIND}
-    \label{fig:landing_page_wefind}
-    \capturaTela{imagens/06_seguranca/landing_page_disponibilizacao.png}
-    \fonte{Captura de tela da página do WeFIND, hospedada no GitHub Pages (2026).}
-\end{figure}
+Para cada tarefa, foi definida no Quant UX a sequência de telas que caracteriza sua conclusão. A sequência começa na tela de instrução da tarefa, e a ferramenta considera a tarefa concluída quando o participante alcança as demais telas, registrando o tempo e o número de interações desse intervalo, que inclui a leitura do enunciado.
 
-Cada voluntário recebeu a instrução de acessar o aplicativo WeFIND e percorrer cinco tarefas operacionais representativas das funcionalidades centrais do aplicativo. Na primeira, o participante acessava o WeFIND e atualizava o endereço cadastrado na conta de usuário. Na segunda, localizava um animal anunciado no sistema e traçava uma rota no mapa até o local indicado, sem necessidade de deslocamento físico. Na terceira, cadastrava uma nova publicação de animal, perdido ou encontrado, com informações e fotos fictícias, e em seguida gerava e compartilhava o cartaz digital de divulgação. Na quarta, iniciava contato com outro usuário pelo bate-papo privativo da plataforma para pedir informações sobre um animal anunciado. Na quinta, acessava e conferia as notificações e avisos recebidos na central do aplicativo.
+Após as tarefas, o questionário perguntava se o participante era tutor de algum animal, apresentava as dez afirmações da SUS na redação em português divulgada por Teixeira (2015), respondidas em uma escala de 1 (discordo totalmente) a 5 (concordo totalmente), e trazia três perguntas abertas e opcionais, sobre o que o participante mais gostou, as dificuldades encontradas e as sugestões de melhoria.
 
-Após o roteiro, os participantes responderam ao formulário, organizado em quatro seções. A primeira validava o perfil do respondente quanto à tutela de animais. A segunda reunia uma questão sobre a conclusão das cinco tarefas. A terceira apresentava as dez afirmações da escala SUS em português, conforme a redação de Teixeira (2015), respondidas em uma escala Likert, isto é, uma escala de opções ordenadas que indica o grau de concordância do respondente. Neste caso, havia cinco níveis, de ``discordo totalmente'' a ``concordo totalmente''. A quarta reunia três perguntas abertas sobre pontos positivos, dificuldades vivenciadas e sugestões de aprimoramento.
-
-A pergunta de verificação da conclusão das atividades oferecia quatro alternativas de resposta. O participante poderia indicar que concluiu todas as cinco tarefas com facilidade, que concluiu todas mas teve dúvidas em alguma etapa, que concluiu apenas algumas tarefas ou que não concluiu as tarefas.
-
-Para o processamento dos dados quantitativos de usabilidade, as dez afirmações Likert (com pontuações de 1 a 5) foram submetidas ao procedimento padrão de cálculo do escore SUS (Brooke, 1996; Sauro; Lewis, 2016). Nas afirmações com enunciado positivo, correspondentes aos itens ímpares 1, 3, 5, 7 e 9, subtraiu-se 1 da pontuação assinalada pelo respondente. Nas afirmações com enunciado negativo, correspondentes aos itens pares 2, 4, 6, 8 e 10, subtraiu-se o valor assinalado de 5. A soma dos dez valores convertidos de cada participante foi multiplicada por 2,5, resultando em um escore de 0 a 100 pontos.
+O cálculo do escore SUS seguiu o procedimento padrão (Brooke, 1996; Sauro; Lewis, 2016). Nos itens ímpares, de enunciado positivo, subtraiu-se 1 da nota atribuída. Nos itens pares, de enunciado negativo, subtraiu-se a nota de 5. A soma dos valores convertidos foi multiplicada por 2,5, resultando em um escore de 0 a 100.
 
 \subsubsection{Resultados}
 
-Os resultados são apresentados a seguir em quatro partes. São abordadas a conclusão das tarefas, os escores da SUS, as respostas abertas e os relatos sobre a fluidez da navegação.
-
-Todos os 12 participantes confirmaram ser tutores de animais domésticos, perfil definido para a avaliação. Em relação à execução prática do roteiro, todos os 12 voluntários selecionaram a opção ``Sim, concluí todas as 5 tarefas com facilidade''. O \hyperref[quadro:conclusao_tarefas]{Quadro 6} apresenta a distribuição consolidada das respostas obtidas nessa etapa.
+Os dez participantes concluíram o teste, que durou em média 2,4 minutos, entre 1,5 e 5,3 minutos. Nove se declararam tutores de animais e um não. O \hyperref[quadro:resultados_tarefas]{Quadro 6} apresenta os resultados por tarefa, e a Figura~\ref{fig:quantux_tarefas} mostra o painel correspondente do Quant UX.
 
 \begin{table}[H]
     \centering
-    \phantomsection\hypertarget{quadro:conclusao_tarefas}{}\label{quadro:conclusao_tarefas}
+    \phantomsection\hypertarget{quadro:resultados_tarefas}{}\label{quadro:resultados_tarefas}
     \small
     \renewcommand{\arraystretch}{1.15}
-    \begin{tabular}{|p{8.4cm}|r|r|}
+    \begin{tabular}{|p{7.2cm}|c|c|c|}
         \hline
-        \multicolumn{3}{|c|}{Quadro 6 -- Autopercepção dos participantes sobre a conclusão das tarefas} \\ \hline
-        Resposta & Participantes & Percentual \\ \hline
-        Concluíram todas as cinco tarefas com facilidade & 12 & 100\% \\ \hline
-        Concluíram todas, mas tiveram dúvida em alguma etapa & 0 & 0\% \\ \hline
-        Concluíram apenas algumas tarefas & 0 & 0\% \\ \hline
-        Não conseguiram concluir as tarefas & 0 & 0\% \\ \hline
-        Total & 12 & 100\% \\ \hline
+        \multicolumn{4}{|c|}{Quadro 6 -- Resultados por tarefa registrados pelo Quant UX} \\ \hline
+        Tarefa & Concluíram & Tempo médio & Interações \\ \hline
+        1. Criar sua conta & 10/10 & 22,4 s & 30,0 \\ \hline
+        2. Encontrar um cachorro para adotar & 10/10 & 10,8 s & 9,9 \\ \hline
+        3. Avisar que viu o cachorro & 10/10 & 21,0 s & 21,3 \\ \hline
+        4. Traçar uma rota a pé & 10/10 & 17,4 s & 10,0 \\ \hline
+        5. Publicar animal perdido e compartilhar o cartaz & 10/10 & 29,7 s & 30,1 \\ \hline
     \end{tabular}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
+    \fonte{Dados do teste (Quant UX, 2026)}
 \end{table}
 
-Como a conclusão foi informada pelos próprios participantes, esse resultado indica uma percepção positiva dos fluxos, mas não substitui a observação das tarefas. As dúvidas relatadas nas respostas abertas, apresentadas adiante, mostram que alguns pontos da interface ainda geraram hesitação.
+\begin{figure}[H]
+    \centering
+    \caption{Painel de resultados por tarefa do Quant UX}
+    \label{fig:quantux_tarefas}
+    \includegraphics[width=0.9\textwidth]{imagens/07_quantux/quantux_painel_tarefas_10_sessoes.png}
+    \fonte{Captura de tela do painel de resultados do Quant UX, realizada pelo autor (2026).}
+\end{figure}
 
-Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo SUS, o cálculo individual das respostas aos dez itens resultou em escores elevados. A média geral foi de 93,33 pontos, com pontuações individuais entre 85,0 e 100,0 pontos. O \hyperref[quadro:escores_sus]{Quadro 7} apresenta a distribuição dos escores anonimizados obtidos para cada respondente (P1 a P12).
+Todos concluíram as cinco tarefas. A tarefa 5, que envolve preencher o anúncio, marcar a região no mapa e gerar o cartaz, foi a mais longa, com 29,7 segundos em média, seguida da criação de conta, com 22,4 segundos. A tarefa 4 teve a maior variação entre os participantes: a mediana foi de 9,4 segundos, mas um participante levou 70 segundos para chegar à rota.
+
+A média SUS foi de 94,75 pontos, com escores individuais entre 77,5 e 100 (\hyperref[quadro:escores_sus]{Quadro 7}). Sauro e Lewis (2016) indicam uma média de referência de aproximadamente 68 pontos e, na escala de notas que propõem, escores entre 84,1 e 100 correspondem ao grau A+. Todos os participantes ficaram acima da média de referência, e metade atribuiu a nota máxima em todas as afirmações. Por se tratar de uma amostra pequena e voluntária, o resultado deve ser lido como um indício favorável, e não como uma medida geral da usabilidade do WeFIND.
 
 \begin{table}[H]
     \centering
@@ -174,18 +176,16 @@ Em relação à avaliação quantitativa de usabilidade apurada pelo protocolo S
         Participante & Escore &
         Participante & Escore &
         Participante & Escore \\ \hline
-        P1 & 95,0 & P5 & 87,5 & P9 & 87,5 \\ \hline
-        P2 & 90,0 & P6 & 97,5 & P10 & 97,5 \\ \hline
-        P3 & 92,5 & P7 & 87,5 & P11 & 85,0 \\ \hline
-        P4 & 100,0 & P8 & 100,0 & P12 & 100,0 \\ \hline
-        \multicolumn{5}{|r|}{Média Geral} & 93,33 \\ \hline
+        P1 & 97,5 & P5 & 92,5 & P9 & 100,0 \\ \hline
+        P2 & 97,5 & P6 & 100,0 & P10 & 100,0 \\ \hline
+        P3 & 100,0 & P7 & 77,5 & -- & -- \\ \hline
+        P4 & 82,5 & P8 & 100,0 & -- & -- \\ \hline
+        \multicolumn{5}{|r|}{Média Geral} & 94,75 \\ \hline
     \end{tabular}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
+    \fonte{Dados do teste (Quant UX, 2026)}
 \end{table}
 
-Sauro e Lewis (2016) indicam que a média de referência dos escores SUS é de aproximadamente 68 pontos e propõem uma escala de notas ajustada pela distribuição dos resultados, na qual escores entre 84,1 e 100 correspondem ao grau A+, a faixa mais alta da escala. Com média de 93,33 pontos e nenhum escore individual abaixo de 85, o WeFIND se situa nessa faixa, o que indica alta satisfação dos participantes com a facilidade de uso do aplicativo. Por se tratar de uma amostra pequena e voluntária, esse resultado deve ser lido como um indício favorável, e não como uma medida geral da usabilidade do WeFIND.
-
-Para identificar as dimensões específicas da experiência que mais se destacaram, calcularam-se as médias aritméticas das notas brutas atribuídas a cada uma das dez afirmações do questionário, em escala de 1,00 a 5,00 pontos. O \hyperref[quadro:medias_itens_sus]{Quadro 8} apresenta as médias apuradas. Para as afirmações de conotação negativa (itens pares), médias próximas a 1,00 representam baixa concordância com problemas operacionais, sinalizando um comportamento desejável da interface.
+O \hyperref[quadro:medias_itens_sus]{Quadro 8} apresenta a média das respostas por afirmação. Nas afirmações positivas, as médias ficaram entre 4,60 e 4,80, e nas negativas, entre 1,00 e 1,30. A facilidade de uso, a integração entre as funções e a confiança durante o uso receberam as maiores médias (4,80), e nenhum participante concordou que precisaria aprender várias coisas antes de usar o sistema (item 10, média 1,00).
 
 \begin{table}[H]
     \centering
@@ -196,36 +196,26 @@ Para identificar as dimensões específicas da experiência que mais se destacar
         \hline
         \multicolumn{3}{|c|}{Quadro 8 -- Média das respostas por afirmação do questionário} \\ \hline
         Item & Aspecto avaliado & Média \\ \hline
-        1 & Intenção de utilizar o sistema com frequência & 4,50 \\ \hline
-        2 & Complexidade desnecessária (negativo) & 1,50 \\ \hline
-        3 & Facilidade de uso & 4,92 \\ \hline
-        4 & Necessidade de ajuda técnica (negativo) & 1,00 \\ \hline
-        5 & Integração entre as funções & 4,83 \\ \hline
-        6 & Inconsistência do sistema (negativo) & 1,75 \\ \hline
-        7 & Facilidade de aprendizado & 5,00 \\ \hline
-        8 & Dificuldade ou embaraço de uso (negativo) & 1,00 \\ \hline
-        9 & Confiança durante o uso & 4,83 \\ \hline
-        10 & Necessidade de aprender muitas coisas (negativo) & 1,50 \\ \hline
+        1 & Intenção de utilizar o sistema com frequência & 4,60 \\ \hline
+        2 & Complexidade desnecessária (negativo) & 1,30 \\ \hline
+        3 & Facilidade de uso & 4,80 \\ \hline
+        4 & Necessidade de ajuda técnica (negativo) & 1,10 \\ \hline
+        5 & Integração entre as funções & 4,80 \\ \hline
+        6 & Inconsistência do sistema (negativo) & 1,10 \\ \hline
+        7 & Facilidade de aprendizado & 4,60 \\ \hline
+        8 & Dificuldade ou embaraço de uso (negativo) & 1,20 \\ \hline
+        9 & Confiança durante o uso & 4,80 \\ \hline
+        10 & Necessidade de aprender muitas coisas (negativo) & 1,00 \\ \hline
     \end{tabular}
-    \fonte{Dados da pesquisa (Google Forms, 2026)}
+    \fonte{Dados do teste (Quant UX, 2026)}
 \end{table}
 
-Os resultados do \hyperref[quadro:medias_itens_sus]{Quadro 8} são favoráveis em todos os itens. O item 7 (facilidade de aprendizado) alcançou a nota máxima unânime de 5,00 pontos, sugerindo que os participantes conseguiram operar os recursos básicos da aplicação sem perceber necessidade de treinamento prévio. A facilidade geral de uso (item 3) registrou média de 4,92, acompanhada por notas elevadas na integração funcional (4,83) e na confiança durante o uso (4,83). Por sua vez, as proposições negativas apresentaram médias baixas. A necessidade de suporte técnico para operar o aplicativo (item 4) e a sensação de embaraço ou dificuldade (item 8) registraram média mínima de 1,00 ponto.
+Apenas um participante respondeu às perguntas abertas. Ele considerou o aplicativo intuitivo e pensado para ser rápido de usar e relatou estranhamento na etapa de traçar a rota, que atribuiu à navegação do protótipo no Quant UX, e não ao aplicativo.
 
-A análise das questões abertas complementou as métricas numéricas, trazendo relatos espontâneos sobre pontos fortes e aspectos a aperfeiçoar. Como principais pontos positivos, os participantes ressaltaram a eficácia dos recursos de geolocalização e o mapa interativo, elogiando a seleção intuitiva de pontos no mapa, a visualização dos animais registrados nas imediações e a possibilidade de indicar com precisão visual onde um animal foi avistado. Foram destacados também o formulário guiado com seletores predefinidos para características físicas, a inclusão ágil de imagens da galeria, a facilidade dos filtros de busca e a integração entre publicações, rotas e mensagens privadas.
-
-Quanto às dúvidas e dificuldades, 7 dos 12 respondentes declararam não ter enfrentado qualquer obstáculo durante as tarefas (uma resposta permaneceu em branco). Quatro participantes apontaram dúvidas pontuais. Entre elas estavam a dificuldade em identificar de imediato onde acessar a ficha detalhada de um animal anunciado, o questionamento sobre a diferença entre as modalidades de registro (animal perdido versus animal avistado/encontrado), a dúvida sobre qual o passo inicial ideal ao abrir a aplicação pela primeira vez e o acesso ao histórico de registros efetuados anteriormente.
-
-Assim, mesmo com a conclusão das tarefas declarada por todos, os relatos indicam pontos específicos de melhoria, que orientam as sugestões apresentadas a seguir.
-
-Dentre as sugestões práticas mencionadas, destacaram-se o aumento do destaque visual do botão que abre os detalhes da publicação, a inclusão de textos de apoio sobre a diferença entre as opções de cadastro, o enriquecimento dos filtros com características mais específicas, a disponibilização de uma apresentação guiada de boas-vindas no primeiro acesso, a opção de salvar publicações favoritas e a facilitação da consulta ao histórico pessoal. Três participantes manifestaram satisfação plena sem sugerir melhorias imediatas, e dois não responderam ao campo opcional.
-
-Como percepção qualitativa de uso, os participantes relataram fluidez durante a navegação entre as abas e ausência de travamentos ou encerramentos inesperados.
-
-De modo geral, os fluxos principais funcionaram sem erros nas verificações realizadas, a análise estática indicou os pontos de configuração a revisar, o teste da correspondência mostrou acertos na maior parte dos pares do mesmo animal, mas também sugestões erradas, e a avaliação de usabilidade indicou alta satisfação dos participantes, com média SUS de 93,33, além de sugestões concretas para a evolução da interface.
+De modo geral, os fluxos principais funcionaram sem erros nas verificações realizadas, a análise estática indicou pontos de configuração a revisar, o teste da correspondência mostrou acertos na maior parte dos pares do mesmo animal, mas também sugestões erradas, e a avaliação de usabilidade indicou boa aceitação, com média SUS de 94,75, além de apontar a etapa de traçar a rota como ponto de atenção.
 
 \subsection{Limitações da Avaliação}
 
 Os resultados deste capítulo devem ser lidos considerando algumas condições do estudo. A verificação funcional foi realizada pelo próprio autor, sem roteiro formal ou automação de testes. A análise de segurança foi estática, sem execução do aplicativo, testes de invasão ou avaliação da infraestrutura hospedada. O teste da correspondência usou pares fictícios, montados pelo autor, e não publicações reais. Por isso, os percentuais obtidos descrevem o comportamento do algoritmo nesses casos, e não a taxa de acerto esperada no uso do aplicativo.
 
-Na avaliação de usabilidade, a amostra de 12 voluntários foi não probabilística, recrutada em um grupo de rede social, e a conclusão das tarefas foi informada pelos próprios participantes em uma pergunta única, sem acompanhamento do pesquisador ou medição por tarefa. A versão em português dos itens da SUS seguiu a redação divulgada por Teixeira (2015), que não corresponde a um estudo de validação da tradução. Também não foram realizadas medições objetivas de desempenho, como tempo de resposta ou testes de carga. Essas condições não invalidam os resultados obtidos, mas indicam os próximos passos para aprofundar a avaliação, apresentados no Capítulo 9.
+Na avaliação de usabilidade, a amostra de dez voluntários foi pequena e não probabilística, recrutada em um grupo de rede social de desenvolvedores de software, cujo perfil não corresponde necessariamente ao dos tutores que usariam o aplicativo, e um participante não era tutor de animais. O teste foi feito em um protótipo navegável montado com capturas de tela, e não no aplicativo instalado. No protótipo, os campos eram preenchidos automaticamente e o mapa era uma imagem estática, o que tende a encurtar as tarefas em relação ao uso real. O tempo de cada tarefa inclui a leitura do enunciado na tela de instrução. Apenas um participante respondeu às perguntas abertas, o que limita a análise qualitativa, e metade atribuiu a nota máxima em todos os itens da SUS, o que sugere um possível efeito de teto. A versão em português dos itens da SUS seguiu a redação divulgada por Teixeira (2015), que não corresponde a um estudo de validação da tradução. Também não foram realizadas medições objetivas de desempenho, como tempo de resposta ou testes de carga. Essas condições não invalidam os resultados obtidos, mas indicam os próximos passos para aprofundar a avaliação, apresentados no Capítulo 9.

@@ -1,0 +1,210 @@
+\section{METODOLOGIA}
+
+O Capítulo 2 mostrou que a busca por um animal perdido depende de informações espalhadas por diferentes canais e de uma colaboração que se concentra na vizinhança. Para compreender essas necessidades no contexto do WeFIND, foram consideradas as respostas de participantes da comunidade e examinadas as formas como plataformas existentes tratam o problema. Por isso, o trabalho combinou uma pesquisa de campo com participantes da comunidade, uma análise comparativa de sistemas similares e um processo de desenvolvimento iterativo. Os procedimentos e resultados dessas etapas são apresentados a seguir.
+
+\subsection{Classificação da Pesquisa}
+
+Para estruturar as decisões tomadas ao longo do estudo, a pesquisa seguiu a classificação metodológica fundamentada em Gil (2022) e Marconi e Lakatos (2022), considerando sua natureza, objetivos, abordagem do problema e procedimentos técnicos empregados.
+
+Quanto à sua natureza, a pesquisa classifica-se como aplicada. Como explica Gil (2022), a pesquisa aplicada busca produzir conhecimentos voltados à solução de problemas práticos. Neste trabalho, os conhecimentos levantados orientaram o projeto, a especificação e o desenvolvimento de uma aplicação móvel de apoio à divulgação e à busca por animais perdidos e encontrados.
+
+Quanto aos seus objetivos, a pesquisa é exploratório-descritiva. O caráter exploratório está relacionado à investigação das necessidades e dificuldades associadas à busca por animais, enquanto o caráter descritivo se manifesta no registro das respostas dos participantes e das funcionalidades observadas nas plataformas analisadas (Gil, 2022; Marconi; Lakatos, 2022).
+
+Quanto à abordagem, o estudo combina procedimentos quantitativos e qualitativos. Os dados quantitativos correspondem às respostas fechadas dos questionários, incluindo as dez afirmações baseadas na \textit{System Usability Scale} (SUS) e a conclusão autorrelatada das tarefas na avaliação do aplicativo. Para examinar as respostas abertas, realizou-se uma leitura das respostas e agruparam-se ideias recorrentes em temas identificados durante essa leitura. Essa organização teve caráter descritivo e apoiou a identificação de dificuldades, aspectos positivos e sugestões dos participantes (Gil, 2022; Sauro; Lewis, 2016).
+
+Quanto aos procedimentos técnicos, o estudo reuniu pesquisa bibliográfica, pesquisa de campo e análise comparativa de sistemas similares (Gil, 2022). A busca bibliográfica exploratória sobre animais desaparecidos e soluções digitais foi realizada no portal SBC OpenLib (SOL) e nas ferramentas Crossref e OpenAlex, com termos como ``animais desaparecidos Brasil'', ``animais perdidos aplicativo'' e ``FugaPet-Rotas''. Como o levantamento teve caráter exploratório, não abrangeu todos os estudos nacionais sobre o tema nem seguiu um protocolo sistemático de revisão. Por isso, a comparação com trabalhos relacionados, como o de Souza et al. (2022), discutido no Capítulo 2, limita-se às fontes consultadas. A análise comparativa selecionou três plataformas voltadas a animais perdidos e encontrados e o Facebook, incluído por seu uso pelos participantes para divulgação dos casos.
+
+O formulário informou os objetivos da pesquisa e que a participação era voluntária. O envio das respostas foi considerado consentimento. Não foram solicitados nomes nem coletados endereços de e-mail, e os resultados foram analisados em conjunto para preservar a privacidade dos participantes. Esse cuidado também foi adotado na avaliação de usabilidade descrita no Capítulo 8. A pesquisa de opinião com participantes não identificados está dispensada de registro e avaliação pelo sistema CEP/Conep, conforme a Resolução CNS nº 510/2016 (art. 1º, parágrafo único, inciso I; Brasil, 2016). Os dados foram tratados de acordo com os princípios da Lei Geral de Proteção de Dados Pessoais (Brasil, 2018).
+
+\input{capitulos/pesquisa_campo_analise.tex}
+
+\subsection{Análise Comparativa de Sistemas Similares}
+
+Para levantar funcionalidades e limitações relevantes à definição dos requisitos, foram examinadas as interfaces e os recursos disponíveis em quatro plataformas, a saber, \textit{Viu Meu Pet}, \textit{PawBoost}, \textit{AlertPet} e \textit{Facebook}. A seleção foi intencional e não pretende representar todas as soluções existentes. O Facebook foi incluído por ter sido citado pelos participantes como canal de divulgação. A comparação considerou recursos relacionados à publicação, busca, localização, comunicação e identificação. No Quadro~1, as marcações indicam a presença de recursos próprios e estruturados observados nas versões consultadas. Possibilidades de obter resultado semelhante por busca genérica, notificações comuns ou ações manuais não foram contabilizadas como funcionalidades específicas. As informações sobre recursos pagos foram registradas de forma descritiva, sem constituir um critério de comparação sistemática.
+
+
+\subsubsection{Viu Meu Pet}
+
+O primeiro sistema analisado foi o \textit{Viu Meu Pet}. A Figura~\ref{fig:viumeupet} apresenta a página inicial da plataforma na versão consultada, com os botões de acesso aos principais recursos.
+
+\begin{figure}[H]
+    \centering
+    \caption{Interface da plataforma Viu Meu Pet}
+    \label{fig:viumeupet}
+    \capturaTela{imagens/01_pesquisa/figura03_viumeupet.png}
+    \fonte{Viu Meu Pet (2026)}
+\end{figure}
+
+\noindent \textit{Descrição geral e interface.} O \textit{Viu Meu Pet} é um serviço brasileiro voltado a animais perdidos e encontrados, disponível em navegador e aplicativo móvel (Figura~\ref{fig:viumeupet}). Na tela consultada, as ações para informar a perda ou o encontro de um animal aparecem em botões destacados, acompanhados de métricas públicas de reencontros e avisos institucionais.
+
+\vspace{0.25cm}
+\noindent \textit{Recursos observados.} Na versão consultada, a plataforma oferece gerador de cartazes com código QR para impressão ou compartilhamento digital, mas não foi identificada a sugestão de correspondência entre anúncios.
+
+\vspace{0.25cm}
+\noindent \textit{Aspectos observados na análise.} Na análise realizada, os anúncios estavam organizados em listagens por município e estado, sem mapa interativo que apresentasse a localização dos animais anunciados. Também não foram identificados recursos para registrar relatos georreferenciados vinculados a uma publicação. Algumas opções de destaque e notificação dependem de planos pagos.
+
+
+\subsubsection{PawBoost}
+
+Em seguida, examinou-se o \textit{PawBoost}, plataforma internacional cuja página inicial é apresentada na Figura~\ref{fig:pawboost}.
+
+\begin{figure}[H]
+    \centering
+    \caption{Interface da plataforma PawBoost}
+    \label{fig:pawboost}
+    \capturaTela{imagens/01_pesquisa/figura04_pawboost.png}
+    \fonte{PawBoost (2026)}
+\end{figure}
+
+\noindent \textit{Descrição geral e interface.} O \textit{PawBoost} é uma plataforma internacional voltada à divulgação de animais perdidos e encontrados, disponível em portal web e aplicativos para Android e iOS (Figura~\ref{fig:pawboost}). Na tela consultada, a navegação apresenta atalhos para as principais áreas, modelos de anúncios para compartilhamento e um formulário para iniciar uma publicação.
+
+\vspace{0.25cm}
+\noindent \textit{Recursos observados.} Entre os recursos apresentados pela plataforma estão o compartilhamento de alertas em redes sociais, o envio de notificações por e-mail a usuários inscritos em uma região e a geração de anúncios padronizados.
+
+\vspace{0.25cm}
+\noindent \textit{Aspectos observados na análise.} Para o contexto brasileiro, a organização territorial baseada em códigos postais dos Estados Unidos (\textit{ZIP Codes}) pode dificultar a localização dos casos. Na versão consultada, não foram identificados mapa público para localizar os animais anunciados, registro georreferenciado de relatos ou recurso de identificação por QR code para coleiras. A plataforma também oferece opções pagas de divulgação.
+
+
+\subsubsection{AlertPet}
+
+O terceiro sistema analisado foi o \textit{AlertPet}. A Figura~\ref{fig:alertpet} mostra a página da plataforma voltada à contratação de campanhas de divulgação.
+
+\begin{figure}[H]
+    \centering
+    \caption{Interface da plataforma AlertPet}
+    \label{fig:alertpet}
+    \capturaTela{imagens/01_pesquisa/figura05_alertpet.png}
+    \fonte{AlertPet (2026)}
+\end{figure}
+
+\noindent \textit{Descrição geral e interface.} O \textit{AlertPet} é uma plataforma brasileira acessada pelo navegador, que oferece campanhas patrocinadas de divulgação geográfica (Figura~\ref{fig:alertpet}). Na página consultada, aparecem informações sobre a contratação de campanhas, exemplos de anúncios e imagens promocionais com mapas.
+
+\vspace{0.25cm}
+\noindent \textit{Recursos observados.} A plataforma oferece a criação de peças visuais para campanhas e a contratação de divulgação geolocalizada em redes sociais, com relatórios de visualizações e engajamento.
+
+\vspace{0.25cm}
+\noindent \textit{Aspectos observados na análise.} Na versão consultada, a divulgação depende da contratação de campanhas. Não foram identificados aplicativo móvel próprio, mapa público para localizar os animais anunciados, registro colaborativo georreferenciado, canal privado de mensagens ou identificação por QR code para coleiras.
+
+
+\subsubsection{Facebook}
+
+Por fim, considerou-se o \textit{Facebook}, citado pelos participantes como canal de divulgação. A Figura~\ref{fig:facebook} apresenta a página de um grupo público dedicado à proteção animal.
+
+\begin{figure}[H]
+    \centering
+    \caption{Página do grupo SOS Animais no Facebook}
+    \label{fig:facebook}
+    \capturaTela{imagens/01_pesquisa/figura08_facebook_grupo_sos_animais.png}
+    \fonte{Captura de tela do grupo público SOS Animais no Facebook, realizada pelo autor em 2026.}
+\end{figure}
+
+\noindent \textit{Descrição geral e interface.} O \textit{Facebook} é uma rede social generalista utilizada pelos participantes para divulgar casos de animais perdidos em grupos comunitários, páginas de proteção animal e perfis pessoais. A Figura~\ref{fig:facebook} apresenta a página do grupo público SOS Animais, com informações do grupo, área para publicação, feed de discussões com textos e fotografias e painel de mídia recente. As publicações permitem interação entre os membros, mas não são estruturadas como registros com campos próprios para localização e avistamentos.
+
+\vspace{0.25cm}
+\noindent \textit{Recursos observados.} Na questão sobre canais de divulgação, 31 dos 48 participantes (64,6\%) indicaram grupos de Facebook, e 39 (81,3\%), o Instagram. Grupos e publicações permitem compartilhar textos e imagens e receber interações de outros usuários sem custo para a publicação orgânica.
+
+\vspace{0.25cm}
+\noindent \textit{Aspectos observados na análise.} Como rede social generalista, o Facebook não organiza as publicações sobre animais em uma base estruturada com filtros geográficos ou recursos para localizar os animais anunciados em um mapa. Os relatos acrescentados nos comentários não ficam vinculados a campos próprios de local e horário. Na pesquisa de campo, 31 dos 48 participantes (64,6\%) apontaram que as publicações desaparecem entre outras depois de algumas horas. Além disso, 42 dos 48 respondentes (87,5\%) atribuíram nota 4 ou 5 ao incômodo de expor telefones pessoais. Essa preocupação não significa que a divulgação do telefone seja obrigatória, pois a plataforma também oferece mensagens privadas.
+
+Para comparar as quatro plataformas, o Quadro~1 reúne os recursos observados nas versões consultadas. A marca de seleção indica que foi identificado um recurso próprio para a funcionalidade; o X indica que não foi identificado. O quadro permite visualizar diferenças e lacunas entre as soluções, sem representar uma avaliação geral de sua qualidade.
+
+\begin{table}[H]
+\centering
+\phantomsection\hypertarget{quadro:similares}{}\label{quadro:similares}
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{|>{\raggedright\arraybackslash}p{6.0cm}|>{\centering\arraybackslash}p{2.0cm}|>{\centering\arraybackslash}p{2.0cm}|>{\centering\arraybackslash}p{2.0cm}|>{\centering\arraybackslash}p{2.0cm}|}
+\hline
+\multicolumn{5}{|c|}{Quadro 1 -- Análise Comparativa de Funcionalidades entre Sistemas Similares} \\ \hline
+Funcionalidade & Viu Meu Pet & PawBoost & AlertPet & Facebook \\ \hline
+Cadastrar animal com fotos e descrição & \certo & \certo & \certo & \certo \\ \hline
+Disponibilizar aplicativo móvel para busca de animais & \certo & \certo & \errado & \errado \\ \hline
+Gerar cartazes digitais de busca & \certo & \certo & \certo & \errado \\ \hline
+Filtrar animais por espécie e município & \certo & \certo & \certo & \errado \\ \hline
+Enviar alertas sobre publicações relevantes & \certo & \certo & \certo & \errado \\ \hline
+Visualizar animais em mapa interativo & \errado & \errado & \errado & \errado \\ \hline
+Registrar relatos de avistamento com localização & \errado & \errado & \errado & \errado \\ \hline
+Permitir comunicação privada entre usuários & \errado & \errado & \errado & \certo \\ \hline
+Traçar rota até o local informado na publicação & \errado & \errado & \errado & \errado \\ \hline
+Sugerir correspondências entre animais perdidos e encontrados & \errado & \errado & \errado & \errado \\ \hline
+\end{tabular}
+\fonte{Autoria própria (2026)}
+\end{table}
+
+
+A comparação apresentada no Quadro~1 e as respostas obtidas na pesquisa indicam que, entre as plataformas examinadas, não foi identificada uma solução que reúna todos os recursos considerados neste trabalho. A partir dessa análise, destacam-se características da proposta do WeFIND.
+
+O primeiro diferencial é a organização geográfica das publicações. Enquanto as versões consultadas do Viu Meu Pet e do Facebook apresentam anúncios em listas ou linhas do tempo, o WeFIND também permite localizar os animais anunciados em um mapa interativo, aplicar filtros por raio de distância e traçar uma rota até o local associado à publicação.
+
+O segundo aspecto é a proposta de acesso às funções principais sem cobrança por anúncio, incluindo filtros e sugestões automáticas de correspondência entre animais perdidos e encontrados. Essa correspondência não foi identificada nas plataformas analisadas. O modelo também contrasta com campanhas pagas de divulgação disponíveis em algumas delas.
+
+Outro aspecto é o canal de mensagens associado às publicações, que permite conversar pelo próprio WeFIND sem incluir o telefone no anúncio público. Redes sociais como o Facebook também oferecem mensagens privadas, mas esse contato ocorre fora de um fluxo estruturado de acompanhamento da publicação.
+
+Por fim, o registro de avistamentos vinculado a uma publicação permite organizar relatos com local, horário e foto durante a busca, sem pressupor o trajeto contínuo do animal.
+
+A articulação entre as necessidades identificadas, os requisitos de software e as funcionalidades implementadas encontra-se estruturada na Matriz de Rastreabilidade de Requisitos e Verificações, apresentada no Apêndice~D. A matriz também registra as verificações funcionais realizadas pelo autor. A avaliação de usabilidade com participantes é descrita separadamente no Capítulo~8.
+
+\subsection{Processo de Desenvolvimento de Software}
+
+O desenvolvimento seguiu um ciclo de vida iterativo e incremental (Valente, 2023), apoiado em princípios do desenvolvimento ágil, como a entrega frequente de software funcional e a adaptação a mudanças. As tarefas foram organizadas com o método Kanban, desde a definição dos requisitos até os testes.
+
+
+\subsubsection{Abordagem Ágil e Ciclo de Vida Incremental}
+
+No modelo incremental, o sistema não é produzido de uma só vez. O projeto é dividido em pequenas entregas, chamadas de incrementos funcionais, e cada uma é planejada, desenvolvida e testada no dispositivo móvel antes do início da seguinte.
+A Figura~\ref{fig:ciclo_incremental_wefind} ilustra o modelo incremental de forma geral. Cada entrega percorre etapas de desenvolvimento e acrescenta funcionalidades ao produto. No WeFIND, a evolução ocorreu por meio dos seis incrementos funcionais descritos a seguir.
+
+\begin{figure}[H]
+    \centering
+    \caption{Representação do modelo incremental de desenvolvimento de software}
+    \label{fig:ciclo_incremental_wefind}
+    \includegraphics[width=0.48\textwidth]{imagens/03_arquitetura_design/figura13_ciclo_iterativo_incremental.png}
+    \fonte{Pressman (2010 \textit{apud} Kolb, 2013)}
+\end{figure}
+
+O primeiro incremento dedicou-se ao acesso e à gestão de usuários, compreendendo a criação de conta, a autenticação e a visualização do perfil pessoal.
+
+O segundo incremento tratou da busca por localização, com o mapa interativo, a exibição de animais perdidos e encontrados por proximidade física e a filtragem rápida por espécie.
+
+No terceiro incremento, desenvolveu-se a gestão de publicações e fotos, permitindo cadastrar anúncios de animais perdidos ou encontrados, acompanhados de características físicas e imagens.
+
+O quarto incremento concentrou-se na comunicação e na colaboração, com a linha do tempo de avistamentos, o canal de mensagens privadas em tempo real e a central de notificações, permitindo o contato entre os participantes sem expor números de telefone no anúncio.
+
+O quinto incremento acrescentou a geração de cartazes de busca com código QR para compartilhamento ou impressão.
+
+Por fim, o sexto incremento reuniu recursos de apoio ao reencontro e à segurança da comunidade, como a sugestão heurística de correspondência entre anúncios, a recompensa opcional, a comprovação de tutela, o cadastro preventivo de animais de estimação com carteirinha digital, a adoção responsável e o fluxo de denúncia e moderação.
+
+Essa organização favoreceu a identificação antecipada de inconsistências por meio de verificações incrementais em aparelhos celulares. A avaliação sistemática da cobertura dos requisitos e os testes das funcionalidades são detalhados no Capítulo 8.
+
+
+\subsubsection{Gestão de Tarefas com Kanban}
+
+Para apoiar a organização e o acompanhamento do fluxo de trabalho ao longo dos incrementos, adotou-se o método de gestão visual Kanban. O método fundamenta-se na visualização do fluxo de trabalho e na limitação das tarefas em andamento, o que ajuda a identificar gargalos e a manter um ritmo de entrega compatível com a capacidade de quem executa as atividades (Valente, 2023). No projeto, sua organização foi realizada na plataforma Trello (Trello, 2026).
+
+A rotina de gestão apoiou-se na visualização das atividades e no acompanhamento de seu andamento. No quadro utilizado, as tarefas foram distribuídas em listas que identificam atividades de atualização, testes e validação, desenvolvimento, itens a fazer, ideias futuras e entregas concluídas. Os cartões permitiram registrar e acompanhar as atividades do projeto ao longo de sua execução.
+
+O quadro também reuniu requisitos funcionais e não funcionais, além de oportunidades de aprimoramento identificadas na pesquisa de campo e na análise comparativa. Esses requisitos foram posteriormente consolidados e apresentados no Capítulo 4. A Figura~\ref{fig:quadro_kanban_trello} registra a organização do quadro e exemplifica como as listas distinguem atividades em diferentes situações e propostas reservadas para trabalhos futuros.
+
+\begin{figure}[H]
+    \centering
+    \caption{Organização das atividades do projeto no quadro Trello}
+    \label{fig:quadro_kanban_trello}
+    \includegraphics[width=0.92\textwidth,height=8cm,keepaspectratio]{imagens/03_metodologia/quadro_kanban_trello_wefind.png}
+    \fonte{Captura de tela do quadro Trello do projeto, realizada pelo autor (2026).}
+\end{figure}
+
+
+\subsubsection{Etapas do Processo de Desenvolvimento}
+
+Em linhas gerais, o projeto foi organizado em quatro etapas. Enquanto os seis incrementos representam as entregas do aplicativo, as etapas resumem as atividades do trabalho como um todo. Requisitos, modelagem e implementação foram retomados ao longo dos incrementos, e a avaliação de usabilidade ocorreu ao final. As respostas da pesquisa de campo foram consideradas na validação e priorização dos requisitos e das funcionalidades do aplicativo.
+
+A primeira etapa correspondeu à engenharia de requisitos. As respostas da pesquisa de campo e as observações da análise de plataformas similares foram organizadas em requisitos, consolidados no escopo central apresentado no Capítulo 4.
+
+A segunda etapa envolveu a modelagem e o projeto de interface, compreendendo a construção dos diagramas conceituais da UML no software Astah UML (Astah, 2026), o planejamento estrutural do banco de dados relacional e a elaboração iterativa do protótipo visual e de interação no Figma (Figma, 2026), apresentados nos Capítulos 4, 6 e 7.
+
+A terceira etapa consistiu na implementação e codificação modular do aplicativo móvel, em que as telas, regras de negócio e serviços de sincronização em nuvem foram programados e integrados com apoio do controle de versões no Git e GitHub (Capítulo 6). Durante essa etapa, o GitHub Copilot, integrado ao Visual Studio Code, foi utilizado como ferramenta auxiliar para sugerir código a partir das funcionalidades planejadas. Em cada incremento, o autor analisou as sugestões, integrou as alterações consideradas adequadas e testou o aplicativo no dispositivo móvel. A implementação de cada funcionalidade foi considerada concluída após a verificação de seu comportamento esperado, antes do avanço para a seguinte.
+
+Por fim, a quarta etapa compreendeu a avaliação de usabilidade do aplicativo com participantes voluntários. Os participantes foram convidados a realizar cinco tarefas no WeFIND e, em seguida, responderam a um formulário com questões sobre sua experiência, incluindo dez afirmações estruturadas com base na SUS e perguntas abertas. Os procedimentos, os resultados e as limitações dessa avaliação são apresentados no Capítulo 8.
+
+A integração entre a pesquisa de campo, a análise de similares e as práticas de engenharia de software fundamentou a concepção e a implementação da aplicação móvel. O Capítulo 4 apresenta o levantamento detalhado de requisitos e os modelos conceituais do sistema.

@@ -1,0 +1,4 @@
+Arquivo: WeFIND_codigo_fonte_registro_INPI.zip
+Algoritmo: SHA-512
+Resumo digital hash:
+2e01ee4a9191e2f10407baab4aa879bca02e28f27c3e3a680e0ad0aa7d57d6a987a8132620a409057d3d5d6f942b76c6b04141cc8d5ea5563b3f4db46357e962

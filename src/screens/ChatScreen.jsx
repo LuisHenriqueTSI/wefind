@@ -513,7 +513,7 @@ const ChatScreen = (props) => {
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
   };
 
-  // Abre a proposta de encontro: 'propose' (liberar local), 'counter' ou 'reschedule'
+  // Abre a proposta de encontro: 'propose' (propor encontro), 'counter' ou 'reschedule'
   const openMeetupModal = (mode, base = null) => {
     if (meetupsUnavailable) {
       Alert.alert('Indisponível no momento', 'O agendamento de encontros ainda não está disponível no servidor. Combine pelo chat por enquanto.');
@@ -531,7 +531,7 @@ const ChatScreen = (props) => {
     if (!meetupsEnabled) return;
     setSubmittingMeetup(true);
     try {
-      // Liberar o local também aprova a comprovação pendente, desbloqueando o chat do tutor
+      // Propor o encontro também aprova a comprovação pendente, desbloqueando o chat do tutor
       if (isMeFinder && !meetup) {
         await approvePendingClaimForMeetup({ itemId, claimantId: otherId, itemTitle: petTitle || 'o pet' });
       }
@@ -1054,7 +1054,7 @@ const ChatScreen = (props) => {
             activeOpacity={0.85}
           >
             <MaterialIcons name="share-location" size={16} color="#FFFFFF" style={{ marginRight: 4 }} />
-            <Text style={styles.finderShareBtnText}>Liberar local</Text>
+            <Text style={styles.finderShareBtnText}>Propor encontro</Text>
           </TouchableOpacity>
         </View>
       )}

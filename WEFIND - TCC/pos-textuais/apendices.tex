@@ -322,7 +322,7 @@ Pré-Condições & Usuário autenticado; publicação do tipo ``Encontrado'' ati
 3. O usuário anexa as imagens pela galeria ou pela câmera e escreve uma mensagem ao autor da publicação.\par
 4. O usuário confirma o envio.\par
 5. O sistema registra a solicitação como pendente e avisa o autor da publicação por notificação e por uma mensagem automática no chat.\par
-6. O autor analisa o relato e as imagens no chat e, se conferirem, aciona ``Liberar local'', que abre a proposta de um ponto de encontro público sem revelar o endereço.\par
+6. O autor analisa o relato e as imagens no chat e, se conferirem, aciona ``Propor encontro'', que abre a proposta de um ponto de encontro público sem revelar o endereço.\par
 7. O autor escolhe no mapa um ponto público de encontro, o dia, o horário e uma observação opcional, e envia a proposta (\textit{<<extend>>} Combinar Encontro de Devolução).\par
 8. O sistema aprova a solicitação, fixa a proposta no alto da conversa e notifica o solicitante.\par
 9. O solicitante confirma o encontro.\par
@@ -636,9 +636,9 @@ Este apêndice reúne a distribuição das respostas da pesquisa de campo e o in
 
 \subsection*{B.2 Escala de Usabilidade do Sistema (SUS)}
 
-Escala de avaliação de usabilidade aplicada aos 12 participantes do teste do WeFIND apresentado no Capítulo 8. O formulário adotou a redação em português das dez afirmações da \textit{System Usability Scale} (SUS) conforme apresentada por Teixeira (2015), reproduzida a seguir. A fonte é uma publicação de divulgação sobre a escala e não é citada como estudo de validação psicométrica da tradução.
+Escala de avaliação de usabilidade aplicada aos 10 participantes do teste do WeFIND apresentado no Capítulo 8. O questionário aplicado no Quant UX adotou a redação em português das dez afirmações da \textit{System Usability Scale} (SUS) conforme apresentada por Teixeira (2015), reproduzida a seguir. A fonte é uma publicação de divulgação sobre a escala e não é citada como estudo de validação psicométrica da tradução.
 
-O formulário de avaliação foi organizado em quatro seções: (1) confirmação do perfil do respondente como tutor de animal de estimação; (2) pergunta única sobre a conclusão das cinco tarefas do roteiro, com as alternativas ``concluí todas as tarefas com facilidade'', ``concluí todas, mas tive dúvida em alguma etapa'', ``concluí apenas algumas tarefas'' e ``não consegui concluir as tarefas''; (3) as dez afirmações da SUS reproduzidas a seguir; e (4) três perguntas abertas, de resposta opcional, sobre os pontos positivos, as dificuldades encontradas e as sugestões de melhoria.
+O questionário foi organizado em três partes: (1) confirmação de se o respondente era tutor de algum animal doméstico, seguida das afirmações 1 a 5 da SUS; (2) afirmações 6 a 10 da SUS; e (3) três perguntas abertas, de resposta opcional, sobre o que o participante mais gostou, as dificuldades encontradas e as sugestões de melhoria.
 
 \vspace{0.3cm}
 \noindent
@@ -893,14 +893,14 @@ Relatos incorretos ou desatualizados precisam ser consultáveis e corrigíveis p
 31 dos 48 respondentes (64,6\%) apontaram que as publicações desaparecem entre outras; todos manifestaram interesse em receber alertas de proximidade. & RF12 & Central de notificações para novos avistamentos, mensagens, correspondências, publicações próximas e lembretes relacionados às publicações do usuário. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 A comunidade precisa poder sinalizar conteúdo suspeito para análise. & RF13 & Envio de denúncia vinculada à publicação ou ao conteúdo reportado. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Denúncias exigem análise e ação administrativa para apoiar a integridade das informações. & RF14 & Consulta de denúncias e moderação do conteúdo pelo administrador. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-31 dos 48 respondentes (64,6\%) deram nota 4 ou 5 ao cartaz com código QR; 17 (35,4\%) deram nota 3. & RF15 & Geração de cartaz digital com informações da publicação e código QR para exportação ou compartilhamento. & Incluído na tarefa 3 da avaliação com participantes; resultado individual não registrado. \\ \hline
-Publicações sem atualização podem permanecer visíveis após o fim da busca. & RF16 & Vigência de 30 dias, aviso três dias antes do vencimento, ocultação após expirar, renovação durante 30 dias de carência e remoção definitiva, após esse prazo, pela rotina local para publicações do usuário autenticado. & Verificação individual não registrada. \\ \hline
+31 dos 48 respondentes (64,6\%) deram nota 4 ou 5 ao cartaz com código QR; 17 (35,4\%) deram nota 3. & RF15 & Geração de cartaz digital com informações da publicação e código QR para exportação ou compartilhamento. & Incluído na tarefa 5 da avaliação com participantes (Seção 8.4): concluída pelos 10 participantes. \\ \hline
+Publicações sem atualização podem permanecer visíveis após o fim da busca. & RF16 & Vigência de 30 dias, aviso três dias antes do vencimento, ocultação após expirar, renovação durante 30 dias de carência e remoção definitiva, após esse prazo, por uma rotina diária executada no servidor. & Verificação individual não registrada. \\ \hline
 A comparação entre anúncios perdidos e encontrados pode apoiar a identificação de possíveis correspondências. & RF17 & Comparação automática de publicações por espécie, características físicas e distância, com apresentação de sugestões de correspondência e confirmação final pelos usuários. & Teste com 20 pares fictícios (Seção 8.3): 8 de 10 pares do mesmo animal sugeridos e 6 de 10 pares diferentes sugeridos por engano. \\ \hline
 Todos os 48 respondentes pediriam prova de tutela antes da devolução: 32 sempre e 16 se desconfiassem da pessoa. & RF18 & Solicitação de devolução com relato e fotos, análise pelo autor da publicação, aprovação ou recusa e encontro de devolução em local público combinado pelo chat, com confirmação, remarcação ou cancelamento e notificação a cada etapa. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 Observação do autor em grupos do \textit{Facebook}: quem anuncia ter encontrado um animal recebe julgamentos nos comentários (sem estudo formal). & RF04 & Opção de publicar o relato de animal encontrado anonimamente, com ``Relato anônimo da comunidade'' no lugar do nome e da foto do autor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 23 dos 48 respondentes (47,9\%) marcaram que seus animais não usam nenhuma forma de identificação da lista; um marcou microchip. & RF19 & Cadastro preventivo dos animais de estimação, carteirinha digital com código QR e contato do tutor, e conversão do cadastro em publicação de animal perdido. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
 21 dos 48 respondentes (43,8\%) atribuíram nota 4 ou 5 à utilidade da seção de adoção; 19 (39,6\%) deram nota 2. & RF20 & Publicação direta para adoção, inclusive de grupos de animais com disponibilidade atualizada individualmente, e conversão de animal encontrado para adoção após sete dias de busca pelo tutor. & Fluxo principal verificado manualmente; sem erro observado. \\ \hline
-21 dos 48 respondentes (43,8\%) aceitariam avaliar com estrelas e comentário uma pessoa que ajudou; 27 (56,3\%) responderam talvez. & RF21 & Classificação entre membros após uma conversa, com estrelas, etiquetas e comentário, e média exibida no perfil público. & Verificado pelo autor em outubro de 2026, após a avaliação com participantes (Seção 8.1). \\ \hline
+21 dos 48 respondentes (43,8\%) aceitariam avaliar com estrelas e comentário uma pessoa que ajudou; 27 (56,3\%) responderam talvez. & RF21 & Classificação entre membros após uma conversa, com estrelas, etiquetas e comentário, e média exibida no perfil público. & Fluxo principal verificado manualmente pelo autor; não fez parte das tarefas da avaliação com participantes (Seção 8.1). \\ \hline
 \end{longtable}
 }
 \clearpage
@@ -978,6 +978,115 @@ Este apêndice reúne as capturas de tela do painel administrativo, separadas da
     \caption{Aba de Gerenciamento de Usuários}
     \label{fig:administracao_usuarios}
     \capturaTela{imagens/04_telas_aplicativo/tela-administracao-usuarios.png}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\clearpage
+
+\section*{APÊNDICE G: TELAS COMPLEMENTARES DO APLICATIVO}
+\phantomsection
+\label{apendice:telas-complementares}
+\addcontentsline{toc}{section}{APÊNDICE G: TELAS COMPLEMENTARES DO APLICATIVO}
+
+Este apêndice reúne telas complementares do WeFIND, citadas no Capítulo~7.
+
+\renewcommand{\thefigure}{G\arabic{figure}}
+\renewcommand{\theHfigure}{G\arabic{figure}}
+\setcounter{figure}{0}
+
+A Figura~\ref{fig:tela_filtros_avancados} apresenta os filtros avançados do mural, com critérios de espécie, porte, sexo, idade e cor, destaque para animais vistos na rua ou com recompensa e ordenação por proximidade ou data.
+
+\begin{figure}[H]
+    \centering
+    \caption{Filtros Avançados das Publicações}
+    \label{fig:tela_filtros_avancados}
+    \capturaTela{imagens/04_telas_aplicativo/tela-filtros-avancados.jpeg}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+A Figura~\ref{fig:tela_raio_localidade} mostra as janelas de ajuste do raio de busca, entre 1 e 80~km (25~km por padrão), e da localidade usada como referência para as distâncias do mural.
+
+\begin{figure}[H]
+    \centering
+    \caption{Ajuste do Raio de Busca e da Localidade do Mural}
+    \label{fig:tela_raio_localidade}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-ajuste-raio-busca.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.a) Raio de Busca}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-atualizar-localidade.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.b) Atualização da Localidade}
+    \end{minipage}
+    \par\vspace{0.12cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+A Figura~\ref{fig:tela_mural_recompensa_whatsapp} mostra o card de um animal perdido com a recompensa oferecida pelo tutor e o convite para cadastrar o WhatsApp e receber avisos.
+
+\begin{figure}[H]
+    \centering
+    \caption{Card com Recompensa e Convite para Alertas pelo WhatsApp no Mural}
+    \label{fig:tela_mural_recompensa_whatsapp}
+    \vspace{0.15cm}
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-feed-perdido-recompensa.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.a) Card com Recompensa}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \capturaTela{imagens/04_telas_aplicativo/tela-feed-convite-whatsapp.jpeg}
+        \par\vspace{0.12cm}
+        {\small Figura~\thefigure.b) Convite para Alertas pelo WhatsApp}
+    \end{minipage}
+    \par\vspace{0.12cm}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+A Figura~\ref{fig:tela_publicacao_anonima} mostra uma publicação de animal encontrado feita anonimamente, em que o mural exibe ``Relato anônimo da comunidade'' no lugar do nome e da foto do autor (Seção~\ref{sec:privacidade}).
+
+\begin{figure}[H]
+    \centering
+    \caption{Publicação Anônima de Animal Encontrado no Mural}
+    \label{fig:tela_publicacao_anonima}
+    \capturaTela{imagens/04_telas_aplicativo/tela-publicacao-anonima-mural.jpeg}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+As Figuras~\ref{fig:tela_adocao} e~\ref{fig:tela_adocao_grupo} mostram uma publicação para adoção no mural e a ficha de um anúncio coletivo de quatro animais, que informa quantos ainda estão disponíveis.
+
+\begin{figure}[H]
+    \centering
+    \caption{Publicação para Adoção no Mural}
+    \label{fig:tela_adocao}
+    \capturaTela{imagens/04_telas_aplicativo/tela-feed-adocao.jpeg}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \caption{Ficha de Anúncio Coletivo para Adoção}
+    \label{fig:tela_adocao_grupo}
+    \capturaTela{imagens/04_telas_aplicativo/tela-detalhes-adocao-grupo.jpeg}
+    \fonte{Autoria própria (2026)}
+\end{figure}
+
+A Figura~\ref{fig:tela_notificacoes_whatsapp} mostra avisos do WeFIND recebidos pelo WhatsApp, de uma devolução até um aviso de possível correspondência. No protótipo, as mensagens são enviadas pela Evolution API a partir do número de WhatsApp do próprio autor e, por isso, aparecem como enviadas por ele mesmo. Em uma versão em produção, o envio seria feito por um número institucional do WeFIND.
+
+\begin{figure}[H]
+    \centering
+    \caption{Avisos do WeFIND Recebidos pelo WhatsApp}
+    \label{fig:tela_notificacoes_whatsapp}
+    \includegraphics[width=0.5\textwidth]{imagens/04_telas_aplicativo/tela-notificacoes-whatsapp.png}
     \fonte{Autoria própria (2026)}
 \end{figure}
 
